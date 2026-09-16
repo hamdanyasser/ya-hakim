@@ -18,6 +18,7 @@ from engine.vitals import dead_vitals, status_for, vitals_at
 ROUND_SECONDS = 150          # 2.5 minutes
 STABILISE_SECONDS = 45
 MAX_MESSAGES = 60
+ASK_COOLDOWN = 8             # per player, seconds
 
 
 class Room:
@@ -44,6 +45,7 @@ class Room:
         self.lied_at = None          # drives the heart-rate tell
         self.ever_critical = False
 
+        self.last_ask = {}           # player -> when they last asked
         self.correct_guessers = []   # in order, for 100 / 60 / 40
         self.killed_by_wrong_answer = False
         self.scored = False
@@ -54,7 +56,17 @@ class Room:
         name = (name or "").strip()[:18] or "Doctor"
         if name not in self.players:
             self.players[name] = {"name": name, "score": 0, "guessed": False}
+            self.last_ask[name] = -1e9
         return self.players[name]
+
+    def on_cooldown(self, name, now):
+        """Enforced here, not on the phone.
+
+        The phone also counts down, but only so it can say why the button went
+        quiet. A player with devtools open must not be able to spam the model
+        and spend the room's API budget.
+        """
+        return (now - self.last_ask.get(name, -1e9)) < ASK_COOLDOWN
 
     def start(self):
         self.phase = "playing"
@@ -122,8 +134,14 @@ class Room:
         """A player asks the patient something. Returns his reply."""
         if self.phase != "playing":
             return None
+        question = (question or "").strip()
+        if not question:
+            return None
         now = self.clock() if now is None else now
         player = self.add_player(player_name)
+        if self.on_cooldown(player["name"], now):
+            return None
+        self.last_ask[player["name"]] = now
         self.say(player["name"], question, "question")
 
         topic = scoring.covers_key_topic(self.case, question)

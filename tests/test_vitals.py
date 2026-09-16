@@ -187,3 +187,25 @@ def test_round_ends_in_flatline_at_zero(case):
     assert room.seconds_left() == 0
     assert room.public_state().status == "flatline"
     assert room.public_state().vitals["hr"] == 0
+
+
+def test_rate_limit_is_enforced_server_side(case):
+    """A player with devtools open must not be able to spam the model."""
+    from engine.game import ASK_COOLDOWN
+
+    room, t, run_to = _room(case)
+    run_to(10)
+    assert room.ask("Sara", "do you smoke?", now=t["now"]) is not None
+    assert room.ask("Sara", "do you smoke again?", now=t["now"]) is None, \
+        "second question inside the cooldown was accepted"
+
+    t["now"] += ASK_COOLDOWN + 0.1
+    assert room.ask("Sara", "and now?", now=t["now"]) is not None
+
+
+def test_rate_limit_is_per_player(case):
+    room, t, run_to = _room(case)
+    run_to(10)
+    assert room.ask("Sara", "do you smoke?", now=t["now"]) is not None
+    assert room.ask("Omar", "do you smoke?", now=t["now"]) is not None, \
+        "one player's cooldown blocked another player"

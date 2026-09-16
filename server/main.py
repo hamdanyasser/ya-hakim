@@ -124,6 +124,21 @@ async def api_start(code: str):
     return {"ok": True}
 
 
+@app.post("/api/{code}/join")
+async def api_join(code: str, payload: dict):
+    """Register a player without saying anything.
+
+    Joining used to go through /ask with empty text, which burned the player's
+    cooldown and posted a blank line into the feed.
+    """
+    room = rooms.get(code.upper())
+    if not room:
+        return JSONResponse({"error": "no such room"}, status_code=404)
+    player = room.add_player(payload.get("name", "Doctor"))
+    await broadcast(room.room_code)
+    return {"name": player["name"]}
+
+
 @app.post("/api/{code}/ask")
 async def api_ask(code: str, payload: dict):
     room = rooms.get(code.upper())

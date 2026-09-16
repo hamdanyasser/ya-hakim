@@ -94,7 +94,7 @@
     try { localStorage.setItem('yh_name', name); } catch (e) {}
     $('join').classList.add('hide');
     $('game').classList.remove('hide');
-    post('ask', '');           /* registers the player without saying anything */
+    post('join', '');          /* registers the player without saying anything */
     connect();
   };
 
