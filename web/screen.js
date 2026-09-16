@@ -7,6 +7,7 @@
 
   var code = params.get('c');
   var FLAT = params.get('flat') === '1';   /* the one-flag 3D kill switch */
+  var MULTI = params.get('multi') === '1'; /* phones are opt-in, not default */
 
   var ecg = new Ecg($('ecg'));
   var room3d = null;
@@ -118,6 +119,11 @@
       d.innerHTML = '<span class="who">' + esc(m.who) + '</span>' + esc(m.text);
       feed.appendChild(d);
     });
+
+    if (!MULTI && s.players.some(function (p) { return p.name !== 'You'; })) {
+      document.body.classList.add('multi');
+      showJoin();
+    }
 
     var board = $('board');
     board.innerHTML = '';
@@ -275,7 +281,7 @@
     return fetch('/api/' + code + '/' + path, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: 'Room', text: text })
+      body: JSON.stringify({ name: 'You', text: text })
     });
   }
 
@@ -354,6 +360,11 @@
     }
     code = code.toUpperCase();
 
+    if (MULTI) {
+      document.body.classList.add('multi');
+      showJoin();
+    }
+
     if (FLAT || !Room3D.available()) {
       document.body.classList.add('flat');
     } else {
@@ -364,7 +375,6 @@
       }
     }
 
-    showJoin();
     connect();
     ecg.frame(performance.now());
   })();

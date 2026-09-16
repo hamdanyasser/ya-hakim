@@ -10,8 +10,13 @@ from __future__ import annotations
 import re
 
 FIRST, SECOND, THIRD = 100, 60, 40
-WASTED_QUESTION = -5
 NEVER_CRITICAL_BONUS = 50
+
+# There is deliberately no penalty for a question that covers nothing.
+# Charging -5 for curiosity turned a mystery into a guess-the-keyword quiz:
+# the only winning move was to already know the four magic phrases. The clock
+# is the cost of a wasted question, and that is enough.
+WASTED_QUESTION = 0
 
 _NEGATIONS = {
     "not", "isnt", "isn't", "arent", "aren't", "no", "nope", "never",

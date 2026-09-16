@@ -67,6 +67,7 @@
     this.w = w;
     this.h = h;
     while (this.samples.length > w) this.samples.shift();
+    if (this.samples.length < w) this.prefill();
     this.buildGrid();
   };
 
@@ -96,6 +97,21 @@
     this.grid = g;
   };
 
+  /* Fill the buffer with a screen of history so the panel is never empty.
+     Walked at the current rate rather than pasted, so the beats line up with
+     what comes next and there is no seam. */
+  Ecg.prototype.prefill = function () {
+    var perSample = (this.hr / 60) / PX_PER_SEC;
+    var phase = this.phase;
+    var out = [];
+    for (var i = 0; i < this.w; i++) {
+      phase = (phase + perSample) % 1;
+      out.push(this.dead ? 0 : beat(phase));
+    }
+    this.samples = out;
+    this.phase = phase;
+  };
+
   Ecg.prototype.set = function (hr, status) {
     if (typeof hr === 'number' && hr > 0) this.hr = hr;
     if (status) this.status = status;
@@ -110,9 +126,9 @@
 
   Ecg.prototype.revive = function () {
     this.dead = false;
-    this.samples.length = 0;
     this.phase = 0;
     this.status = 'stable';
+    this.prefill();
   };
 
   Ecg.prototype.step = function (now) {

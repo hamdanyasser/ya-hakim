@@ -39,7 +39,6 @@ html, body {
 .status-flatline  { color: var(--dim); }
 
 /* ------------------------------------------------------------ the drain */
-/* Colour leaves the whole page over ~1.2s when he goes. */
 #page {
   height: 100%;
   display: flex;
@@ -55,151 +54,173 @@ header {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  padding: 18px 28px 10px;
+  padding: 14px 28px 8px;
   border-bottom: 1px solid var(--line);
+  flex: 0 0 auto;
 }
-#patient      { font-size: 34px; font-weight: 600; letter-spacing: 0.2px; }
-#patient span { color: var(--dim); font-size: 22px; font-weight: 400; margin-left: 10px; }
+#patient      { font-size: 32px; font-weight: 600; letter-spacing: 0.2px; }
+#patient span { color: var(--dim); font-size: 21px; font-weight: 400; margin-left: 10px; }
 #hdrRight     { display: flex; align-items: baseline; gap: 20px; }
-#level        { color: var(--dim); font-size: 15px; letter-spacing: 0.6px; }
-#clock        { font-size: 46px; font-weight: 600; }
+#level        { color: var(--dim); font-size: 14px; letter-spacing: 0.6px; }
+#clock        { font-size: 44px; font-weight: 600; }
 
 /* -------------------------------------------------------- monitor panel */
 #monitor {
   display: grid;
-  grid-template-columns: 1fr 340px;
+  grid-template-columns: 1fr 330px;
   gap: 18px;
-  padding: 14px 28px;
+  padding: 10px 28px 12px;
   border-bottom: 1px solid var(--line);
   background: var(--panel);
+  flex: 0 0 auto;
 }
-#ecgWrap { position: relative; min-height: 190px; }
-#ecg     { width: 100%; height: 190px; display: block; }
+#ecgWrap { position: relative; height: 150px; }
+#ecg     { width: 100%; height: 150px; display: block; }
 
 #vitals {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px 22px;
+  gap: 6px 22px;
   align-content: center;
 }
 .vital      { display: flex; flex-direction: column; }
-.vital .lbl { font-size: 12px; color: var(--dim); text-transform: none; letter-spacing: 0.6px; }
-.vital .val { font-size: 34px; line-height: 1.05; font-weight: 600; }
-.vital .val small { font-size: 14px; color: var(--dim); font-weight: 400; margin-left: 4px; }
+.vital .lbl { font-size: 12px; color: var(--dim); letter-spacing: 0.6px; }
+.vital .val { font-size: 32px; line-height: 1.05; font-weight: 600; }
+.vital .val small { font-size: 13px; color: var(--dim); font-weight: 400; margin-left: 4px; }
 
 /* ----------------------------------------------------------------- body */
+/* The conversation IS the game, so it gets the larger column and the
+   biggest type on the page. The room is atmosphere and sits beside it. */
 #body {
-  flex: 1;
+  flex: 1 1 auto;
   display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 0;
+  grid-template-columns: 1.45fr 1fr;
   min-height: 0;
 }
 
-/* Left column: the room on top, the feed below. In flat mode the room is gone
-   and the feed takes the whole column -- that is the phase-5 kill switch. */
-#left { display: flex; flex-direction: column; min-height: 0; min-width: 0; }
-
-#roomWrap { position: relative; flex: 1; min-height: 0; background: var(--bg); }
-#room3d   { width: 100%; height: 100%; display: block; }
-#fps {
-  position: absolute; right: 10px; bottom: 8px;
-  font-family: var(--mono); font-size: 12px; color: var(--dim); opacity: .7;
-}
-body.flat #roomWrap { display: none; }
-body.flat #feed     { flex: 1; }
-
 #feed {
-  flex: 0 0 auto;
-  max-height: 46%;
-  padding: 16px 28px;
-  overflow: hidden;
+  padding: 18px 28px;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  gap: 10px;
+  gap: 14px;
+  min-height: 0;
 }
-.msg       { font-size: 21px; line-height: 1.34; max-width: 60ch; }
-.msg .who  { color: var(--player); font-weight: 600; margin-right: 8px; }
-.msg.reply { color: var(--text); }
-.msg.reply .who { color: var(--ok); }
-.msg.question   { color: var(--dim); }
+#feed::-webkit-scrollbar { width: 0; }
+
+.msg       { font-size: 24px; line-height: 1.36; max-width: 46ch; }
+.msg .who  { display: block; font-size: 13px; letter-spacing: 1.1px;
+             text-transform: uppercase; margin-bottom: 3px; }
+.msg.question      { color: var(--dim); }
+.msg.question .who { color: var(--player); }
+.msg.reply         { color: var(--text); }
+.msg.reply .who    { color: var(--ok); }
 
 #side {
   border-left: 1px solid var(--line);
-  padding: 16px 24px;
+  padding: 14px 22px 16px;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 14px;
+  min-height: 0;
+  overflow: hidden;
 }
 #side h2 {
-  font-size: 12px; color: var(--dim); font-weight: 600;
-  letter-spacing: 1.2px; margin: 0 0 6px;
+  font-size: 11px; color: var(--dim); font-weight: 600;
+  letter-spacing: 1.2px; margin: 0 0 7px;
 }
-#board { display: flex; flex-direction: column; gap: 7px; }
-.row   { display: flex; justify-content: space-between; font-size: 19px; }
+
+#roomWrap {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 160px;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #0b0d11;
+}
+#room3d { width: 100%; height: 100%; display: block; }
+#fps {
+  position: absolute; right: 8px; bottom: 6px;
+  font-family: var(--mono); font-size: 11px; color: var(--dim); opacity: .55;
+}
+body.flat #roomWrap { display: none; }
+
+/* Single player is the default. The join panel and the leaderboard appear
+   only when someone is actually playing from a phone. */
+#joinBox, #boardBox { display: none; flex: 0 0 auto; }
+body.multi #joinBox, body.multi #boardBox { display: block; }
+
+#qr   { background: #fff; padding: 7px; border-radius: 5px;
+        width: 148px; height: 148px; display: block; }
+#code { font-size: 26px; font-weight: 700; letter-spacing: 4px; margin-top: 5px; }
+
+#board { display: flex; flex-direction: column; gap: 6px; }
+.row   { display: flex; justify-content: space-between; font-size: 18px; }
 .row .nm { color: var(--text); }
 .row .sc { font-weight: 600; }
-
-#joinBox { margin-top: auto; }
-#qr      { background: #fff; padding: 10px; border-radius: 6px; width: 250px; height: 250px; display: block; }
-#joinUrl { font-size: 15px; color: var(--dim); margin-top: 8px; word-break: break-all; }
-#code    { font-size: 38px; font-weight: 700; letter-spacing: 5px; margin-top: 4px; }
 
 /* --------------------------------------------------------- laptop input */
 /* The zero-phone path. One person types here and the game still plays. */
 #laptop {
   display: flex; gap: 10px; padding: 12px 28px;
   border-top: 1px solid var(--line); background: var(--panel);
+  flex: 0 0 auto;
 }
 #laptop input {
   flex: 1; background: var(--bg); border: 1px solid var(--line);
   color: var(--text); font-family: var(--sans); font-size: 19px;
-  padding: 11px 14px; border-radius: 5px;
+  padding: 12px 15px; border-radius: 5px;
 }
 #laptop input:focus { outline: none; border-color: var(--player); }
 #laptop button {
   background: var(--player); color: #0b1620; border: 0; font-size: 17px;
-  font-weight: 600; padding: 11px 22px; border-radius: 5px; cursor: pointer;
+  font-weight: 600; padding: 12px 24px; border-radius: 5px; cursor: pointer;
 }
 #laptop .ghost { background: transparent; color: var(--dim); border: 1px solid var(--line); }
+#laptop button:disabled { opacity: .4; cursor: default; }
 
 /* -------------------------------------------------------------- overlays */
 #overlay {
   position: fixed; inset: 0; background: var(--bg);
-  display: none; align-items: center; justify-content: center;
-  z-index: 40;
+  display: none; z-index: 40;
 }
-#overlay.show { display: flex; }
+#overlay.show { display: block; }
 
 #reveal {
   position: fixed; inset: 0; background: var(--bg);
   display: none; flex-direction: column;
-  align-items: center; justify-content: center; gap: 22px;
+  align-items: center; justify-content: center; gap: 20px;
   z-index: 50; padding: 40px; text-align: center;
 }
 #reveal.show { display: flex; animation: rise 0.5s ease-out; }
 @keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
 
-#revealHead { font-size: 26px; color: var(--dim); }
-#revealDx   { font-size: 58px; font-weight: 700; max-width: 22ch; line-height: 1.12; }
-#revealWho  { font-size: 24px; color: var(--ok); }
-#revealScores { display: flex; flex-direction: column; gap: 9px; margin-top: 10px; min-width: 360px; }
-#revealScores .row { font-size: 23px; }
+#revealHead { font-size: 25px; color: var(--dim); }
+#revealDx   { font-size: 56px; font-weight: 700; max-width: 22ch; line-height: 1.12; }
+#revealNote { font-size: 21px; color: var(--warn); max-width: 32ch; }
+#revealWho  { font-size: 23px; color: var(--ok); }
+#revealScores { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; min-width: 340px; }
+#revealScores .row { font-size: 22px; }
+#nextBtn {
+  background: var(--player); color: #0b1620; border: 0; font-size: 19px;
+  font-weight: 700; padding: 13px 36px; border-radius: 6px; cursor: pointer;
+  margin-top: 8px;
+}
 
 #title {
   position: fixed; inset: 0; background: var(--bg); z-index: 60;
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px;
 }
 #title.hide { display: none; }
-#title h1 { font-size: 78px; margin: 0; letter-spacing: 2px; }
-#title p  { color: var(--dim); font-size: 21px; margin: 0; max-width: 46ch; text-align: center; line-height: 1.5; }
-#title .warn { color: var(--warn); font-size: 18px; }
+#title h1 { font-size: 76px; margin: 0; letter-spacing: 2px; }
+#title p  { color: var(--dim); font-size: 20px; margin: 0; max-width: 46ch;
+            text-align: center; line-height: 1.5; }
+#title .warn { color: var(--warn); font-size: 17px; }
 #title button {
   background: var(--ok); color: #06201a; border: 0; font-size: 21px;
   font-weight: 700; padding: 15px 42px; border-radius: 6px; cursor: pointer; margin-top: 6px;
 }
-
 
 /* ------------------------------------------------------------ level card */
 #card {
@@ -209,20 +230,12 @@ body.flat #feed     { flex: 1; }
 }
 #card.show { display: flex; animation: rise 0.45s ease-out; }
 #cardLevel {
-  font-size: 14px; letter-spacing: 2.4px; color: var(--dim);
-  text-transform: uppercase;
+  font-size: 13px; letter-spacing: 2.4px; color: var(--dim); text-transform: uppercase;
 }
 #cardLines { display: flex; flex-direction: column; gap: 14px; max-width: 26ch; }
-#cardLines div { font-size: 38px; line-height: 1.24; font-weight: 500; }
+#cardLines div { font-size: 36px; line-height: 1.24; font-weight: 500; }
 #cardLines div:last-child { color: var(--warn); }
 #cardGo {
   background: var(--ok); color: #06201a; border: 0; font-size: 20px;
   font-weight: 700; padding: 14px 40px; border-radius: 6px; cursor: pointer;
-}
-
-#revealNote { font-size: 22px; color: var(--warn); max-width: 32ch; }
-#nextBtn {
-  background: var(--player); color: #0b1620; border: 0; font-size: 19px;
-  font-weight: 700; padding: 13px 36px; border-radius: 6px; cursor: pointer;
-  margin-top: 10px;
 }

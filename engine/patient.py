@@ -253,6 +253,14 @@ class PatientSession:
 # It therefore cannot leak anything the live patient could not, and the
 # existing leak tests cover it for free.
 
+# Words too common to mean anything when matching a question to a symptom.
+STOPWORDS = {
+    "your", "you", "have", "having", "been", "does", "doing", "with", "what",
+    "when", "where", "much", "many", "about", "there", "that", "this", "they",
+    "them", "from", "were", "will", "would", "could", "should", "tell", "just",
+    "like", "some", "any", "feel", "feeling", "been", "long", "time", "more",
+}
+
 WHATS_WRONG_PATTERNS = [
     "what's wrong", "whats wrong", "what is wrong", "what do you have",
     "what've you got", "what have you got", "your diagnosis", "what's the matter",
@@ -267,6 +275,41 @@ class CannedPatient:
         self.case = case
         self.deflect_i = 0
 
+    def symptom_answer(self, question):
+        """Answer from what his body is actually doing.
+
+        Without this he rotated the same five deflections no matter what he was
+        asked, which is the single most robotic thing about the offline mode.
+        Every symptom is already written in his own plain words, so asking
+        "are you sleeping?" can draw the real line about sleeping badly.
+        """
+        toks = set(re.findall(r"[a-z]{4,}", (question or "").lower())) - STOPWORDS
+        if not toks:
+            return None
+        best, best_score = None, 0
+        for symptom in self.case["symptoms"]:
+            words = set(re.findall(r"[a-z]{4,}", symptom.lower()))
+            hits = len(toks & words)
+            if hits > best_score:
+                best, best_score = symptom, hits
+        if best_score < 1:
+            return None
+        return self.voice(best)
+
+    def voice(self, symptom):
+        """Symptoms are written in his own words, so this only tidies them.
+
+        They used to be third-person case notes, which made him say things like
+        "Dizzy when he stands up too fast" -- correct information in somebody
+        else's mouth.
+        """
+        text = symptom.strip()
+        if text[:1].islower():
+            text = text[0].upper() + text[1:]
+        if not text.endswith((".", "!", "?")):
+            text += "."
+        return text
+
     def reply(self, question, cracked=False, topic=None):
         low = (question or "").lower()
 
@@ -280,6 +323,11 @@ class CannedPatient:
             line = self.case["canned"].get(topic)
             if line:
                 return line
+
+        # Before deflecting, see whether he can answer from his own symptoms.
+        answer = self.symptom_answer(question)
+        if answer:
+            return answer
 
         deflections = self.case["canned"]["_deflect"]
         line = deflections[self.deflect_i % len(deflections)]

@@ -53,8 +53,8 @@
     this.scene.fog = new THREE.Fog(0x0F1115, 6, 16);
 
     this.camera = new THREE.PerspectiveCamera(42, W / H, 0.1, 100);
-    this.camera.position.set(2.6, 1.85, 3.5);
-    this.camera.lookAt(0, 0.85, 0);
+    this.camera.position.set(2.05, 1.30, 2.85);
+    this.camera.lookAt(0, 0.86, 0);
 
     this.build(ecgCanvas);
     this.ok = true;
@@ -137,13 +137,15 @@
       var x = pos.getX(i);
       var y = pos.getY(i);          /* along the body, -1 head .. +1 feet */
       var t = (y + 1) / 2;
-      var across = Math.cos(Math.min(1, Math.abs(x) / 0.5) * Math.PI / 2);
+      var across = Math.pow(Math.cos(Math.min(1, Math.abs(x) / 0.34) * Math.PI / 2), 0.75);
 
-      var torso = 0.17 * Math.exp(-Math.pow((t - 0.36) / 0.20, 2));
-      var hips  = 0.13 * Math.exp(-Math.pow((t - 0.60) / 0.13, 2));
-      var legs  = 0.075 * Math.exp(-Math.pow((t - 0.84) / 0.16, 2));
-      var feet  = 0.05 * Math.exp(-Math.pow((t - 0.97) / 0.04, 2));
-      var h = (torso + hips + legs + feet) * across;
+      var chest = 0.30 * Math.exp(-Math.pow((t - 0.30) / 0.115, 2));
+      var waist = 0.17 * Math.exp(-Math.pow((t - 0.48) / 0.085, 2));
+      var hips  = 0.24 * Math.exp(-Math.pow((t - 0.62) / 0.085, 2));
+      var knees = 0.19 * Math.exp(-Math.pow((t - 0.80) / 0.075, 2));
+      var shins = 0.11 * Math.exp(-Math.pow((t - 0.91) / 0.065, 2));
+      var feet  = 0.13 * Math.exp(-Math.pow((t - 0.985) / 0.030, 2));
+      var h = (chest + waist + hips + knees + shins + feet) * across;
 
       this.baseZ.push(h);
       pos.setZ(i, h);
@@ -153,7 +155,7 @@
     var sheet = new THREE.Mesh(
       sheetGeo,
       new THREE.MeshStandardMaterial({
-        color: 0xd8d4c8, roughness: 0.95, metalness: 0,
+        color: 0x9d9a90, roughness: 1.0, metalness: 0,
         side: THREE.DoubleSide
       })
     );
@@ -165,7 +167,7 @@
     this.sheet = sheet;
 
     /* A suggestion of a head on the pillow. A sphere, no features. */
-    var pillow = box(0.42, 0.10, 0.26, 0xe4e0d4, 0.95);
+    var pillow = box(0.42, 0.10, 0.26, 0xb3afa3, 0.98);
     pillow.position.set(0, 0.75, -0.92);
     pillow.castShadow = true;
     S.add(pillow);
@@ -232,18 +234,17 @@
       new THREE.PlaneGeometry(0.58, 0.38),
       new THREE.MeshBasicMaterial({ map: this.ecgTexture })
     );
-    screen.position.set(
-      1.0 + Math.cos(-0.42) * 0.047, 1.34, -0.7 + Math.sin(0.42) * 0.047
-    );
-    screen.rotation.y = -0.42;
-    S.add(screen);
+    /* A child of the shell at local +Z. Parenting handles the rotation, so the
+       screen cannot end up buried inside its own housing. */
+    screen.position.set(0, 0, 0.047);
+    shell.add(screen);
     this.screen = screen;
 
     /* ---- lighting: this is what sells it ---- */
-    S.add(new THREE.AmbientLight(0x2b3240, 0.9));
+    S.add(new THREE.AmbientLight(0x38404f, 1.25));
 
     /* one warm overhead spot, soft shadows on the bed */
-    var spot = new THREE.SpotLight(0xffd9a8, 1.15, 14, Math.PI / 6.5, 0.55, 1.4);
+    var spot = new THREE.SpotLight(0xffd2a0, 0.78, 14, Math.PI / 5.6, 0.62, 1.3);
     spot.position.set(0.35, 3.5, 1.0);
     spot.target.position.set(0, 0.75, 0);
     spot.castShadow = true;
@@ -257,7 +258,7 @@
     S.add(spot.target);
 
     /* cool rim light, separates him from the wall */
-    var rim = new THREE.DirectionalLight(0x6f9fd8, 0.55);
+    var rim = new THREE.DirectionalLight(0x7fb0e6, 0.85);
     rim.position.set(-3.2, 2.2, -2.6);
     S.add(rim);
 
@@ -294,8 +295,8 @@
       for (var i = 0; i < pos.count; i++) {
         var y = pos.getY(i);
         var t = (y + 1) / 2;
-        var chest = Math.exp(-Math.pow((t - 0.36) / 0.17, 2));
-        pos.setZ(i, this.baseZ[i] + breath * 0.018 * chest);
+        var chest = Math.exp(-Math.pow((t - 0.30) / 0.13, 2));
+        pos.setZ(i, this.baseZ[i] + breath * 0.026 * chest);
       }
       pos.needsUpdate = true;
       this.sheet.geometry.computeVertexNormals();
@@ -307,7 +308,7 @@
         1.85 + Math.sin(a * 0.7) * 0.11,
         3.5 + Math.cos(a) * 0.30
       );
-      this.camera.lookAt(0, 0.85, 0);
+      this.camera.lookAt(0, 0.86, 0);
     }
 
     /* The ECG canvas was already redrawn this frame by the 2D panel; this just

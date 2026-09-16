@@ -45,29 +45,27 @@
     </div>
   </section>
 
+  <!-- The conversation is the game, so it gets the room. -->
   <section id="body">
-    <div id="left">
-      <div id="roomWrap"><canvas id="room3d"></canvas><div id="fps"></div></div>
-      <div id="feed"></div>
-    </div>
+    <div id="feed"></div>
     <aside id="side">
-      <div>
-        <h2>Room</h2>
-        <div id="board"></div>
-      </div>
+      <div id="roomWrap"><canvas id="room3d"></canvas><div id="fps"></div></div>
       <div id="joinBox">
         <h2>Join from your phone</h2>
         <img id="qr" alt="Join QR code">
         <div id="code" class="num">&mdash;</div>
-        <div id="joinUrl"></div>
+      </div>
+      <div id="boardBox">
+        <h2>Room</h2>
+        <div id="board"></div>
       </div>
     </aside>
   </section>
 
   <div id="laptop">
-    <input id="ask" placeholder="Ask him something, then press enter" autocomplete="off">
+    <input id="ask" placeholder="Ask him anything, then press enter" autocomplete="off">
     <button id="askBtn">Ask</button>
-    <button id="guessBtn" class="ghost">Guess</button>
+    <button id="guessBtn" class="ghost">Diagnose</button>
   </div>
 </div>
 
@@ -83,8 +81,8 @@
 </div>
 
 <!-- three.js r128, UMD build: defines a global THREE. Pinned deliberately.
-     If this fails to load, Room3D.available() is false and the flat projector
-     view is what ships. ?flat=1 skips the 3D layer outright. -->
+     If this fails to load, Room3D.available() is false and the flat view is
+     what ships. ?flat=1 skips the 3D layer outright. -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="/static/ecg.js"></script>
 <script src="/static/room3d.js"></script>
