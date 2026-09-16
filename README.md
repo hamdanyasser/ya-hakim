@@ -66,15 +66,30 @@ reaches a client. A hit is thrown away and he is nudged back into character.
 
 ## Running it
 
-Python 3.10+ (3.10.11 is what this was built on). **Put the venv outside the
-project folder** — the project lives in a OneDrive-synced directory and a venv
-there means thousands of files syncing, plus occasional file locks mid-demo.
+Python 3.10 or newer.
+
+**macOS / Linux**
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+uvicorn server.main:app --host 0.0.0.0 --port 8000
+```
+
+**Windows (PowerShell)**
 
 ```powershell
-python -m venv $env:LOCALAPPDATA\yahakim-venv
-& $env:LOCALAPPDATA\yahakim-venv\Scripts\python.exe -m pip install -r requirements.txt
-& $env:LOCALAPPDATA\yahakim-venv\Scripts\python.exe -m uvicorn server.main:app --host 0.0.0.0 --port 8000
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+uvicorn server.main:app --host 0.0.0.0 --port 8000
 ```
+
+> If your copy of this folder is inside OneDrive, Dropbox or another synced
+> directory, put the venv somewhere else — e.g. `python -m venv $env:LOCALAPPDATA\yahakim-venv`.
+> A venv in a synced folder means thousands of files syncing and occasional
+> file locks mid-demo.
 
 Then open **http://localhost:8000/screen** on the projector.
 
@@ -104,8 +119,9 @@ the fallback if the venue wifi is hostile.
 
 ## Demo day
 
-- **Find the right LAN IP.** `ipconfig` will list several adapters; you want the
-  Wi-Fi or Ethernet one, not WSL, Hyper-V or a VPN adapter.
+- **Find the right LAN IP.** `ipconfig` (Windows) or `ifconfig` / `ip addr`
+  (macOS, Linux) lists several adapters; you want the Wi-Fi or Ethernet one,
+  not WSL, Hyper-V, Docker or a VPN adapter.
 - **Windows Defender will prompt** the first time you bind to `0.0.0.0`. Trigger
   that at home, not on stage.
 - **Some venue wifi has AP isolation**, which makes phone→laptop impossible no
@@ -118,9 +134,11 @@ the fallback if the venue wifi is hostile.
 
 ## Tests
 
-```powershell
-& $env:LOCALAPPDATA\yahakim-venv\Scripts\python.exe -m pytest -q
+```bash
+pytest -q
 ```
+
+CI runs these on every push. They need no API key and no network.
 
 - `test_no_leak.py` — the diagnosis is absent from the persona in both cracked
   and uncracked states, absent from server-authored `GameState`, and a field
@@ -175,6 +193,15 @@ silence, along with everything else.
 
 There is an fps readout in the corner. Gate 5 is 60fps or delete it — and
 deleting it is `?flat=1`, or removing one `<script>` tag.
+
+## A note on this being a public repo
+
+`cases/*.json` contain the answers in plain text. That is fine and intended —
+the guarantee is that the diagnosis never reaches **the model**, not that it is
+hidden from anyone reading the source. But it does mean a player who finds this
+repository can read the answers to all three cases. If you run this
+competitively, either keep the case files out of the public tree or write new
+ones for the event.
 
 ## What is deliberately not here
 
