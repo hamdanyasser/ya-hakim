@@ -122,12 +122,14 @@ def test_persona_only_contains_allowlisted_content(case_id):
 
 # ------------------------------------------------------ what clients receive
 
-def _sample_state(case: dict, phase: str = "playing") -> GameState:
+def _sample_state(case: dict, phase: str = "playing", mood: str = "guarded") -> GameState:
     return GameState(
         room_code="WXYZ",
         phase=phase,
         patient_name=case["name"],
         patient_age=case["age"],
+        description=case.get("description", ""),
+        mood=mood,
         vitals={"hr": 96, "spo2": 97, "bp": "104/68", "rr": 18},
         status="stable",
         seconds_left=120,
@@ -211,8 +213,9 @@ def test_gamestate_has_no_field_beyond_the_contract(case_id):
     import dataclasses
 
     expected = {
-        "room_code", "phase", "patient_name", "patient_age", "vitals", "status",
-        "seconds_left", "messages", "players", "reveal",
+        "room_code", "phase", "patient_name", "patient_age", "description",
+        "mood", "vitals", "status", "seconds_left", "messages", "players",
+        "reveal",
     }
     actual = {f.name for f in dataclasses.fields(GameState)}
     assert actual == expected, "GameState contract changed: " + str(actual ^ expected)
@@ -302,6 +305,15 @@ def test_every_key_question_has_keywords_and_a_canned_reply(case_id):
         assert kq in case.get("canned", {}), (
             case_id + " has no canned reply for key question " + repr(kq)
         )
+
+
+@pytest.mark.parametrize("case_id", CASE_IDS)
+def test_every_case_has_a_description(case_id):
+    """description is allowlisted into the prompt, so build_persona() would
+    KeyError on a case missing it -- this catches that before the round does."""
+    case = load(case_id)
+    desc = case.get("description")
+    assert isinstance(desc, str) and desc.strip(), case_id + " has no description"
 
 
 @pytest.mark.parametrize("case_id", CASE_IDS)

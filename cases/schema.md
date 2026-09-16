@@ -22,8 +22,18 @@ at the reveal):
 **Allowlisted. These and only these are rendered into the prompt** — the list
 lives in `engine/patient.py` as `ALLOWED_IN_PROMPT`:
 
-`name`, `age`, `personality`, `symptoms`, `lie`, `truth`, `cracks_when`,
-`red_herrings`
+`name`, `age`, `description`, `personality`, `symptoms`, `lie`, `truth`,
+`cracks_when`, `red_herrings`
+
+`description` is one or two lines of real-world grounding — job, family,
+routine. It goes to the model *and* to the screen (under the patient's name,
+and in the phone header), so it doubles as flavour and as UI copy. It is
+allowlisted, which means it is checked by exactly the same leak tests as
+`personality`: word-boundary-safe against that case's `diagnosis` and
+`accepted_answers`, automatically, every run. Write it the way you'd write
+`personality` — never medical, never a synonym for the answer. Georges is a
+retired boiler engineer; that he spent forty years around heating systems and
+still can't see what's poisoning his own house is the point.
 
 **Everything else** (`opening_line`, `canned`, `level_card`, `reveal_note`,
 `vitals_start`, `vitals_decline`, `id`) is used by the engine or the UI and is
@@ -92,6 +102,23 @@ The **first** key question is special: it carries `lie` and `truth`, so it needs
 no `canned` entry — the engine serves `lie`, then `truth` once he cracks. Every
 other key question needs one. `test_every_key_question_has_keywords_and_a_canned_reply`
 checks this.
+
+## Mood
+
+Not a case field — there is nothing to write here. `engine/mood.py` derives a
+mood (`guarded`, `uneasy`, `defensive`, `rattled`, `scared`, `pleading`,
+`resigned`) from signals the room already has: vitals colour, whether he has
+cracked, how many times the one topic has been pressed, and whether the lie
+spike is currently active. It is sent to every client in every phase — it
+cannot leak, because it never reads a case's secret fields, only the room's
+own public state.
+
+It does two things: a badge under the patient's name and age on both screens,
+and — live mode only — a short engine-authored behaviour note folded into the
+prompt (`MOOD_DIRECTIVES` in `engine/patient.py`), so a bad question landing
+mid-lie gets a flustered reply instead of a flat one. The offline voice is
+fixed, hand-checked dialogue, so mood does not steer it — only the badge
+changes for the canned patient.
 
 ## Campaign fields
 

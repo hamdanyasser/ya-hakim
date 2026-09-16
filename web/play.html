@@ -34,7 +34,21 @@ button.ghost{background:transparent;color:var(--dim);border:1px solid var(--line
 .m.reply .w{color:var(--ok)}
 .m.question{color:var(--dim)}
 #status{font-size:13px;color:var(--dim)}
+#patientSub{font-size:13px;color:var(--dim);margin:2px 0 0}
 .hide{display:none!important}
+
+/* The jolt, phone-sized: no shake (a hand-held screen shaking reads as a bug,
+   not a scare), just a hard red wash that settles back. This is the thing in
+   the player's hand at the exact moment he flatlines. */
+@keyframes flashRed {
+  0%       { background: var(--bg); }
+  12%, 38% { background: #3a0f0f; }
+  100%     { background: var(--bg); }
+}
+body.flashRed { animation: flashRed 0.9s ease-in-out; }
+@media (prefers-reduced-motion: reduce) {
+  body.flashRed { animation: none; background: #2a0f0f; transition: background 0.6s ease-out 0.6s; }
+}
 </style>
 </head>
 <body>
@@ -55,6 +69,7 @@ button.ghost{background:transparent;color:var(--dim);border:1px solid var(--line
   <div>
     <h1 id="who">&mdash;</h1>
     <p class="sub"><span id="status">connecting</span></p>
+    <p id="patientSub"></p>
   </div>
   <div id="log"></div>
   <div class="card">

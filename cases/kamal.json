@@ -1,5 +1,8 @@
 {
   "id": "kamal",
+  "title": "The man whose wife made him come",
+  "specialty": "Gastroenterology / Acute medicine",
+  "setting": "Emergency department, 21:40",
   "diagnosis": "Decompensated alcoholic liver disease",
   "accepted_answers": [
     "liver failure",
@@ -8,106 +11,74 @@
     "liver",
     "alcohol"
   ],
+  "partial_answers": [
+    "hepatic",
+    "hepatitis",
+    "jaundice",
+    "ascites"
+  ],
   "key_questions": [
     "how much do you drink",
     "yellow eyes or skin",
     "belly swelling",
-    "bruising easily"
+    "bruising easily",
+    "confusion or drowsiness"
   ],
   "key_keywords": [
-    [
-      "drink",
-      "drinks",
-      "drinking",
-      "drank",
-      "alcohol",
-      "arak",
-      "booze",
-      "bottle",
-      "beer",
-      "wine",
-      "whisky",
-      "whiskey",
-      "spirits",
-      "liquor",
-      "pub",
-      "bar"
-    ],
-    [
-      "yellow",
-      "yellowing",
-      "yellowish",
-      "eyes",
-      "skin",
-      "colour",
-      "color",
-      "pale",
-      "tint"
-    ],
-    [
-      "belly",
-      "stomach",
-      "tummy",
-      "swell",
-      "swelling",
-      "swollen",
-      "bloated",
-      "bloating",
-      "distended",
-      "gut",
-      "waist",
-      "size"
-    ],
-    [
-      "bruise",
-      "bruises",
-      "bruising",
-      "bruised",
-      "bleed",
-      "bleeds",
-      "bleeding",
-      "blood",
-      "clot",
-      "clotting",
-      "marks"
-    ]
+    ["drink", "drinks", "drinking", "drank", "alcohol", "arak", "booze", "bottle", "beer", "wine", "whisky", "whiskey", "spirits", "liquor", "pub", "bar", "units"],
+    ["yellow", "yellowing", "yellowish", "eyes", "skin", "colour", "color", "pale", "tint", "itchy", "itching"],
+    ["belly", "stomach", "tummy", "swell", "swelling", "swollen", "bloated", "bloating", "distended", "gut", "waist", "size", "girth"],
+    ["bruise", "bruises", "bruising", "bruised", "bleed", "bleeds", "bleeding", "blood", "clot", "clotting", "marks", "nosebleed", "gums"],
+    ["confused", "confusion", "muddled", "forgetful", "memory", "concentrate", "concentration", "drowsy", "daytime", "nodding", "personality", "irritable"]
   ],
+  "key_question_reasons": [
+    "The cause. Fifteen years of heavy drinking is the whole story, and he will not volunteer it.",
+    "Jaundice is the sign his wife saw and he ignored; it marks this as decompensation, not fatigue.",
+    "Ascites over three weeks is the presenting complaint hiding behind 'middle age'.",
+    "Easy bruising means impaired clotting: a failing liver is not making clotting factors.",
+    "Confusion and day-night reversal are hepatic encephalopathy, the most dangerous feature tonight."
+  ],
+  "crack_keywords": ["wife", "what does she say", "honest with me", "be honest"],
   "name": "Kamal",
   "age": 54,
+  "sex": "male",
+  "description": "Dock supervisor at the port, married thirty years, two grown sons. Has not missed a shift in a decade and is prouder of that than of anything. His wife brought him in tonight after she found him at the kitchen table not making sense; he says he was just tired.",
+  "presentation": {
+    "complaint": "Abdominal swelling, ankle swelling and an episode of confusion",
+    "duration": "Three weeks of swelling; about an hour of confusion this evening",
+    "triage_note": "Brought by wife. Increasing abdominal girth and ankle swelling over three weeks, tired all the time. Wife reports he was 'not making sense' for about an hour this evening and has been sleeping in the day. Apyrexial. Nurse notes yellow sclerae. Says he does not need to be here."
+  },
+  "history": {
+    "past_medical": ["High blood pressure, about five years ago they said", "A hernia repair when I was forty"],
+    "medications": ["Amlodipine, one a day. I take it most days"],
+    "allergies": ["None that I know of"],
+    "social": ["I supervise the loading crews at the port. Thirty years there", "I have arak with dinner. A couple of glasses, like anyone", "I smoked until my forties, then stopped", "I live with my wife. The boys have their own places now"],
+    "family": ["My father died of his heart at seventy", "My mother is still alive and complains about everything"]
+  },
   "opening_line": "Doctor, it's nothing. My wife made me come.",
-  "personality": "Proud. Jokes when uncomfortable. Thinks this is a waste of everyone's time. Slips into Lebanese Arabic when annoyed.",
+  "personality": "Proud. Jokes when uncomfortable. Thinks this is a waste of everyone's time. Slips into Lebanese Arabic when annoyed. Softens if you ask about his sons or his work.",
   "symptoms": [
     "my belly has been swelling for about three weeks",
-    "I am tired all the time and sleeping badly",
+    "I am tired all the time and sleeping badly, then nodding off in the day",
     "my wife says my eyes look yellow",
     "my ankles puff up by the evening",
-    "I bruise easily, and I do not remember knocking into anything"
+    "I bruise easily, and I do not remember knocking into anything",
+    "my wife says I was talking nonsense tonight. I don't remember it"
   ],
+  "lie_topic": "your drinking",
   "lie": "Two small glasses of arak with dinner. Like everyone.",
-  "truth": "Most of a bottle a day, for about fifteen years",
+  "truth": "Most of a bottle a day, for about fifteen years. More since my brother died.",
   "cracks_when": "pressed on it a second time, or asked what his wife thinks",
   "red_herrings": [
     "ate bad fish last week",
     "his cousin has kidney stones"
   ],
-  "vitals_start": {
-    "hr": 96,
-    "spo2": 97,
-    "sys": 104,
-    "dia": 68,
-    "rr": 18
-  },
-  "vitals_decline": {
-    "hr": 20,
-    "spo2": -4.5,
-    "sys": -12,
-    "dia": -8,
-    "rr": 3.2
-  },
   "canned": {
     "yellow eyes or skin": "My wife says that. I look in the mirror, I see the same face I always see.",
     "belly swelling": "It's gotten bigger, fine. I told her it's middle age. Everyone gets a belly.",
     "bruising easily": "I knock into things. The house is small, what do you want from me.",
+    "confusion or drowsiness": "I nodded off at the table, that's all. I'm up half the night and dead on my feet by lunch.",
+    "_greeting": "Evening, doctor. Let's get this over with, she's waiting outside.",
     "_whats_wrong": "I don't know. That's why I'm sitting here wasting your time and mine.",
     "_deflect": [
       "Yaani, is this necessary? I feel fine.",
@@ -118,6 +89,73 @@
       "My wife made me come. Tell her I came. Can I go?"
     ]
   },
+  "exam": {
+    "general": "Jaundiced sclerae and skin. Drowsy but rousable; orientated to person and place, not to time. Wasted shoulders and arms with a tense, distended abdomen.",
+    "hands": "Palmar erythema. Dupuytren's contracture of the right ring finger. Coarse flapping tremor on wrist extension (asterixis). Several spider naevi across the upper chest and shoulders.",
+    "abdominal": "Distended, tense abdomen with shifting dullness and a fluid thrill. Mild generalised tenderness, no guarding or rebound. Liver edge not palpable; spleen tip palpable. Dilated veins around the umbilicus.",
+    "cardiovascular": "Pulse 96 regular. Bilateral pitting oedema to mid-shin. JVP not raised. Heart sounds normal.",
+    "respiratory": "Reduced air entry and dull percussion at the right base. Otherwise clear.",
+    "neurological": "GCS 14/15 (E4 V4 M6). Asterixis present. No focal deficit. Slowed, slurred speech at times.",
+    "cognition": "AMTS 6/10: wrong on the date, the year, recall of the address and counting backwards. Slow to answer.",
+    "skin": "Scattered bruises of different ages on the forearms and shins. Spider naevi. Jaundice."
+  },
+  "investigations": {
+    "fbc": "Hb 104 g/L, MCV 104 fL, WCC 9.8 x10^9/L, platelets 78 x10^9/L.",
+    "ue": "Na 128 mmol/L, K 3.4 mmol/L, urea 2.1 mmol/L, creatinine 62 micromol/L, eGFR >90.",
+    "lft": "Bilirubin 84 micromol/L, ALT 62 IU/L, AST 141 IU/L, ALP 168 IU/L, GGT 412 IU/L, albumin 24 g/L.",
+    "coag": "PT 21 s, INR 1.9, APTT 38 s.",
+    "cbg": {"result": "4.1 mmol/L", "abnormal": false},
+    "crp": "CRP 18 mg/L",
+    "magnesium": "Mg 0.62 mmol/L",
+    "vbg": "pH 7.44, pCO2 4.6 kPa, HCO3 24 mmol/L, lactate 2.4 mmol/L, glucose 4.2 mmol/L, Na 128, K 3.4.",
+    "abg": "On room air: pH 7.45, pO2 10.9 kPa, pCO2 4.5 kPa, HCO3 24 mmol/L, lactate 2.4 mmol/L, COHb 1.1%.",
+    "ecg": "Sinus rhythm 96/min. QTc 480 ms (prolonged). No ischaemic change.",
+    "urine_dip": "Bilirubin positive, urobilinogen raised. Glucose, ketones, protein, blood, leucocytes and nitrites negative.",
+    "cxr": "Small right pleural effusion. Heart size normal. No consolidation.",
+    "us_abdomen": "Small, coarse, nodular liver with an irregular outline. Splenomegaly, 16 cm. Large-volume ascites. Patent portal vein with reversed (hepatofugal) flow. No biliary dilatation.",
+    "ascitic_tap": "Straw-coloured fluid. Neutrophils 120/mm3 (below the 250 threshold). Protein 12 g/L. Serum-ascites albumin gradient 1.6 g/dL (high). Culture pending.",
+    "hepatitis_screen": {"result": "HBsAg negative, anti-HCV negative, HAV IgM negative.", "abnormal": false},
+    "tox_levels": {"result": "Paracetamol not detected. Salicylate not detected.", "abnormal": false}
+  },
+  "key_exams": ["abdominal", "hands", "general", "cognition"],
+  "key_investigations": ["lft", "fbc", "coag", "ue", "cbg", "us_abdomen", "ascitic_tap"],
+  "key_treatments": ["iv_thiamine", "iv_access_bloods", "chlordiazepoxide", "senior_review"],
+  "harmful_treatments": {
+    "benzodiazepine_sedation": "Sedating a patient with hepatic encephalopathy deepens the encephalopathy and risks the airway. Withdrawal is managed with a monitored chlordiazepoxide regimen, not sedation for agitation.",
+    "nsaid": "NSAIDs precipitate kidney injury and gastrointestinal bleeding in decompensated liver disease. Paracetamol at reduced dose is the analgesic here.",
+    "iv_fluids": "Uncritical 0.9% saline worsens ascites and the hyponatraemia. He is not hypotensive; fluid is for shock, and then with albumin considered."
+  },
+  "management_points": [
+    "Recognise hepatic encephalopathy (asterixis, confusion, day-night reversal) and search for a precipitant: infection, bleeding, constipation, electrolytes, sedatives",
+    "Diagnostic ascitic tap on admission to exclude spontaneous bacterial peritonitis (neutrophils above 250/mm3)",
+    "IV thiamine (Pabrinex) before any glucose, and a monitored alcohol withdrawal regimen",
+    "Lactulose titrated to two or three soft stools a day, with rifaximin if recurrent",
+    "Correct potassium and magnesium; restrict sodium and avoid saline; monitor renal function daily",
+    "Blood cultures and a low threshold for antibiotics; screen for varices; consider albumin",
+    "Senior and gastroenterology review; document the alcohol history and offer a brief intervention"
+  ],
+  "management_keywords": [
+    ["encephalopathy", "asterixis", "confusion", "precipitant", "flap"],
+    ["ascitic tap", "paracentesis", "sbp", "peritonitis", "tap"],
+    ["thiamine", "pabrinex", "withdrawal", "chlordiazepoxide", "vitamin b"],
+    ["lactulose", "rifaximin", "stools", "bowels"],
+    ["potassium", "magnesium", "sodium", "electrolyte", "saline"],
+    ["culture", "antibiotic", "varices", "endoscopy", "albumin", "infection"],
+    ["senior", "gastro", "hepatology", "brief intervention", "alcohol", "registrar"]
+  ],
+  "teaching": {
+    "summary": "A proud man with fifteen years of hidden heavy drinking presents with three weeks of ascites and jaundice and tonight's hepatic encephalopathy. He minimises everything; the truth comes only when you press, or ask his wife. The danger tonight is the encephalopathy and what precipitated it, not the swelling.",
+    "pearls": [
+      "Asterixis is a bedside test that takes ten seconds and changes the whole assessment.",
+      "Every new decompensation gets an ascitic tap on the day of admission. SBP is silent in a third of cases.",
+      "Thiamine before glucose, always. Wernicke's is a one-way door.",
+      "The drinking history is taken twice: once when they lie, and once when you ask again kindly.",
+      "Saline for ascites is not kindness. Sodium restriction and spironolactone are."
+    ]
+  },
+  "guidelines": ["bsg-decompensated-cirrhosis", "nice-cg100", "easl-decompensated-cirrhosis", "nice-cg115"],
+  "vitals_start": {"hr": 96, "spo2": 97, "sys": 104, "dia": 68, "rr": 18},
+  "vitals_decline": {"hr": 20, "spo2": -4.5, "sys": -12, "dia": -8, "rr": 3.2},
   "level_card": [
     "First patient of the shift.",
     "He does not want to be here. His wife made him come.",

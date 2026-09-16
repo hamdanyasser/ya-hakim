@@ -50,6 +50,23 @@ def match_guess(case, guess: str) -> bool:
     return False
 
 
+def match_partial(case, guess: str) -> bool:
+    """Right area, wrong answer -- half credit in the debrief. Same negation
+    rule as match_guess."""
+    if not guess or not guess.strip():
+        return False
+    low = guess.lower()
+    for answer in case.get("partial_answers", []):
+        ans = answer.lower().strip()
+        if not ans:
+            continue
+        for m in re.finditer(re.escape(ans), low):
+            before = _tokens(low[: m.start()])[-2:]
+            if not any(t in _NEGATIONS for t in before):
+                return True
+    return False
+
+
 def covers_key_topic(case, question: str):
     """Which key question this covers, or None. The offline fallback path.
 

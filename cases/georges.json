@@ -1,5 +1,8 @@
 {
   "id": "georges",
+  "title": "The retired engineer with winter headaches",
+  "specialty": "Emergency medicine / Toxicology",
+  "setting": "Emergency department, 09:20, February",
   "diagnosis": "Carbon monoxide poisoning",
   "accepted_answers": [
     "carbon monoxide",
@@ -9,6 +12,13 @@
     "gas",
     "poisoning"
   ],
+  "partial_answers": [
+    "fumes",
+    "carboxyhaemoglobin",
+    "carboxyhemoglobin",
+    "boiler fault",
+    "toxic"
+  ],
   "key_questions": [
     "do you feel better away from the house",
     "does anyone else at home feel ill",
@@ -16,71 +26,36 @@
     "what heats the house"
   ],
   "key_keywords": [
-    [
-      "better",
-      "away",
-      "leave",
-      "leaving",
-      "outside",
-      "elsewhere",
-      "improve",
-      "improves",
-      "holiday",
-      "hotel",
-      "daughter",
-      "travel",
-      "abroad"
-    ],
-    [
-      "wife",
-      "family",
-      "anyone",
-      "else",
-      "household",
-      "others",
-      "someone",
-      "dog",
-      "everyone",
-      "spouse",
-      "children"
-    ],
-    [
-      "when",
-      "morning",
-      "mornings",
-      "wake",
-      "waking",
-      "night",
-      "evening",
-      "worse",
-      "timing",
-      "pattern"
-    ],
-    [
-      "heating",
-      "heat",
-      "heats",
-      "heated",
-      "boiler",
-      "furnace",
-      "stove",
-      "fire",
-      "fireplace",
-      "radiator",
-      "warm",
-      "vent",
-      "chimney",
-      "flue",
-      "appliance",
-      "cooker",
-      "garage",
-      "gas"
-    ]
+    ["better", "away", "leave", "leaving", "outside", "elsewhere", "improve", "improves", "holiday", "hotel", "daughter", "travel", "abroad", "nadia"],
+    ["wife", "family", "anyone", "else", "household", "others", "someone", "dog", "everyone", "spouse", "children", "marie"],
+    ["when", "morning", "mornings", "wake", "waking", "night", "evening", "worse", "timing", "pattern", "time of day"],
+    ["heating", "heat", "heats", "heated", "boiler", "furnace", "stove", "fire", "fireplace", "radiator", "warm", "vent", "chimney", "flue", "appliance", "cooker", "garage", "gas", "generator", "serviced"]
   ],
+  "key_question_reasons": [
+    "The headaches vanish for three days a week at his daughter's and return the first morning home. The house is the exposure.",
+    "His wife has headaches and the dog sleeps all day. A whole household with the same symptom is the giveaway.",
+    "Worse in the mornings, lifting by lunch: the pattern of an overnight exposure in a closed house.",
+    "An old boiler serviced by a man who has stopped servicing things. The source, and the reason it will keep happening."
+  ],
+  "crack_keywords": ["nadia", "your daughter", "honest with me", "be honest", "at your daughter's"],
   "name": "Georges",
   "age": 62,
+  "sex": "male",
+  "description": "Retired boiler engineer. Forty years fitting and servicing heating systems across the city before his knees gave out. Married to Marie; their daughter Nadia lives an hour away and has him three days a week to help with her twins. Nadia booked this appointment and drove him here.",
+  "presentation": {
+    "complaint": "Recurrent morning headaches, dizziness and tiredness",
+    "duration": "About six weeks, worse in the last fortnight",
+    "triage_note": "Daughter concerned about six weeks of morning headaches, dizziness on standing, and an episode of confusion last week (could not recall his bank card number). Alert and orientated. Observations unremarkable; saturations 99% on air. Daughter reports he is 'not himself'."
+  },
+  "history": {
+    "past_medical": ["High blood pressure for ten years", "Knees. Both replaced, 2019 and 2021"],
+    "medications": ["Ramipril, one in the morning", "Amlodipine; they added that last year", "Paracetamol for the knees when I need it"],
+    "allergies": ["None"],
+    "social": ["Retired now. I fitted and serviced heating systems for forty years", "I live with my wife, Marie, in the house we bought in 1989", "I stopped smoking when Nadia was born", "A glass of wine with Sunday lunch, that is all", "Three days a week I am at my daughter's, minding the twins"],
+    "family": ["Father had a stroke at seventy-five", "Mother lived to ninety"]
+  },
   "opening_line": "My daughter booked this. I told her I'd come, so here I am. Ten minutes.",
-  "personality": "Retired, formal, slightly old-fashioned. Calls you doctor and means it. Does not like to complain and treats his own symptoms as an inconvenience to everyone else. Gets vague and repeats himself when tired, and does not notice he is doing it.",
+  "personality": "Retired, formal, slightly old-fashioned. Calls you doctor and means it. Does not like to complain and treats his own symptoms as an inconvenience to everyone else. Gets vague and repeats himself when tired, and does not notice he is doing it. Lights up if asked about the twins.",
   "symptoms": [
     "I get headaches most mornings, dull and heavy behind the eyes",
     "I go dizzy when I stand up too fast",
@@ -90,8 +65,9 @@
     "my wife has been getting headaches as well",
     "the dog has gone off its food and sleeps all day"
   ],
+  "lie_topic": "why the headaches come and go",
   "lie": "It is stress, and it is winter. Everybody gets headaches in winter.",
-  "truth": "The headaches disappear completely the three days a week he is at his daughter's, and come back the first morning he is home again",
+  "truth": "The headaches disappear completely the three days a week I am at my daughter's, and come back the first morning I am home again. I have not wanted to think about what that means.",
   "cracks_when": "pressed on it a second time, or asked whether anyone else at home feels the same",
   "red_herrings": [
     "got a new glasses prescription in October and blames his eyes",
@@ -100,7 +76,8 @@
   "canned": {
     "does anyone else at home feel ill": "My wife gets them too, now you mention it. And the dog has been sleeping all day. Odd house, ours.",
     "when do the headaches come": "Mornings, mostly. I wake up with it and it lifts by lunch. Usually.",
-    "what heats the house": "The old boiler in the back room. It has been in since we bought the place. It grumbles but it works.",
+    "what heats the house": "The old boiler in the back room. It has been in since we bought the place. It grumbles but it works. I used to service it myself.",
+    "_greeting": "Good morning, doctor. Georges. My daughter has already told you everything, I expect.",
     "_whats_wrong": "I could not tell you, doctor. That is rather your department.",
     "_deflect": [
       "I got new glasses in October. I expect it is that.",
@@ -110,24 +87,68 @@
       "It is winter, doctor. Everybody feels like this in winter."
     ]
   },
+  "exam": {
+    "general": "Alert, orientated, a little slowed. Notably pink and well-perfused. No pallor or cyanosis. Afebrile.",
+    "neurological": "GCS 15. Mild bilateral intention tremor. Slightly unsteady heel-to-toe gait. No focal deficit.",
+    "cognition": "AMTS 8/10: could not recall the address, mis-stated the year. Slow on serial sevens.",
+    "cardiovascular": "Pulse 88 regular. BP 146/90. Heart sounds normal. No oedema.",
+    "respiratory": "Clear chest. Pulse oximeter reads 99% on air.",
+    "eyes": "Fundi: no papilloedema; retinal veins slightly engorged. Acuity normal with glasses."
+  },
+  "investigations": {
+    "abg": "On room air: pH 7.37, pO2 12.8 kPa, pCO2 4.9 kPa, HCO3 22 mmol/L, lactate 2.6 mmol/L. COHb 18.4% (non-smoker reference below 3%). MetHb 0.7%.",
+    "vbg": "pH 7.36, lactate 2.6 mmol/L. Co-oximetry: COHb 17.9%.",
+    "ecg": "Sinus rhythm 88/min. Non-specific T-wave flattening in the lateral leads. No ST elevation.",
+    "troponin": "hs-troponin T 21 ng/L (above the 99th percentile; mildly raised).",
+    "ck": "CK 240 U/L (mildly raised)",
+    "cbg": {"result": "6.2 mmol/L", "abnormal": false},
+    "fbc": {"result": "Hb 158 g/L, WCC 7.4 x10^9/L, platelets 240 x10^9/L.", "abnormal": false},
+    "ue": {"result": "Na 138, K 4.4, urea 6.8 mmol/L, creatinine 96 micromol/L, eGFR 72.", "abnormal": false},
+    "crp": {"result": "CRP 4 mg/L", "abnormal": false},
+    "ct_head": {"result": "No intracranial haemorrhage, mass or acute infarct. Ventricles normal size.", "abnormal": false},
+    "cxr": {"result": "Clear lung fields. Normal cardiac silhouette.", "abnormal": false},
+    "tft": {"result": "TSH 2.1 mU/L, free T4 14 pmol/L.", "abnormal": false}
+  },
+  "key_exams": ["cognition", "neurological", "general"],
+  "key_investigations": ["abg", "vbg", "ecg", "troponin"],
+  "key_treatments": ["oxygen_high_flow", "iv_access_bloods", "cardiac_monitoring", "senior_review"],
+  "harmful_treatments": {
+    "oxygen_titrated": "Titrating oxygen to a pulse-oximeter target is the trap in this case. The oximeter cannot tell carboxyhaemoglobin from oxyhaemoglobin and reads a falsely normal 99%. He needs 15 L/min via a non-rebreather regardless of the reading.",
+    "benzodiazepine_sedation": "Sedation masks deterioration and treats nothing. The treatment is oxygen."
+  },
+  "management_points": [
+    "Suspect it: headache, dizziness and confusion, worse at home and in winter, better away, with others in the household affected",
+    "Pulse oximetry is falsely reassuring: measure carboxyhaemoglobin on a blood gas with co-oximetry",
+    "15 L/min oxygen through a tight-fitting non-rebreather mask at once, continued until COHb is below 3% and symptoms have resolved",
+    "ECG and troponin: myocardial injury is common and changes disposition",
+    "Discuss with the poisons service; consider hyperbaric referral for very high COHb, loss of consciousness, neurological signs, cardiac ischaemia or pregnancy",
+    "The house is still dangerous: his wife and the dog are inside. Nobody returns until the appliance is checked; notify the gas emergency service; safeguarding for the household"
+  ],
+  "management_keywords": [
+    ["suspect", "household", "winter", "away from", "pattern", "exposure"],
+    ["oximet", "co-ox", "carboxy", "cohb", "blood gas", "abg", "vbg"],
+    ["15", "non-rebreather", "high flow", "high-flow", "oxygen", "100%"],
+    ["ecg", "troponin", "cardiac", "myocard", "heart"],
+    ["poisons", "toxbase", "npis", "hyperbaric", "chamber"],
+    ["wife", "dog", "house", "appliance", "boiler", "gas emergency", "safeguard", "not return", "don't return", "do not return", "engineer"]
+  ],
+  "teaching": {
+    "summary": "Six weeks of morning headaches in a retired boiler engineer whose wife has them too and whose dog sleeps all day. Everything improves at his daughter's. The oximeter reads 99% and lies. His COHb is 18%, his troponin is up, and his wife is still in the house.",
+    "pearls": [
+      "Headache plus 'everyone at home has it' plus 'better away' is carbon monoxide until a co-oximeter says otherwise.",
+      "Pulse oximetry cannot see carboxyhaemoglobin. A normal saturation excludes nothing.",
+      "High-flow oxygen is the treatment and the antidote; start it on suspicion, not on the result.",
+      "The patient in front of you is not the only patient. Ask who else is in the house, and get them out.",
+      "Delayed neurological sequelae are common; arrange follow-up and tell them what to watch for."
+    ]
+  },
+  "guidelines": ["npis-toxbase-co", "ukhsa-co", "rcem-co", "bts-oxygen-2017"],
   "reveal_note": "His wife and the dog are still in the house.",
+  "vitals_start": {"hr": 88, "spo2": 99, "sys": 138, "dia": 88, "rr": 16},
+  "vitals_decline": {"hr": 24, "spo2": -1.2, "sys": -14, "dia": -9, "rr": 4.5},
   "level_card": [
     "Last patient of the shift.",
     "He has a wife at home and a daughter who made him come.",
     "Get this one wrong and he does not go home at all."
-  ],
-  "vitals_start": {
-    "hr": 88,
-    "spo2": 99,
-    "sys": 138,
-    "dia": 88,
-    "rr": 16
-  },
-  "vitals_decline": {
-    "hr": 24,
-    "spo2": -1.2,
-    "sys": -14,
-    "dia": -9,
-    "rr": 4.5
-  }
+  ]
 }

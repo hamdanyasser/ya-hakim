@@ -1,0 +1,15 @@
+services:
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    env_file: .env
+    environment:
+      YH_DB: /data/yahakim.db
+      YH_SECURE_COOKIES: "1"
+    volumes:
+      - yahakim-data:/data
+    restart: unless-stopped
+
+volumes:
+  yahakim-data:

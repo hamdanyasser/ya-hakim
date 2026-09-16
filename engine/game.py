@@ -1,9 +1,14 @@
-"""The room. One patient, one clock, one set of players.
+"""The classroom room. One patient, one clock, one set of players.
 
-The clock and the decline clock are deliberately separate. The round always
-lasts ROUND_SECONDS of wall time; stabilising freezes only the DECLINE, so the
-room still runs out of time but he arrives at the end in better shape. That is
-what makes a good question feel like it bought something.
+This is the group mode -- a lecture theatre or a seminar room, one projector,
+everyone on their phones. The clock and the decline clock are deliberately
+separate: the round always lasts ROUND_SECONDS of wall time; a good question
+freezes only the DECLINE, so the room still runs out of time but the patient
+arrives at the end in better shape. That is what makes a good question feel
+like it bought something.
+
+How a question lands (topic, cracking, the lie) is shared with solo practice
+in engine/encounter.py.
 """
 
 from __future__ import annotations
@@ -11,9 +16,11 @@ from __future__ import annotations
 import time
 
 from engine import scoring
+from engine.encounter import land
+from engine.mood import mood_for
 from engine.patient import CannedPatient, FALLBACKS
 from engine.state import GameState
-from engine.vitals import dead_vitals, status_for, vitals_at
+from engine.vitals import dead_vitals, lie_spike_at, status_for, vitals_at
 
 ROUND_SECONDS = 150          # 2.5 minutes
 STABILISE_SECONDS = 45
@@ -43,7 +50,7 @@ class Room:
         self.last_tick = None
 
         self.covered_topics = set()  # each key topic stabilises once
-        self.drink_asks = 0          # engine-owned; decides when he cracks
+        self.lie_asks = 0            # engine-owned; decides when the front drops
         self.cracked = False
         self.lied_at = None          # drives the heart-rate tell
         self.ever_critical = False
@@ -132,6 +139,21 @@ class Room:
             return "flatline"
         return status_for(self.current_vitals())
 
+    def mood(self, now=None):
+        """How the patient is holding up right now. Engine-derived, never a
+        secret -- see engine/mood.py."""
+        if self.phase in ("flatline", "reveal"):
+            return "flatline"
+        now = self.clock() if now is None else now
+        since_lie = None if self.lied_at is None else max(0.0, now - self.lied_at)
+        return mood_for(
+            status=status_for(self.current_vitals(now)),
+            cracked=self.cracked,
+            pressed=self.lie_asks,
+            telling_lie=lie_spike_at(since_lie) > 0,
+            seconds_left=self.seconds_left(),
+        )
+
     # -------------------------------------------------------------- the loop
 
     def say(self, who, text, kind):
@@ -140,7 +162,7 @@ class Room:
             del self.messages[: len(self.messages) - MAX_MESSAGES]
 
     def ask(self, player_name, question, now=None):
-        """A player asks the patient something. Returns his reply."""
+        """A player asks the patient something. Returns the reply."""
         if self.phase != "playing":
             return None
         question = (question or "").strip()
@@ -153,40 +175,28 @@ class Room:
         self.last_ask[player["name"]] = now
         self.say(player["name"], question, "question")
 
-        topic = scoring.covers_key_topic(self.case, question)
-        drink_topic = self.case["key_questions"][0]
-
-        # Asking what his wife thinks is the other thing that breaks him, so it
-        # counts as pressing him on the drinking -- it must not read as a wasted
-        # question. Checked only after the keyword pass, so "what does your wife
-        # say about your eyes" still lands on the eyes topic.
-        if topic is None and "wife" in (question or "").lower():
-            topic = drink_topic
+        landing = land(self.case, question, self.lie_asks, self.cracked)
+        self.lie_asks = landing.lie_asks
+        self.cracked = landing.cracked
+        topic = landing.topic
 
         if topic is None:
             player["score"] += scoring.WASTED_QUESTION
-        else:
+        elif topic not in self.covered_topics:
             # A topic buys time once. Otherwise the room could hold him alive
             # forever by asking the same good question on a loop.
-            if topic not in self.covered_topics:
-                self.covered_topics.add(topic)
-                self.stabilised_until = max(self.stabilised_until, now) + STABILISE_SECONDS
+            self.covered_topics.add(topic)
+            self.stabilised_until = max(self.stabilised_until, now) + STABILISE_SECONDS
 
-            if topic == drink_topic:
-                self.drink_asks += 1
-                if self.drink_asks >= 2:
-                    self.cracked = True
-
-        if "wife" in (question or "").lower():
-            self.cracked = True
-
-        reply = self.patient.reply(question, cracked=self.cracked, topic=topic)
+        current_mood = self.mood(now)
+        reply = self.patient.reply(question, cracked=self.cracked, topic=topic,
+                                    mood=current_mood)
         if not reply:
             reply = FALLBACKS[0]
 
-        # He is telling the lie -> his heart disagrees with him, in front of
-        # everyone. This is the whole reason the monitor is worth watching.
-        if reply == self.case["lie"]:
+        # The heart disagrees with the mouth, in front of everyone. This is the
+        # whole reason the monitor is worth watching.
+        if landing.telling_lie:
             self.lied_at = now
 
         self.say(self.case["name"], reply, "reply")
@@ -225,6 +235,9 @@ class Room:
         other phase, because public_state() passes None instead.
         """
         won = bool(self.correct_guessers)
+        teaching = self.case.get("teaching")
+        if isinstance(teaching, dict):
+            teaching = teaching.get("summary")
         return {
             "diagnosis": self.case["diagnosis"],
             "winners": list(self.correct_guessers),
@@ -233,6 +246,7 @@ class Room:
             "killed_by_wrong_answer": self.killed_by_wrong_answer,
             "headline": self._headline(won),
             "note": self.case.get("reveal_note") if won else None,
+            "teaching": teaching,
             "level": self.level,
             "is_last": self.is_last,
             "next_card": None if self.is_last else self.next_card,
@@ -243,12 +257,13 @@ class Room:
         }
 
     def _headline(self, won):
+        pronoun = "She" if (self.case.get("sex") == "female") else "He"
         if won and self.killed_by_wrong_answer:
-            return "He died. Someone still called it."
+            return pronoun + " died. Someone still called it."
         if won:
-            return "He died. You were right."
+            return pronoun + " died. You were right."
         if self.killed_by_wrong_answer:
-            return "He died. Nobody called it."
+            return pronoun + " died. Nobody called it."
         return "Time ran out."
 
     def public_state(self) -> GameState:
@@ -258,6 +273,8 @@ class Room:
             phase=self.phase,
             patient_name=self.case["name"],
             patient_age=self.case["age"],
+            description=self.case.get("description", ""),
+            mood=self.mood(),
             vitals=self.current_vitals(),
             status=self.status(),
             seconds_left=self.seconds_left(),
