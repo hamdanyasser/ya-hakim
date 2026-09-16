@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ya Hakim</title>
+<style>
+/* Deliberately plain. The phone is an input device; the projector is the show.
+   Font sizes stay at 16px+ so mobile Safari does not zoom on focus, and the
+   layout uses dvh so the on-screen keyboard does not crush it. */
+:root {
+  --bg:#0F1115; --panel:#16191F; --line:#2C2C2A; --text:#F1EFE8;
+  --dim:#888780; --ok:#5DCAA5; --bad:#E24B4A; --player:#85B7EB;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);
+  font-family:"Segoe UI",system-ui,-apple-system,sans-serif}
+body{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;
+  padding:16px;gap:14px}
+h1{font-size:22px;margin:0}
+.sub{color:var(--dim);font-size:14px;margin:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px}
+label{display:block;font-size:13px;color:var(--dim);margin-bottom:6px}
+input{width:100%;font-size:17px;padding:13px;border-radius:8px;
+  border:1px solid var(--line);background:var(--bg);color:var(--text)}
+input:focus{outline:none;border-color:var(--player)}
+button{width:100%;font-size:17px;font-weight:600;padding:14px;border:0;
+  border-radius:8px;background:var(--player);color:#0b1620;margin-top:10px}
+button:disabled{opacity:.45}
+button.ghost{background:transparent;color:var(--dim);border:1px solid var(--line)}
+#log{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:9px;min-height:80px}
+.m{font-size:15px;line-height:1.35}
+.m .w{color:var(--player);font-weight:600;margin-right:6px}
+.m.reply .w{color:var(--ok)}
+.m.question{color:var(--dim)}
+#status{font-size:13px;color:var(--dim)}
+.hide{display:none!important}
+</style>
+</head>
+<body>
+
+<div id="join">
+  <h1>Ya Hakim</h1>
+  <p class="sub">A party game. Not a medical tool.</p>
+  <div class="card" style="margin-top:14px">
+    <label for="code">Room code</label>
+    <input id="code" autocapitalize="characters" autocomplete="off" maxlength="4" placeholder="ABCD">
+    <label for="name" style="margin-top:12px">Your name</label>
+    <input id="name" autocomplete="off" maxlength="18" placeholder="Doctor">
+    <button id="joinBtn">Join</button>
+  </div>
+</div>
+
+<div id="game" class="hide">
+  <div>
+    <h1 id="who">&mdash;</h1>
+    <p class="sub"><span id="status">connecting</span></p>
+  </div>
+  <div id="log"></div>
+  <div class="card">
+    <input id="text" autocomplete="off" placeholder="Ask him something">
+    <button id="askBtn">Ask</button>
+    <button id="guessBtn" class="ghost">This is my diagnosis</button>
+  </div>
+</div>
+
+<script src="/static/play.js"></script>
+</body>
+</html>

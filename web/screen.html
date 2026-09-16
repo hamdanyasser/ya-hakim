@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ya Hakim</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<div id="title">
+  <h1>Ya Hakim</h1>
+  <p>A patient is hiding one thing. Ask him anything. The monitor does not lie
+     even when he does.</p>
+  <p class="warn">A party game. Not a medical tool, not medical advice.</p>
+  <button id="begin">Start the round</button>
+</div>
+
+<div id="page">
+  <header>
+    <div id="patient">&mdash;<span id="age"></span></div>
+    <div id="clock" class="num">2:30</div>
+  </header>
+
+  <section id="monitor">
+    <div id="ecgWrap"><canvas id="ecg"></canvas></div>
+    <div id="vitals">
+      <div class="vital"><div class="lbl">Heart rate</div>
+        <div class="val num" id="vHr">&mdash;<small>bpm</small></div></div>
+      <div class="vital"><div class="lbl">Oxygen</div>
+        <div class="val num" id="vSpo2">&mdash;<small>%</small></div></div>
+      <div class="vital"><div class="lbl">Blood pressure</div>
+        <div class="val num" id="vBp">&mdash;<small>mmHg</small></div></div>
+      <div class="vital"><div class="lbl">Breathing</div>
+        <div class="val num" id="vRr">&mdash;<small>/min</small></div></div>
+    </div>
+  </section>
+
+  <section id="body">
+    <div id="feed"></div>
+    <aside id="side">
+      <div>
+        <h2>Room</h2>
+        <div id="board"></div>
+      </div>
+      <div id="joinBox">
+        <h2>Join from your phone</h2>
+        <img id="qr" alt="Join QR code">
+        <div id="code" class="num">&mdash;</div>
+        <div id="joinUrl"></div>
+      </div>
+    </aside>
+  </section>
+
+  <div id="laptop">
+    <input id="ask" placeholder="Ask him something, then press enter" autocomplete="off">
+    <button id="askBtn">Ask</button>
+    <button id="guessBtn" class="ghost">Guess</button>
+  </div>
+</div>
+
+<div id="overlay"></div>
+
+<div id="reveal">
+  <div id="revealHead"></div>
+  <div id="revealDx"></div>
+  <div id="revealWho"></div>
+  <div id="revealScores"></div>
+</div>
+
+<script src="/static/ecg.js"></script>
+<script src="/static/screen.js"></script>
+</body>
+</html>

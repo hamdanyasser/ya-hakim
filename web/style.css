@@ -1,0 +1,184 @@
+/* Ya Hakim. Designed for the back row of a room. */
+
+:root {
+  --bg:     #0F1115;
+  --panel:  #16191F;
+  --line:   #2C2C2A;
+  --text:   #F1EFE8;
+  --dim:    #888780;
+  --ok:     #5DCAA5;
+  --warn:   #EF9F27;
+  --bad:    #E24B4A;
+  --player: #85B7EB;
+
+  --mono: Consolas, "Cascadia Mono", "DejaVu Sans Mono", "Courier New", monospace;
+  --sans: "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  overflow: hidden;
+}
+
+/* Numbers must not jitter as they count. */
+.num {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1, "lnum" 1;
+}
+
+.status-stable    { color: var(--ok); }
+.status-declining { color: var(--warn); }
+.status-critical  { color: var(--bad); }
+.status-flatline  { color: var(--dim); }
+
+/* ------------------------------------------------------------ the drain */
+/* Colour leaves the whole page over ~1.2s when he goes. */
+#page {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  filter: grayscale(0) brightness(1);
+  transition: filter 1.2s linear;
+}
+#page.draining { filter: grayscale(1) brightness(0.55); }
+#page.blank    { opacity: 0; transition: opacity 0.25s linear; }
+
+/* --------------------------------------------------------------- header */
+header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 18px 28px 10px;
+  border-bottom: 1px solid var(--line);
+}
+#patient      { font-size: 34px; font-weight: 600; letter-spacing: 0.2px; }
+#patient span { color: var(--dim); font-size: 22px; font-weight: 400; margin-left: 10px; }
+#clock        { font-size: 46px; font-weight: 600; }
+
+/* -------------------------------------------------------- monitor panel */
+#monitor {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 18px;
+  padding: 14px 28px;
+  border-bottom: 1px solid var(--line);
+  background: var(--panel);
+}
+#ecgWrap { position: relative; min-height: 190px; }
+#ecg     { width: 100%; height: 190px; display: block; }
+
+#vitals {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 22px;
+  align-content: center;
+}
+.vital      { display: flex; flex-direction: column; }
+.vital .lbl { font-size: 12px; color: var(--dim); text-transform: none; letter-spacing: 0.6px; }
+.vital .val { font-size: 34px; line-height: 1.05; font-weight: 600; }
+.vital .val small { font-size: 14px; color: var(--dim); font-weight: 400; margin-left: 4px; }
+
+/* ----------------------------------------------------------------- body */
+#body {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 0;
+  min-height: 0;
+}
+
+#feed {
+  padding: 16px 28px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 10px;
+}
+.msg       { font-size: 21px; line-height: 1.34; max-width: 60ch; }
+.msg .who  { color: var(--player); font-weight: 600; margin-right: 8px; }
+.msg.reply { color: var(--text); }
+.msg.reply .who { color: var(--ok); }
+.msg.question   { color: var(--dim); }
+
+#side {
+  border-left: 1px solid var(--line);
+  padding: 16px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+#side h2 {
+  font-size: 12px; color: var(--dim); font-weight: 600;
+  letter-spacing: 1.2px; margin: 0 0 6px;
+}
+#board { display: flex; flex-direction: column; gap: 7px; }
+.row   { display: flex; justify-content: space-between; font-size: 19px; }
+.row .nm { color: var(--text); }
+.row .sc { font-weight: 600; }
+
+#joinBox { margin-top: auto; }
+#qr      { background: #fff; padding: 10px; border-radius: 6px; width: 250px; height: 250px; display: block; }
+#joinUrl { font-size: 15px; color: var(--dim); margin-top: 8px; word-break: break-all; }
+#code    { font-size: 38px; font-weight: 700; letter-spacing: 5px; margin-top: 4px; }
+
+/* --------------------------------------------------------- laptop input */
+/* The zero-phone path. One person types here and the game still plays. */
+#laptop {
+  display: flex; gap: 10px; padding: 12px 28px;
+  border-top: 1px solid var(--line); background: var(--panel);
+}
+#laptop input {
+  flex: 1; background: var(--bg); border: 1px solid var(--line);
+  color: var(--text); font-family: var(--sans); font-size: 19px;
+  padding: 11px 14px; border-radius: 5px;
+}
+#laptop input:focus { outline: none; border-color: var(--player); }
+#laptop button {
+  background: var(--player); color: #0b1620; border: 0; font-size: 17px;
+  font-weight: 600; padding: 11px 22px; border-radius: 5px; cursor: pointer;
+}
+#laptop .ghost { background: transparent; color: var(--dim); border: 1px solid var(--line); }
+
+/* -------------------------------------------------------------- overlays */
+#overlay {
+  position: fixed; inset: 0; background: var(--bg);
+  display: none; align-items: center; justify-content: center;
+  z-index: 40;
+}
+#overlay.show { display: flex; }
+
+#reveal {
+  position: fixed; inset: 0; background: var(--bg);
+  display: none; flex-direction: column;
+  align-items: center; justify-content: center; gap: 22px;
+  z-index: 50; padding: 40px; text-align: center;
+}
+#reveal.show { display: flex; animation: rise 0.5s ease-out; }
+@keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+
+#revealHead { font-size: 26px; color: var(--dim); }
+#revealDx   { font-size: 58px; font-weight: 700; max-width: 22ch; line-height: 1.12; }
+#revealWho  { font-size: 24px; color: var(--ok); }
+#revealScores { display: flex; flex-direction: column; gap: 9px; margin-top: 10px; min-width: 360px; }
+#revealScores .row { font-size: 23px; }
+
+#title {
+  position: fixed; inset: 0; background: var(--bg); z-index: 60;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px;
+}
+#title.hide { display: none; }
+#title h1 { font-size: 78px; margin: 0; letter-spacing: 2px; }
+#title p  { color: var(--dim); font-size: 21px; margin: 0; max-width: 46ch; text-align: center; line-height: 1.5; }
+#title .warn { color: var(--warn); font-size: 18px; }
+#title button {
+  background: var(--ok); color: #06201a; border: 0; font-size: 21px;
+  font-weight: 700; padding: 15px 42px; border-radius: 6px; cursor: pointer; margin-top: 6px;
+}

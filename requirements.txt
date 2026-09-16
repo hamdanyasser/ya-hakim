@@ -2,3 +2,4 @@ anthropic>=0.40
 fastapi>=0.110
 uvicorn[standard]>=0.29
 pytest>=8.0
+segno>=1.6
