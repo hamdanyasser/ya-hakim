@@ -140,10 +140,27 @@ def _sample_state(case: dict, phase: str = "playing") -> GameState:
     )
 
 
+def _server_authored(state: GameState) -> str:
+    """Everything in a GameState that the SERVER wrote.
+
+    Player-typed text is deliberately excluded. A player may ask "how much do
+    you drink" or guess "cirrhosis" out loud, and that text is echoed back into
+    the feed for the whole room -- which is not a leak, because the player said
+    it. The guarantee worth testing is the narrow one: the server never authors
+    a secret.
+    """
+    d = state.to_dict()
+    d["messages"] = [m for m in d["messages"] if m.get("kind") != "question"]
+    d["players"] = [
+        {k: v for k, v in p.items() if k != "name"} for p in d["players"]
+    ]
+    return json.dumps(d).lower()
+
+
 @pytest.mark.parametrize("case_id", CASE_IDS)
 def test_diagnosis_absent_from_gamestate_json(case_id):
     case = load(case_id)
-    blob = json.dumps(_sample_state(case).to_dict()).lower()
+    blob = _server_authored(_sample_state(case))
 
     assert case["diagnosis"].lower() not in blob
     for ans in case["accepted_answers"]:
@@ -151,7 +168,40 @@ def test_diagnosis_absent_from_gamestate_json(case_id):
             "accepted answer " + repr(ans) + " leaked into GameState"
         )
     for q in case["key_questions"]:
-        assert q.lower() not in blob
+        assert q.lower() not in blob, (
+            "key question " + repr(q) + " leaked into server-authored state"
+        )
+
+
+@pytest.mark.parametrize("case_id", CASE_IDS)
+def test_a_players_own_words_are_echoed_but_nothing_more(case_id):
+    """A player guessing the answer aloud must not turn into a server leak.
+
+    Their words appear in the feed. Nothing else in the state may change to
+    confirm they were right -- no flag, no score bump visible before the reveal.
+    """
+    case = load(case_id)
+    state = _sample_state(case)
+    state.messages = state.messages + [
+        {"who": "Sara", "text": "is it " + case["accepted_answers"][0] + "?",
+         "kind": "question"},
+    ]
+    blob = _server_authored(state)
+    for ans in case["accepted_answers"]:
+        assert not re.search(r"\b" + re.escape(ans.lower()) + r"\b", blob)
+
+
+def test_messages_cannot_mark_a_question_as_key():
+    """The feed must not tell the room which questions mattered.
+
+    A 'was_key' or 'scored' field on a message would hand players the
+    key_questions list one question at a time. The contract allows who/text/kind
+    and nothing else.
+    """
+    allowed = {"who", "text", "kind"}
+    case = load(CASE_IDS[0])
+    for m in _sample_state(case).to_dict()["messages"]:
+        assert set(m) <= allowed, "message carries extra fields: " + str(set(m) - allowed)
 
 
 @pytest.mark.parametrize("case_id", CASE_IDS)

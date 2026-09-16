@@ -14,6 +14,64 @@
     "belly swelling",
     "bruising easily"
   ],
+  "key_keywords": [
+    [
+      "drink",
+      "drinks",
+      "drinking",
+      "drank",
+      "alcohol",
+      "arak",
+      "booze",
+      "bottle",
+      "beer",
+      "wine",
+      "whisky",
+      "whiskey",
+      "spirits",
+      "liquor",
+      "pub",
+      "bar"
+    ],
+    [
+      "yellow",
+      "yellowing",
+      "yellowish",
+      "eyes",
+      "skin",
+      "colour",
+      "color",
+      "pale",
+      "tint"
+    ],
+    [
+      "belly",
+      "stomach",
+      "tummy",
+      "swell",
+      "swelling",
+      "swollen",
+      "bloated",
+      "bloating",
+      "distended",
+      "gut",
+      "waist",
+      "size"
+    ],
+    [
+      "bruise",
+      "bruises",
+      "bruising",
+      "bruised",
+      "bleed",
+      "bleeds",
+      "bleeding",
+      "blood",
+      "clot",
+      "clotting",
+      "marks"
+    ]
+  ],
   "name": "Kamal",
   "age": 54,
   "opening_line": "Doctor, it's nothing. My wife made me come.",
@@ -45,5 +103,19 @@
     "sys": -12,
     "dia": -8,
     "rr": 3.2
+  },
+  "canned": {
+    "yellow eyes or skin": "My wife says that. I look in the mirror, I see the same face I always see.",
+    "belly swelling": "It's gotten bigger, fine. I told her it's middle age. Everyone gets a belly.",
+    "bruising easily": "I knock into things. The house is small, what do you want from me.",
+    "_whats_wrong": "I don't know. That's why I'm sitting here wasting your time and mine.",
+    "_deflect": [
+      "Yaani, is this necessary? I feel fine.",
+      "I ate bad fish last week. Maybe that's it, no?",
+      "My cousin had kidney stones. Terrible business. Nothing like that for me.",
+      "Is this the part where you tell me it's not lupus?",
+      "You people ask a lot of questions for a waste of time.",
+      "My wife made me come. Tell her I came. Can I go?"
+    ]
   }
 }

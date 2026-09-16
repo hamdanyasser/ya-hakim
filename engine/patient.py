@@ -41,7 +41,7 @@ ALLOWED_IN_PROMPT = [
 ]
 
 # Fields that must never leave this machine.
-SECRET_FIELDS = ["diagnosis", "accepted_answers", "key_questions"]
+SECRET_FIELDS = ["diagnosis", "accepted_answers", "key_questions", "key_keywords"]
 
 # He is a sick man, not a doctor. If he reaches for any of these he has broken
 # character and the round is spoiled, so the reply is thrown away.
@@ -241,3 +241,47 @@ class PatientSession:
         self.history.append({"role": "user", "content": question})
         self.history.append({"role": "assistant", "content": reply})
         return reply
+
+
+# ------------------------------------------------------- the canned patient
+
+# Asked when there is no network, no key, or no budget. Also what CI runs
+# against, and the insurance policy if the venue wifi dies mid-demo.
+#
+# Its dialogue comes from the case file's `canned` block and from the
+# allowlisted `lie` / `truth` fields -- the same material the model is given.
+# It therefore cannot leak anything the live patient could not, and the
+# existing leak tests cover it for free.
+
+WHATS_WRONG_PATTERNS = [
+    "what's wrong", "whats wrong", "what is wrong", "what do you have",
+    "what've you got", "what have you got", "your diagnosis", "what's the matter",
+    "whats the matter", "what is it",
+]
+
+
+class CannedPatient:
+    """A deterministic offline stand-in. Same interface as the live model."""
+
+    def __init__(self, case):
+        self.case = case
+        self.deflect_i = 0
+
+    def reply(self, question, cracked=False, topic=None):
+        low = (question or "").lower()
+
+        if any(p in low for p in WHATS_WRONG_PATTERNS):
+            return self.case["canned"]["_whats_wrong"]
+
+        if topic is not None:
+            # The drinking question is the one that has a lie and a truth.
+            if topic == self.case["key_questions"][0]:
+                return self.case["truth"] if cracked else self.case["lie"]
+            line = self.case["canned"].get(topic)
+            if line:
+                return line
+
+        deflections = self.case["canned"]["_deflect"]
+        line = deflections[self.deflect_i % len(deflections)]
+        self.deflect_i += 1
+        return line
