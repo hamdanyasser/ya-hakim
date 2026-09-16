@@ -1,0 +1,49 @@
+{
+  "id": "kamal",
+  "diagnosis": "Decompensated alcoholic liver disease",
+  "accepted_answers": [
+    "liver failure",
+    "cirrhosis",
+    "alcoholic liver disease",
+    "liver",
+    "alcohol"
+  ],
+  "key_questions": [
+    "how much do you drink",
+    "yellow eyes or skin",
+    "belly swelling",
+    "bruising easily"
+  ],
+  "name": "Kamal",
+  "age": 54,
+  "opening_line": "Doctor, it's nothing. My wife made me come.",
+  "personality": "Proud. Jokes when uncomfortable. Thinks this is a waste of everyone's time. Slips into Lebanese Arabic when annoyed.",
+  "symptoms": [
+    "belly has been swelling for about three weeks",
+    "tired all the time, sleeping badly",
+    "wife says his eyes look yellow",
+    "ankles puff up by evening",
+    "bruises easily"
+  ],
+  "lie": "Two small glasses of arak with dinner. Like everyone.",
+  "truth": "Most of a bottle a day, for about fifteen years",
+  "cracks_when": "pressed on it a second time, or asked what his wife thinks",
+  "red_herrings": [
+    "ate bad fish last week",
+    "his cousin has kidney stones"
+  ],
+  "vitals_start": {
+    "hr": 96,
+    "spo2": 97,
+    "sys": 104,
+    "dia": 68,
+    "rr": 18
+  },
+  "vitals_decline": {
+    "hr": 20,
+    "spo2": -4.5,
+    "sys": -12,
+    "dia": -8,
+    "rr": 3.2
+  }
+}
