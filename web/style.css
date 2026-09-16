@@ -60,6 +60,8 @@ header {
 }
 #patient      { font-size: 34px; font-weight: 600; letter-spacing: 0.2px; }
 #patient span { color: var(--dim); font-size: 22px; font-weight: 400; margin-left: 10px; }
+#hdrRight     { display: flex; align-items: baseline; gap: 20px; }
+#level        { color: var(--dim); font-size: 15px; letter-spacing: 0.6px; }
 #clock        { font-size: 46px; font-weight: 600; }
 
 /* -------------------------------------------------------- monitor panel */
@@ -94,7 +96,22 @@ header {
   min-height: 0;
 }
 
+/* Left column: the room on top, the feed below. In flat mode the room is gone
+   and the feed takes the whole column -- that is the phase-5 kill switch. */
+#left { display: flex; flex-direction: column; min-height: 0; min-width: 0; }
+
+#roomWrap { position: relative; flex: 1; min-height: 0; background: var(--bg); }
+#room3d   { width: 100%; height: 100%; display: block; }
+#fps {
+  position: absolute; right: 10px; bottom: 8px;
+  font-family: var(--mono); font-size: 12px; color: var(--dim); opacity: .7;
+}
+body.flat #roomWrap { display: none; }
+body.flat #feed     { flex: 1; }
+
 #feed {
+  flex: 0 0 auto;
+  max-height: 46%;
   padding: 16px 28px;
   overflow: hidden;
   display: flex;
@@ -181,4 +198,31 @@ header {
 #title button {
   background: var(--ok); color: #06201a; border: 0; font-size: 21px;
   font-weight: 700; padding: 15px 42px; border-radius: 6px; cursor: pointer; margin-top: 6px;
+}
+
+
+/* ------------------------------------------------------------ level card */
+#card {
+  position: fixed; inset: 0; background: var(--bg); z-index: 55;
+  display: none; flex-direction: column;
+  align-items: center; justify-content: center; gap: 26px; text-align: center;
+}
+#card.show { display: flex; animation: rise 0.45s ease-out; }
+#cardLevel {
+  font-size: 14px; letter-spacing: 2.4px; color: var(--dim);
+  text-transform: uppercase;
+}
+#cardLines { display: flex; flex-direction: column; gap: 14px; max-width: 26ch; }
+#cardLines div { font-size: 38px; line-height: 1.24; font-weight: 500; }
+#cardLines div:last-child { color: var(--warn); }
+#cardGo {
+  background: var(--ok); color: #06201a; border: 0; font-size: 20px;
+  font-weight: 700; padding: 14px 40px; border-radius: 6px; cursor: pointer;
+}
+
+#revealNote { font-size: 22px; color: var(--warn); max-width: 32ch; }
+#nextBtn {
+  background: var(--player); color: #0b1620; border: 0; font-size: 19px;
+  font-weight: 700; padding: 13px 36px; border-radius: 6px; cursor: pointer;
+  margin-top: 10px;
 }

@@ -78,6 +78,9 @@ python -m venv $env:LOCALAPPDATA\yahakim-venv
 
 Then open **http://localhost:8000/screen** on the projector.
 
+Add `?flat=1` to the URL to disable the 3D room and ship the flat view. That is
+the phase-5 kill switch and it touches nothing else.
+
 For the live patient, copy `.env.example` to `.env` and add an Anthropic API
 key. **Without a key the game still plays** — see below.
 
@@ -140,6 +143,38 @@ is the `YH_LIVE=1` run, and that has not been executed yet because no key was
 available during the build.
 
 ---
+
+## The campaign
+
+Three patients, hardest last. Scores carry across all three; `guessed` does not,
+so every round is a fresh chance to call it.
+
+| Level | Patient | Stakes |
+|---|---|---|
+| 1 | Kamal, 54 | The trial. His card tells you to watch the monitor. |
+| 2 | Rita, 31 | Standard. |
+| 3 | Georges, 62 | A wrong call kills him — and the reveal has a twist. |
+
+Each round is 150 seconds. A round passes through all three monitor colours:
+green for ~40s, amber to ~120s, then ~30s of red before he goes.
+
+`cases/schema.md` documents the file format, including the trap that
+`accepted_answers` double as the words the patient may never say.
+
+## The 3D room
+
+`web/room3d.js`, three.js r128, every shape a primitive. Floor, wall, a bed of
+boxes, a form under a sheet that breathes at his respiratory rate, an IV pole,
+and a monitor whose screen is a `CanvasTexture` of the *existing* ECG canvas —
+the waveform is not rebuilt in 3D.
+
+Lighting is what sells it: ambient fill, a warm overhead spot with soft shadows,
+a cool rim light, and a point light at the monitor that tracks his status.
+The camera drifts on a slow sine path and freezes during the two seconds of
+silence, along with everything else.
+
+There is an fps readout in the corner. Gate 5 is 60fps or delete it — and
+deleting it is `?flat=1`, or removing one `<script>` tag.
 
 ## What is deliberately not here
 

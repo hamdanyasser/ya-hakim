@@ -16,10 +16,19 @@
   <button id="begin">Start the round</button>
 </div>
 
+<div id="card">
+  <div id="cardLevel"></div>
+  <div id="cardLines"></div>
+  <button id="cardGo">Begin</button>
+</div>
+
 <div id="page">
   <header>
     <div id="patient">&mdash;<span id="age"></span></div>
-    <div id="clock" class="num">2:30</div>
+    <div id="hdrRight">
+      <div id="level"></div>
+      <div id="clock" class="num">2:30</div>
+    </div>
   </header>
 
   <section id="monitor">
@@ -37,7 +46,10 @@
   </section>
 
   <section id="body">
-    <div id="feed"></div>
+    <div id="left">
+      <div id="roomWrap"><canvas id="room3d"></canvas><div id="fps"></div></div>
+      <div id="feed"></div>
+    </div>
     <aside id="side">
       <div>
         <h2>Room</h2>
@@ -64,11 +76,18 @@
 <div id="reveal">
   <div id="revealHead"></div>
   <div id="revealDx"></div>
+  <div id="revealNote"></div>
   <div id="revealWho"></div>
   <div id="revealScores"></div>
+  <button id="nextBtn">Next patient</button>
 </div>
 
+<!-- three.js r128, UMD build: defines a global THREE. Pinned deliberately.
+     If this fails to load, Room3D.available() is false and the flat projector
+     view is what ships. ?flat=1 skips the 3D layer outright. -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="/static/ecg.js"></script>
+<script src="/static/room3d.js"></script>
 <script src="/static/screen.js"></script>
 </body>
 </html>

@@ -1,0 +1,117 @@
+{
+  "id": "rita",
+  "diagnosis": "Diabetic ketoacidosis",
+  "accepted_answers": [
+    "diabetic ketoacidosis",
+    "ketoacidosis",
+    "diabetes",
+    "diabetic",
+    "sugar"
+  ],
+  "key_questions": [
+    "have you lost weight",
+    "how much are you drinking",
+    "how often are you passing water",
+    "is your vision blurry"
+  ],
+  "key_keywords": [
+    [
+      "weight",
+      "weigh",
+      "weighed",
+      "lost",
+      "losing",
+      "thinner",
+      "clothes",
+      "kilos",
+      "kilo",
+      "appetite",
+      "eating",
+      "smaller"
+    ],
+    [
+      "thirsty",
+      "thirst",
+      "drinking",
+      "drink",
+      "drinks",
+      "fluids",
+      "dehydrated",
+      "parched",
+      "mouth",
+      "dry"
+    ],
+    [
+      "toilet",
+      "bathroom",
+      "urine",
+      "urinating",
+      "peeing",
+      "pee",
+      "wee",
+      "passing",
+      "bladder"
+    ],
+    [
+      "vision",
+      "sight",
+      "eyes",
+      "blurry",
+      "blurred",
+      "focus",
+      "seeing",
+      "glasses"
+    ]
+  ],
+  "name": "Rita",
+  "age": 31,
+  "opening_line": "I only came because my flatmate wouldn't let it go. I'm just run down.",
+  "personality": "Sharp, a little defensive. A teacher, used to being the one in charge of a room. Deflects with dry humour. Hates being fussed over and will minimise anything you ask about.",
+  "symptoms": [
+    "thirsty constantly, no matter how much she drinks",
+    "up five or six times a night to use the toilet",
+    "clothes have gone loose over the last two months",
+    "vision goes soft and blurry, then clears again",
+    "so tired she fell asleep at her desk at lunch",
+    "stomach has been unsettled for days"
+  ],
+  "lie": "I started a new diet in the spring. That's all the weight is.",
+  "truth": "She has lost about twelve kilos without trying, drinks four or five litres a day and still wakes up parched",
+  "cracks_when": "pressed on it a second time, or asked what her flatmate has noticed",
+  "red_herrings": [
+    "joined a gym in January and blames the weight on that",
+    "term has been brutal and she assumes it is stress"
+  ],
+  "canned": {
+    "how much are you drinking": "Constantly. There's a bottle on my desk and it is never enough.",
+    "how often are you passing water": "All night, if you must know. Five, six times. It's humiliating.",
+    "is your vision blurry": "It goes soft sometimes, then it comes back. I need new glasses, that's all.",
+    "_whats_wrong": "I have no idea. You're the one in the white coat.",
+    "_deflect": [
+      "I'm run down. Term has been brutal.",
+      "I joined a gym in January. That'll be it.",
+      "Can we be quick? I have marking to do.",
+      "Everyone's tired in November. This is not news.",
+      "My flatmate is a worrier. Don't take her word for anything."
+    ]
+  },
+  "level_card": [
+    "Second patient of the shift.",
+    "She teaches year nine and has not sat down in four hours.",
+    "She thinks she is wasting your time."
+  ],
+  "vitals_start": {
+    "hr": 104,
+    "spo2": 98,
+    "sys": 100,
+    "dia": 62,
+    "rr": 24
+  },
+  "vitals_decline": {
+    "hr": 18,
+    "spo2": -4.4,
+    "sys": -11,
+    "dia": -7,
+    "rr": 4.2
+  }
+}

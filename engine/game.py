@@ -23,10 +23,12 @@ ASK_COOLDOWN = 8             # per player, seconds
 
 class Room:
     def __init__(self, case, room_code="TEST", level=1, clock=time.monotonic,
-                 patient=None):
+                 patient=None, next_card=None, is_last=True):
         self.case = case
         self.room_code = room_code
         self.level = level
+        self.next_card = next_card    # the card shown before the NEXT round
+        self.is_last = is_last
         self.clock = clock
         self.patient = patient or CannedPatient(case)
 
@@ -223,6 +225,10 @@ class Room:
             "won": won,
             "killed_by_wrong_answer": self.killed_by_wrong_answer,
             "headline": self._headline(won),
+            "note": self.case.get("reveal_note") if won else None,
+            "level": self.level,
+            "is_last": self.is_last,
+            "next_card": None if self.is_last else self.next_card,
             "scores": sorted(
                 [dict(p) for p in self.players.values()],
                 key=lambda p: -p["score"],

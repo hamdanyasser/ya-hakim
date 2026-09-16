@@ -1,0 +1,133 @@
+{
+  "id": "georges",
+  "diagnosis": "Carbon monoxide poisoning",
+  "accepted_answers": [
+    "carbon monoxide",
+    "monoxide",
+    "co poisoning",
+    "gas leak",
+    "gas",
+    "poisoning"
+  ],
+  "key_questions": [
+    "do you feel better away from the house",
+    "does anyone else at home feel ill",
+    "when do the headaches come",
+    "what heats the house"
+  ],
+  "key_keywords": [
+    [
+      "better",
+      "away",
+      "leave",
+      "leaving",
+      "outside",
+      "elsewhere",
+      "improve",
+      "improves",
+      "holiday",
+      "hotel",
+      "daughter",
+      "travel",
+      "abroad"
+    ],
+    [
+      "wife",
+      "family",
+      "anyone",
+      "else",
+      "household",
+      "others",
+      "someone",
+      "dog",
+      "everyone",
+      "spouse",
+      "children"
+    ],
+    [
+      "when",
+      "morning",
+      "mornings",
+      "wake",
+      "waking",
+      "night",
+      "evening",
+      "worse",
+      "timing",
+      "pattern"
+    ],
+    [
+      "heating",
+      "heat",
+      "heats",
+      "heated",
+      "boiler",
+      "furnace",
+      "stove",
+      "fire",
+      "fireplace",
+      "radiator",
+      "warm",
+      "vent",
+      "chimney",
+      "flue",
+      "appliance",
+      "cooker",
+      "garage",
+      "gas"
+    ]
+  ],
+  "name": "Georges",
+  "age": 62,
+  "opening_line": "My daughter booked this. I told her I'd come, so here I am. Ten minutes.",
+  "personality": "Retired, formal, slightly old-fashioned. Calls you doctor and means it. Does not like to complain and treats his own symptoms as an inconvenience to everyone else. Gets vague and repeats himself when tired, and does not notice he is doing it.",
+  "symptoms": [
+    "headaches most mornings, dull and heavy behind the eyes",
+    "dizzy when he stands up too fast",
+    "stomach turns, though he is never actually sick",
+    "tired in a way that sleeping does not fix",
+    "muddled last week and could not remember his own bank card number",
+    "his wife has been getting headaches as well",
+    "the dog has gone off its food and sleeps all day"
+  ],
+  "lie": "It is stress, and it is winter. Everybody gets headaches in winter.",
+  "truth": "The headaches disappear completely the three days a week he is at his daughter's, and come back the first morning he is home again",
+  "cracks_when": "pressed on it a second time, or asked whether anyone else at home feels the same",
+  "red_herrings": [
+    "got a new glasses prescription in October and blames his eyes",
+    "is convinced it is a side effect of his blood pressure tablets"
+  ],
+  "canned": {
+    "does anyone else at home feel ill": "My wife gets them too, now you mention it. And the dog has been sleeping all day. Odd house, ours.",
+    "when do the headaches come": "Mornings, mostly. I wake up with it and it lifts by lunch. Usually.",
+    "what heats the house": "The old boiler in the back room. It has been in since we bought the place. It grumbles but it works.",
+    "_whats_wrong": "I could not tell you, doctor. That is rather your department.",
+    "_deflect": [
+      "I got new glasses in October. I expect it is that.",
+      "It will be the blood pressure tablets. They always fiddle with those.",
+      "I do not want to make a fuss. There are people here far worse off.",
+      "My daughter worries. She always has, since she was small.",
+      "It is winter, doctor. Everybody feels like this in winter."
+    ]
+  },
+  "reveal_note": "His wife and the dog are still in the house.",
+  "level_card": [
+    "Last patient of the shift.",
+    "He has a wife at home and a daughter who made him come.",
+    "Get this one wrong and he does not go home at all."
+  ],
+  "vitals_start": {
+    "hr": 88,
+    "spo2": 99,
+    "sys": 138,
+    "dia": 88,
+    "rr": 16
+  },
+  "vitals_decline": {
+    "hr": 24,
+    "spo2": -1.2,
+    "sys": -14,
+    "dia": -9,
+    "rr": 4.5
+  }
+}

@@ -250,3 +250,101 @@ def test_output_guard_does_not_trip_on_innocent_speech(case_id):
         "Ask my wife, she dragged me here.",
     ]:
         assert not bad.search(line), "guard tripped on innocent line: " + line
+
+
+# ------------------------------------------------- the canned patient's mouth
+
+@pytest.mark.parametrize("case_id", CASE_IDS)
+def test_canned_dialogue_never_trips_its_own_guard(case_id):
+    """Every offline line must survive the output guard.
+
+    These are hand-written, and an accepted answer is easy to drop into one by
+    accident -- Georges can say "boiler" but not "gas", Rita can say "sweet"
+    but not "sugar". Without this the offline patient could leak the answer in
+    a line nobody re-read.
+    """
+    case = load(case_id)
+    bad = patient.forbidden_pattern(case)
+    lines = []
+    canned = case.get("canned", {})
+    for key, value in canned.items():
+        lines.extend(value if isinstance(value, list) else [value])
+    lines.append(case["opening_line"])
+    lines.append(case["lie"])
+    lines.append(case["truth"])
+    lines.extend(patient.FALLBACKS)
+
+    hits = [ln for ln in lines if bad.search(ln)]
+    assert not hits, case_id + " canned dialogue leaks: " + repr(hits)
+
+
+@pytest.mark.parametrize("case_id", CASE_IDS)
+def test_canned_dialogue_is_not_clinical(case_id):
+    """He is a sick man, not a doctor."""
+    case = load(case_id)
+    lines = []
+    for key, value in case.get("canned", {}).items():
+        lines.extend(value if isinstance(value, list) else [value])
+    hits = [ln for ln in lines if patient.clinical_hit(ln)]
+    assert not hits, case_id + " canned dialogue uses textbook words: " + repr(hits)
+
+
+@pytest.mark.parametrize("case_id", CASE_IDS)
+def test_every_key_question_has_keywords_and_a_canned_reply(case_id):
+    """A key question with no keywords can never be detected offline."""
+    case = load(case_id)
+    assert len(case["key_keywords"]) == len(case["key_questions"]), case_id
+    for group in case["key_keywords"]:
+        assert group, case_id + " has an empty keyword group"
+    # The first key question is the one that carries lie/truth, so it needs no
+    # canned entry. Every other one does.
+    for kq in case["key_questions"][1:]:
+        assert kq in case.get("canned", {}), (
+            case_id + " has no canned reply for key question " + repr(kq)
+        )
+
+
+@pytest.mark.parametrize("case_id", CASE_IDS)
+def test_every_case_has_a_level_card(case_id):
+    """The campaign shows one before each round; a missing card crashed it."""
+    case = load(case_id)
+    card = case.get("level_card")
+    assert isinstance(card, list) and card, case_id + " has no level_card"
+    assert all(isinstance(line, str) and line.strip() for line in card), case_id
+
+
+@pytest.mark.parametrize("case_id", CASE_IDS)
+def test_keyword_groups_do_not_collide(case_id):
+    """A keyword in two groups silently steals the other topic's question.
+
+    Rita had "water" in the thirst group, so "how often are you passing water"
+    matched thirst instead -- and she answered the urine question with her
+    weight lie. The test ran green the whole time because nothing checked this.
+    """
+    case = load(case_id)
+    seen = {}
+    for i, group in enumerate(case["key_keywords"]):
+        for kw in group:
+            kw = kw.lower()
+            assert kw not in seen, (
+                case_id + ": keyword " + repr(kw) + " is in group " +
+                str(seen[kw]) + " and group " + str(i)
+            )
+            seen[kw] = i
+
+
+@pytest.mark.parametrize("case_id", CASE_IDS)
+def test_each_key_question_matches_its_own_topic(case_id):
+    """Asking a key question verbatim must select that key question.
+
+    This is the end-to-end version of the collision test: it catches ordering
+    bugs as well as duplicate keywords.
+    """
+    from engine.scoring import covers_key_topic
+
+    case = load(case_id)
+    for kq in case["key_questions"]:
+        got = covers_key_topic(case, kq)
+        assert got == kq, (
+            case_id + ": asking " + repr(kq) + " selected " + repr(got)
+        )

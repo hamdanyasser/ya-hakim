@@ -117,5 +117,10 @@
       "You people ask a lot of questions for a waste of time.",
       "My wife made me come. Tell her I came. Can I go?"
     ]
-  }
+  },
+  "level_card": [
+    "First patient of the shift.",
+    "He does not want to be here. His wife made him come.",
+    "Watch the monitor. It tells you when he is lying."
+  ]
 }

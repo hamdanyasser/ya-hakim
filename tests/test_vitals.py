@@ -12,6 +12,7 @@ from engine.game import ROUND_SECONDS, STABILISE_SECONDS, Room
 from engine.vitals import dead_vitals, lie_spike_at, status_for, vitals_at
 
 CASES_DIR = Path(__file__).resolve().parent.parent / "cases"
+CASE_IDS = sorted(p.stem for p in CASES_DIR.glob("*.json"))
 
 
 def load(case_id="kamal"):
@@ -19,9 +20,15 @@ def load(case_id="kamal"):
         return json.load(fh)
 
 
-@pytest.fixture
-def case():
-    return load()
+@pytest.fixture(params=CASE_IDS)
+def case(request):
+    """Every test in this file runs against every case.
+
+    A new case file is held to the same bar automatically: it must decline
+    monotonically, stay in physical range, and pass through all three colours
+    inside a round.
+    """
+    return load(request.param)
 
 
 # ------------------------------------------------------------------ decline
@@ -113,6 +120,15 @@ def test_lie_spike_does_not_touch_anything_but_heart_rate(case):
 
 # ------------------------------------------------- stabilising, through Room
 
+def a_question_hitting(case, index):
+    """A question guaranteed to cover key topic `index` of THIS case.
+
+    Tests used to hardcode Kamal's questions, which silently stabilised nothing
+    once other cases existed -- the test still ran, it just stopped testing.
+    """
+    return "tell me about the " + case["key_keywords"][index][0]
+
+
 def _room(case, level=1):
     t = {"now": 0.0}
     room = Room(case, clock=lambda: t["now"])
@@ -132,7 +148,7 @@ def test_stabilising_pauses_decline_for_exactly_45s(case):
     run_to(10)
     assert room.decline_elapsed == pytest.approx(10, abs=0.01)
 
-    room.ask("Sara", "how much do you drink?")          # stabilises until t=55
+    room.ask("Sara", a_question_hitting(case, 0))       # stabilises until t=55
     assert room.stabilised_until == pytest.approx(10 + STABILISE_SECONDS)
 
     run_to(54)
@@ -151,9 +167,9 @@ def test_overlapping_stabilisations_accumulate(case):
     """
     room, t, run_to = _room(case)
     run_to(10)
-    room.ask("Sara", "how much do you drink?")
+    room.ask("Sara", a_question_hitting(case, 0))
     run_to(30)
-    room.ask("Sara", "are your eyes yellow?")
+    room.ask("Sara", a_question_hitting(case, 1))
     assert room.stabilised_until == pytest.approx(100)
 
     run_to(150)
@@ -164,10 +180,10 @@ def test_a_topic_only_buys_time_once(case):
     """Otherwise the room keeps him alive forever on one good question."""
     room, t, run_to = _room(case)
     run_to(10)
-    room.ask("Sara", "how much do you drink?")
+    room.ask("Sara", a_question_hitting(case, 0))
     first = room.stabilised_until
     run_to(20)
-    room.ask("Sara", "so how much do you drink really?")
+    room.ask("Sara", "and again, " + a_question_hitting(case, 0))
     assert room.stabilised_until == first, "the same topic stabilised twice"
 
 
@@ -175,7 +191,7 @@ def test_the_clock_still_runs_while_stabilised(case):
     """Stabilising freezes the decline, never the round."""
     room, t, run_to = _room(case)
     run_to(10)
-    room.ask("Sara", "how much do you drink?")
+    room.ask("Sara", a_question_hitting(case, 0))
     run_to(40)
     assert room.seconds_left() == pytest.approx(ROUND_SECONDS - 40, abs=1)
 
