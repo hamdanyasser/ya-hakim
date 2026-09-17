@@ -502,3 +502,21 @@ body.multi #joinBox, body.multi #boardBox { display: block; }
 #revealScores { flex-direction: row; flex-wrap: wrap; justify-content: center; min-width: 0; }
 #revealScores .row { font-size: 19px; gap: 14px; padding: 8px 14px; }
 @media (max-width: 1100px) { .rv-awards { flex-wrap: wrap; } .rv-award { flex: 1 1 200px; } .rv-bottom { padding-right: 0; } }
+
+/* ------------------------------------------------ bedside inspection */
+/* The label follows the cursor's target rather than sitting in a list, so
+   the patient reads as something you touch rather than a menu you read. */
+#examTip {
+  position: absolute; left: 50%; top: 16px; transform: translateX(-50%) translateY(-6px);
+  background: rgba(255,255,255,.95); color: var(--ink);
+  font-size: 15px; font-weight: 700; letter-spacing: .3px;
+  padding: 8px 16px; border-radius: 99px; box-shadow: 0 6px 24px rgba(0,0,0,.4);
+  opacity: 0; pointer-events: none; transition: opacity .13s, transform .13s; z-index: 4;
+}
+#examTip.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+#examHint {
+  position: absolute; left: 14px; bottom: 10px; z-index: 3;
+  font-size: 12px; letter-spacing: 1.4px; text-transform: uppercase;
+  font-weight: 700; color: rgba(255,255,255,.42);
+}

@@ -303,6 +303,79 @@
     this.monitorLight = new THREE.PointLight(STATUS_COLOUR.stable, 2.2, 3.4, 2);
     this.monitorLight.position.set(0.78, 1.34, -0.44);
     S.add(this.monitorLight);
+
+    this.addHotspots();
+  };
+
+  /* ---- the inspection layer ----
+     Contraband Police, but a bedside: you do not pick an examination from a
+     menu, you look at the man and touch the part of him you want to check.
+     Each hotspot carries the id of an examination the engine already knows
+     how to answer, so this is a new way into an existing system rather than a
+     second system. */
+  Room3D.prototype.addHotspots = function () {
+    var S = this.scene;
+    var self = this;
+    this.hotspots = [];
+
+    var SPOTS = [
+      { id: 'eyes',       label: 'Eyes',    pos: [0, 0.90, -0.88], r: 0.17 },
+      { id: 'cognition',  label: 'Speak to him', pos: [0.24, 0.96, -0.86], r: 0.13 },
+      { id: 'hands',      label: 'Hands',   pos: [-0.44, 0.80, 0.12], r: 0.17 },
+      { id: 'respiratory',label: 'Chest',   pos: [0, 0.92, -0.32], r: 0.20 },
+      { id: 'abdominal',  label: 'Abdomen', pos: [0, 0.94, 0.14],  r: 0.22 },
+      { id: 'legs',       label: 'Legs',    pos: [0, 0.80, 0.76],  r: 0.22 }
+    ];
+
+    SPOTS.forEach(function (spec) {
+      var mesh = new THREE.Mesh(
+        new THREE.SphereGeometry(spec.r, 18, 14),
+        new THREE.MeshBasicMaterial({
+          color: 0x7FC4FF, transparent: true, opacity: 0.0,
+          depthWrite: false, depthTest: false
+        })
+      );
+      mesh.position.set(spec.pos[0], spec.pos[1], spec.pos[2]);
+      mesh.renderOrder = 10;
+      mesh.userData = { examId: spec.id, label: spec.label };
+      S.add(mesh);
+      self.hotspots.push(mesh);
+    });
+
+    this.ray = new THREE.Raycaster();
+    this.pointer = new THREE.Vector2(-2, -2);
+    this.hovered = null;
+  };
+
+  Room3D.prototype.pointerAt = function (clientX, clientY, rect) {
+    this.pointer.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+    this.pointer.y = -((clientY - rect.top) / rect.height) * 2 + 1;
+  };
+
+  Room3D.prototype.pickHotspot = function () {
+    if (!this.hotspots) return null;
+    this.ray.setFromCamera(this.pointer, this.camera);
+    var hits = this.ray.intersectObjects(this.hotspots, false);
+    return hits.length ? hits[0].object : null;
+  };
+
+  /* Only the thing under the cursor lights up. Showing every hotspot at once
+     turns the patient into a menu, which is the thing this replaces. */
+  Room3D.prototype.updateHover = function () {
+    if (!this.hotspots) return null;
+    var hit = this.pickHotspot();
+    if (hit !== this.hovered) {
+      if (this.hovered) this.hovered.material.opacity = 0.0;
+      this.hovered = hit;
+      if (hit) hit.material.opacity = 0.30;
+    }
+    return hit;
+  };
+
+  Room3D.prototype.markExamined = function (examId) {
+    (this.hotspots || []).forEach(function (h) {
+      if (h.userData.examId === examId) h.userData.done = true;
+    });
   };
 
   Room3D.prototype.setStatus = function (status) {
@@ -347,6 +420,8 @@
       );
       this.camera.lookAt(0, 0.86, 0);
     }
+
+    this.updateHover();
 
     /* The ECG canvas was already redrawn this frame by the 2D panel; this just
        tells the GPU to re-upload it. One 1024-ish texture per frame is cheap. */

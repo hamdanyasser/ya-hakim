@@ -56,6 +56,7 @@ class Room:
         self.lied_at = None          # drives the heart-rate tell
         self.ever_critical = False
 
+        self.examined = set()        # exam ids already done, from the 3D room
         self.last_ask = {}           # player -> when they last asked
         self.correct_guessers = []   # in order, for 100 / 60 / 40
         self.killed_by_wrong_answer = False

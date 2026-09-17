@@ -285,6 +285,37 @@ async def api_ask(code: str, payload: dict):
     return {"reply": reply}
 
 
+@app.post("/api/{code}/examine")
+async def api_examine(code: str, payload: dict):
+    """Examine the patient from the 3D room.
+
+    The room game was talk-only: you could ask him anything and look at
+    nothing. The examinations already exist for the solo mode, so this is the
+    same engine reached by touching the man instead of reading a menu.
+    """
+    from engine import clinical
+
+    room, err = _room_or_404(code)
+    if err:
+        return err
+    if room.phase != "playing":
+        return {"finding": None, "reason": "not_playing"}
+
+    exam_id = (payload.get("exam_id") or "").strip()
+    exam = clinical.EXAM_BY_ID.get(exam_id)
+    if not exam:
+        return {"finding": None, "reason": "unknown"}
+
+    if exam_id in room.examined:
+        return {"finding": None, "reason": "already", "name": exam["name"]}
+    room.examined.add(exam_id)
+
+    finding = clinical.exam_finding(room.case, exam_id)
+    room.say("Examination", exam["name"] + " — " + finding, "reply")
+    await sockets.broadcast(room.room_code)
+    return {"finding": finding, "name": exam["name"]}
+
+
 @app.post("/api/{code}/guess")
 async def api_guess(code: str, payload: dict):
     room, err = _room_or_404(code)

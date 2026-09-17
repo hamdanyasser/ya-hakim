@@ -562,6 +562,53 @@
     if (e.key === 'm' || e.key === 'M') { muted = !muted; notice(muted ? 'Monitor muted' : 'Monitor on'); }
   });
 
+  /* -------------------------------------------------- bedside inspection */
+  /* Touch the man instead of picking from a menu. The cursor tells you what is
+     under it and the finding lands in the feed for the whole room. */
+  function wireInspection() {
+    if (!room3d || !room3d.ok) return;
+    var canvas = $('room3d');
+
+    canvas.style.cursor = 'crosshair';
+
+    canvas.addEventListener('mousemove', function (e) {
+      room3d.pointerAt(e.clientX, e.clientY, canvas.getBoundingClientRect());
+      var hit = room3d.hovered;
+      $('examTip').textContent = hit ? hit.userData.label : '';
+      $('examTip').classList.toggle('show', !!hit);
+      canvas.style.cursor = hit ? 'pointer' : 'crosshair';
+    });
+
+    canvas.addEventListener('mouseleave', function () {
+      room3d.pointerAt(-9999, -9999, canvas.getBoundingClientRect());
+      $('examTip').classList.remove('show');
+    });
+
+    canvas.addEventListener('click', function (e) {
+      room3d.pointerAt(e.clientX, e.clientY, canvas.getBoundingClientRect());
+      var hit = room3d.pickHotspot();
+      if (!hit) return;
+      var id = hit.userData.examId;
+
+      fetch('/api/' + code + '/examine', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ exam_id: id })
+      })
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
+          if (d.finding) {
+            room3d.markExamined(id);
+          } else if (d.reason === 'already') {
+            notice('You have already examined that');
+          } else if (d.reason === 'not_playing') {
+            notice('The round is not running');
+          }
+        })
+        .catch(function () { notice('Lost the server'); });
+    });
+  }
+
   /* --------------------------------------------------------------- demo */
   /* ?demo=1 plays the whole show on its own: the questions land on a timer,
      the lie arrives where it should, and it ends on the flatline.
@@ -660,6 +707,8 @@
       if (!room3d.ok) {
         room3d = null;
         document.body.classList.add('flat');
+      } else {
+        wireInspection();
       }
     }
 
