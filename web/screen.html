@@ -74,6 +74,7 @@
 
   <div id="laptop">
     <input id="ask" placeholder="Ask him anything, then press enter" autocomplete="off">
+    <button id="micBtn" class="mic" title="Talk to him" aria-label="Talk to the patient" aria-pressed="false" style="display:none">&#127908;</button>
     <button id="askBtn">Ask</button>
     <button id="guessBtn" class="ghost">Diagnose</button>
   </div>
@@ -82,12 +83,35 @@
 <div id="overlay"></div>
 
 <div id="reveal">
-  <div id="revealHead"></div>
-  <div id="revealDx"></div>
-  <div id="revealNote"></div>
-  <div id="revealWho"></div>
-  <div id="revealScores"></div>
-  <button id="nextBtn">Next patient</button>
+  <div class="rv-top">
+    <div id="revealHead"></div>
+    <div id="revealDx"></div>
+    <div id="revealNote"></div>
+    <div id="revealWho"></div>
+  </div>
+
+  <!-- The case file: the story of the round, told back once the secret is out. -->
+  <div id="caseFile" class="rv-grid">
+    <section class="rv-card rv-hid">
+      <h3 id="cfHidTitle">What he hid</h3>
+      <div class="rv-said"><span>He told you</span><q id="cfLie"></q></div>
+      <div class="rv-truth"><span>The truth</span><q id="cfTruth"></q></div>
+      <div class="rv-caught" id="cfCaught"></div>
+    </section>
+    <section class="rv-card rv-missed">
+      <h3>What the room never asked</h3>
+      <div id="cfMissed"></div>
+      <div class="rv-found" id="cfFound"></div>
+      <div class="rv-pearl" id="cfPearl"></div>
+    </section>
+  </div>
+
+  <div id="awards" class="rv-awards"></div>
+
+  <div class="rv-bottom">
+    <div id="revealScores"></div>
+    <button id="nextBtn">Next patient</button>
+  </div>
 </div>
 
 <!-- three.js r128, UMD build: defines a global THREE. Pinned deliberately.
@@ -95,6 +119,7 @@
      what ships. ?flat=1 skips the 3D layer outright. -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="/static/ecg.js"></script>
+<script src="/static/voice.js"></script>
 <script src="/static/room3d.js"></script>
 <script src="/static/screen.js"></script>
 </body>

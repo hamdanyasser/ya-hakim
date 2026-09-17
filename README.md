@@ -68,8 +68,11 @@ billing (`STRIPE_*`). **Both are optional.**
   This is the development path and what CI runs.
 - **No Stripe keys:** every school is on the free plan (5 seats, every feature).
 
-Docker: `docker compose up --build` (data in a named volume; set `APP_URL` and
-`YH_SECURE_COOKIES=1` behind HTTPS).
+Docker: `docker compose up --build` (data in a named volume). Set `APP_URL` in
+`.env`; when it is `https://…` session cookies are marked Secure automatically.
+`.dockerignore` keeps `.env`, `data/` and local virtualenvs out of the image.
+Run a single server process: encounter locks, rate limits and classroom rooms
+live in memory.
 
 ## How an encounter works
 
@@ -128,7 +131,7 @@ web/      vanilla HTML/CSS/JS, no build step
   index.html app.html app.js practice.html practice.js debrief.js app.css
   screen.html screen.js play.html play.js ecg.js room3d.js style.css   (classroom)
 cases/    the built-in cases + schema.md
-tests/    269 tests, no key, no network
+tests/    311 tests, no key, no network
 ```
 
 Encounter state and debriefs are stored as JSON documents in SQLite; a faculty's
@@ -154,20 +157,51 @@ pytest -q
   a perfect run high and an empty one low, partial credit, offline debrief
   cites only the registry, arrest caps the score, results never name the
   diagnosis.
-- `test_vitals.py`, `test_mood.py`, `test_injection.py` (100 attacks; `YH_LIVE=1`
-  runs them against the real model).
+- `test_api.py` — the HTTP layer through the real app: malformed input is a 400,
+  sign-in is rate limited, seats are enforced under concurrent joins, learners
+  cannot reach staff pages or other schools, concurrent encounter actions are
+  not lost, a double submit grades once, editing a case does not change an
+  attempt in progress, the Stripe webhook applies a signed event, only the
+  projector can control a classroom round, idle rooms are reaped, the proving
+  ground is paced.
+- `test_vitals.py`, `test_mood.py`, `test_redteam.py`, `test_injection.py`
+  (100 attacks; `YH_LIVE=1` runs them against the real model).
 
 ## Security notes for deployers
 
 Sessions are opaque random tokens stored server-side in an HttpOnly,
 SameSite=Lax cookie; all mutating endpoints take JSON. Passwords are scrypt.
 Stripe's webhook is the only thing that changes a school's plan. Set
-`YH_SECURE_COOKIES=1` and `APP_URL` behind HTTPS. Instructors can read any
-debrief in their school; learners only their own. Patient prompts contain no
-learner identifiers.
+`APP_URL` to your `https://` address (cookies become Secure; override with
+`YH_SECURE_COOKIES=0/1`). Instructors can read any debrief in their school;
+learners only their own. Patient prompts contain no learner identifiers.
+
+Sign-in is limited per account (10 attempts / 5 min) and, generously, per
+address — a cohort usually shares one campus address. The public proving
+ground has a per-address pace and an hourly ceiling on live model calls, and
+AI case drafting is limited per school. Put the app behind a reverse proxy that
+sets `X-Forwarded-For` (uvicorn runs with `--proxy-headers`) so limits see real
+client addresses.
 
 ## Classroom mode
 
 Unchanged from the party-game origins and still the best way to open a session:
-`/screen` on the projector (`?flat=1` disables the 3D room), phones join by QR.
-`K` flatlines on demand for rehearsal, `R` reloads. Cases load from `cases/`.
+`/screen` on the projector (`?flat=1` disables the 3D room, `?demo=1` plays the
+round on its own), phones join by QR. `K` flatlines on demand for rehearsal,
+`R` reloads, `M` mutes the monitor. Cases load from `cases/`.
+
+The projector that opens a room holds its **host key** (kept in that browser's
+local storage, so a reload keeps control). Starting, revealing, advancing,
+killing and resetting the round need it; phones can only join, ask and guess.
+A second screen opened on the same code can watch but not drive the round.
+
+When the round ends the reveal opens a **case file**: the lie crossed out with
+the truth beneath it, who drew the lie out and who got the truth, the key
+questions nobody asked with why each would have mattered, a teaching pearl, and
+awards for the room. It is built only in the reveal payload, after the diagnosis
+is public. Phones and the projector take **voice** where the browser supports
+speech recognition, and each patient speaks with a voice that fits them.
+
+`/prove` has an **X-ray**: the exact system prompt the model receives, before
+and after the patient cracks, searchable, with every forbidden term counted in
+it — all zero, and `test_api.py` keeps it that way.

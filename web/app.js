@@ -123,7 +123,12 @@
       var btn = e.target.querySelector('button'); btn.disabled = true;
       api('/api/auth/' + (isLogin ? 'login' : isJoin ? 'join' : 'signup'), form(e.target)).then(function () {
         return boot(true);
-      }).then(function () { go(q.next && q.next.startsWith('/') ? q.next : '/app'); })
+      }).then(function () {
+        /* Only ever return to a page of this app; '//evil.example' starts with a slash too. */
+        var next = q.next || '';
+        if (/^\/practice\/[\w-]+$/.test(next)) { location.href = next; return; }
+        go(/^\/app(\/[\w\-/]*)?$/.test(next) ? next : '/app');
+      })
         .catch(function (err) { $('authErr').textContent = err.message; $('authErr').classList.remove('hide'); btn.disabled = false; });
     };
   }

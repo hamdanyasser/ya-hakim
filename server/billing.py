@@ -85,32 +85,39 @@ def portal_url(org: dict) -> str:
 
 
 def handle_webhook(payload: bytes, signature: str) -> dict:
-    """Verify and apply. Returns what changed, for the log."""
-    if not os.environ.get("STRIPE_WEBHOOK_SECRET"):
-        raise HTTPException(400, "Webhook secret not configured.")
+    """Verify and apply. Returns what changed, for the log.
+
+    stripe-python v8+ objects are not dicts (``.get`` raises), so the verified
+    event is converted to plain nested dicts once, here, before anything reads
+    it. Subscriptions fetched back from the API get the same treatment.
+    """
+    if not (os.environ.get("STRIPE_WEBHOOK_SECRET") and os.environ.get("STRIPE_SECRET_KEY")):
+        raise HTTPException(400, "Billing webhooks are not configured on this server.")
     stripe = _stripe()
     try:
         event = stripe.Webhook.construct_event(payload, signature, os.environ["STRIPE_WEBHOOK_SECRET"])
     except Exception:
         raise HTTPException(400, "Invalid signature.")
+    event = _plain(event)
 
-    kind = event["type"]
-    obj = event["data"]["object"]
+    kind = event.get("type") or ""
+    obj = (event.get("data") or {}).get("object") or {}
     changed = {"event": kind}
 
-    if kind in ("checkout.session.completed",):
+    if kind == "checkout.session.completed":
         org_id = obj.get("client_reference_id") or (obj.get("metadata") or {}).get("org_id")
         sub_id = obj.get("subscription")
-        if org_id and sub_id:
-            sub = stripe.Subscription.retrieve(sub_id)
-            seats = _seats_of(sub)
-            db.run("UPDATE orgs SET plan='pro', seats=?, stripe_subscription_id=?, stripe_customer_id=? WHERE id=?",
-                   (seats, sub_id, obj.get("customer"), org_id))
-            changed.update({"org_id": org_id, "seats": seats})
+        if org_id and sub_id and db.one("SELECT id FROM orgs WHERE id=?", (org_id,)):
+            sub = _plain(stripe.Subscription.retrieve(sub_id))
+            active = sub.get("status") in ACTIVE
+            seats = _seats_of(sub) if active else FREE_SEATS
+            db.run("UPDATE orgs SET plan=?, seats=?, stripe_subscription_id=?, stripe_customer_id=? WHERE id=?",
+                   ("pro" if active else "free", seats, sub_id, obj.get("customer"), org_id))
+            changed.update({"org_id": org_id, "seats": seats, "active": active})
     elif kind in ("customer.subscription.updated", "customer.subscription.created"):
         row = db.one("SELECT id FROM orgs WHERE stripe_customer_id=?", (obj.get("customer"),))
         if row:
-            active = obj.get("status") in ("active", "trialing", "past_due")
+            active = obj.get("status") in ACTIVE
             seats = _seats_of(obj) if active else FREE_SEATS
             db.run("UPDATE orgs SET plan=?, seats=?, stripe_subscription_id=? WHERE id=?",
                    ("pro" if active else "free", seats, obj.get("id"), row["id"]))
@@ -126,10 +133,21 @@ def handle_webhook(payload: bytes, signature: str) -> dict:
     return changed
 
 
-def _seats_of(subscription) -> int:
+ACTIVE = ("active", "trialing", "past_due")
+
+
+def _plain(obj):
+    """A StripeObject (or anything with to_dict) as plain nested dicts."""
+    to_dict = getattr(obj, "to_dict", None)
+    if callable(to_dict):
+        return to_dict()
+    return obj if isinstance(obj, dict) else {}
+
+
+def _seats_of(subscription: dict) -> int:
     try:
-        items = subscription["items"]["data"]
+        items = (subscription.get("items") or {}).get("data") or []
         return int(sum(int(i.get("quantity") or 0) for i in items)) or FREE_SEATS
-    except (KeyError, TypeError, ValueError):
+    except (AttributeError, TypeError, ValueError):
         return FREE_SEATS
 

@@ -57,6 +57,18 @@
   .faq details[open] summary::after { content: '–'; }
   .faq p { color: var(--text-2); margin: 10px 0 0; }
   footer { padding: 40px 0 60px; color: var(--dim); font-size: 13.5px; }
+  .doors { display: grid; gap: 10px; max-width: 560px; }
+  .door { display: flex; flex-direction: column; gap: 2px; padding: 14px 18px; border-radius: 14px; border: 1px solid var(--line-2);
+          background: var(--panel); color: var(--text); transition: transform .15s var(--ease), border-color .15s; }
+  .door:hover { text-decoration: none; transform: translateY(-2px); border-color: var(--text-2); }
+  .door-k { font-size: 18px; font-weight: 800; letter-spacing: -.01em; }
+  .door-t { font-size: 14px; color: var(--text-2); }
+  .door.play { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
+  .door.play .door-t { color: rgba(6,32,26,.75); }
+  .door.break { border-color: rgba(226,75,74,.5); }
+  .door.break .door-k { color: #ff9b9a; }
+  .topcta { display: flex; gap: 8px; }
+  @media (max-width: 900px) { .topcta { margin-left: auto; } }
   .cta-band { text-align: center; padding: 80px 0; }
   .cta-band h2 { font-size: clamp(28px, 4vw, 44px); letter-spacing: -.03em; }
 </style>
@@ -72,24 +84,36 @@
       <a href="#pricing">Pricing</a>
       <a href="/screen">Classroom mode</a>
     </nav>
-    <a class="btn ghost sm" href="/app/login">Sign in</a>
-    <a class="btn primary sm" href="/app/signup">Start free</a>
+    <span class="topcta">
+      <a class="btn ghost sm" href="/app/login">Sign in</a>
+      <a class="btn primary sm" href="/app/signup">Start free</a>
+    </span>
   </div>
 </header>
 
 <main class="wrap">
   <section class="hero">
     <div>
-      <div class="eyebrow"><i></i> Clinical reasoning, practised on patients who lie</div>
-      <h1>Every patient is hiding <em>one thing</em>.<br>Find it before the monitor does.</h1>
-      <p class="lead">Ya Hakim is a browser-based clinical simulator for medical and nursing schools. Students interview a
-        patient with a personality and a secret, examine, order investigations, treat, and commit to a diagnosis —
-        then a senior debriefs them against published guidelines.</p>
-      <div class="row wrap">
-        <a class="btn primary lg" href="/app/signup">Start free — 5 seats</a>
-        <a class="btn ghost lg" href="#how">See how a case plays</a>
+      <div class="eyebrow"><i></i> A patient is lying to you</div>
+      <h1>His mouth lies.<br><em>His heart doesn't.</em></h1>
+      <p class="lead">A patient on the big screen is hiding one thing. A room full of phones interrogates him, the heart
+        monitor catches every lie, and if you run out of time he flatlines. The AI playing him has never been told
+        his diagnosis &mdash; you can read the prompt and check.</p>
+      <div class="doors">
+        <a class="door play" href="/screen?demo=1">
+          <span class="door-k">&#9654; Watch a round</span>
+          <span class="door-t">One minute. Plays itself. Sound on.</span>
+        </a>
+        <a class="door break" href="/prove">
+          <span class="door-k">&#9888; Try to break it</span>
+          <span class="door-t">100 jailbreaks, 0 leaks. Now yours.</span>
+        </a>
+        <a class="door school" href="/app/signup">
+          <span class="door-k">&#9877; For medical schools</span>
+          <span class="door-t">Solo encounters, AI debriefs, cohort dashboards. 5 seats free.</span>
+        </a>
       </div>
-      <p style="margin-top:16px;font-size:13px;color:var(--dim)">No credit card. Runs without a model key for demos. Synthetic patients only — this is education, not medical advice.</p>
+      <p style="margin-top:16px;font-size:13px;color:var(--dim)">Host a room for your class at <a href="/screen">/screen</a>. Synthetic patients only &mdash; education and entertainment, not medical advice.</p>
     </div>
     <div class="demo" aria-hidden="true">
       <div class="top"><b>Kamal <span>54 · dock supervisor</span></b><span class="clock">9:41</span></div>
@@ -152,7 +176,7 @@
         <ul><li>5 seats</li><li>All built-in cases</li><li>Full debriefs</li><li>Classroom mode</li><li>Case editor</li></ul>
         <a class="btn block" href="/app/signup">Start free</a></div>
       <div class="card price hot"><h3>School</h3><div class="amt">$8<small> / seat / month</small></div>
-        <ul><li>Unlimited seats, billed monthly</li><li>Cohorts, assignments, dashboards</li><li>AI case drafting</li><li>Live model patient and attending</li><li>Priority support</li></ul>
+        <ul><li>As many seats as you need, billed monthly</li><li>Cohorts, assignments, dashboards</li><li>AI case drafting</li><li>Live model patient and attending</li><li>Priority support</li></ul>
         <a class="btn primary block" href="/app/signup">Start free, upgrade in-app</a></div>
       <div class="card price"><h3>Institution</h3><div class="amt">Let's talk</div>
         <ul><li>Self-hosted or dedicated instance</li><li>SSO and LMS export</li><li>Custom case library and rubrics</li><li>Data residency</li><li>Training for faculty</li></ul>

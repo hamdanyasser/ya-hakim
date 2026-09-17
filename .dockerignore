@@ -1,0 +1,17 @@
+# Never bake secrets, local data or a host virtualenv into the image.
+.env
+.env.*
+!.env.example
+data/
+*.db
+*.db-wal
+*.db-shm
+.venv/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.git/
+.github/
+uvicorn_*.log
+*.log

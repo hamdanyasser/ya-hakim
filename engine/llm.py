@@ -16,9 +16,13 @@ import os
 import anthropic
 
 # One model for everything by default; override per deployment.
+#   YH_MODEL          debriefs and case drafting (and the patient, unless set below)
+#   YH_PATIENT_MODEL  the patient's replies -- the most frequent call, so the one
+#                     worth pointing at a fast, cheap model
 # On a small budget set YH_MODEL=claude-haiku-4-5: about a fifth the cost, and
 # for a patient who answers in two short sentences the difference barely shows.
 MODEL = os.environ.get("YH_MODEL", "claude-opus-5")
+PATIENT_MODEL = os.environ.get("YH_PATIENT_MODEL") or MODEL
 
 
 def _supports_effort(model: str) -> bool:
@@ -35,6 +39,7 @@ def _supports_fallbacks(model: str) -> bool:
     """Server-side refusal fallbacks exist for the models that can refuse."""
     m = (model or "").lower()
     return ("opus-5" in m or "opus-4-8" in m or "fable" in m or "mythos" in m)
+
 
 # Claude Opus 5 can decline a request on policy grounds. Medical role-play sits
 # close enough to that line that a declined turn must not end an encounter, so
@@ -54,6 +59,27 @@ def client() -> anthropic.Anthropic:
     if _client is None:
         _client = anthropic.Anthropic()
     return _client
+
+
+def request_options(model: str, effort: str | None = None, fmt: dict | None = None) -> dict:
+    """The per-model part of a request: only the options this model accepts.
+
+    Every caller treats an API error as "use the offline path", so a rejected
+    option would not crash anything -- it would quietly switch the live
+    patient off. That is why this is decided here and nowhere else.
+    """
+    opts = {"model": model}
+    config = {}
+    if effort and _supports_effort(model):
+        config["effort"] = effort
+    if fmt:
+        config["format"] = fmt
+    if config:
+        opts["output_config"] = config
+    if _supports_fallbacks(model):
+        opts["betas"] = [FALLBACK_BETA]
+        opts["fallbacks"] = "default"
+    return opts
 
 
 def create(client=None, timeout=None, **kwargs):
@@ -83,26 +109,23 @@ def text_of(response) -> str:
 
 
 def json_call(system: str, user: str, schema: dict, *, effort: str = "high",
-              max_tokens: int = 16000, timeout: float = 120.0) -> dict | None:
+              max_tokens: int = 16000, timeout: float = 300.0) -> dict | None:
     """One structured-output call. Returns the parsed object, or None on any
-    failure -- every caller has a deterministic path that does not need this."""
-    output_config = {"format": {"type": "json_schema", "schema": schema}}
-    if _supports_effort(MODEL):
-        output_config["effort"] = effort
+    failure -- every caller has a deterministic path that does not need this.
 
-    extra = {}
-    if _supports_fallbacks(MODEL):
-        extra = {"betas": [FALLBACK_BETA], "fallbacks": "default"}
-
+    Streamed, because a debrief or a drafted case is long output and a
+    non-streaming request that size can outlive an HTTP idle timeout. The
+    schema must stick to what structured outputs support: no numeric or
+    string-length constraints (callers clamp values themselves).
+    """
     try:
-        resp = client().with_options(timeout=timeout).beta.messages.create(
-            model=MODEL,
+        with client().with_options(timeout=timeout).beta.messages.stream(
             max_tokens=max_tokens,
             system=system,
             messages=[{"role": "user", "content": user}],
-            output_config=output_config,
-            **extra,
-        )
+            **request_options(MODEL, effort, {"type": "json_schema", "schema": schema}),
+        ) as stream:
+            resp = stream.get_final_message()
     except anthropic.APIError:
         return None
     if resp.stop_reason in ("refusal", "max_tokens"):

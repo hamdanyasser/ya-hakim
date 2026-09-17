@@ -20,7 +20,11 @@ from fastapi import HTTPException, Request
 from server import db
 
 COOKIE = "yh_session"
-SECURE_COOKIES = os.environ.get("YH_SECURE_COOKIES", "0") == "1"
+# Secure cookies are only sent over HTTPS. Forcing them on a plain-HTTP
+# deployment means sign-in "works" and then never sticks, so the default
+# follows the public URL; YH_SECURE_COOKIES=1/0 overrides it.
+_secure_env = os.environ.get("YH_SECURE_COOKIES")
+SECURE_COOKIES = (_secure_env == "1") if _secure_env in ("0", "1") else     os.environ.get("APP_URL", "").lower().startswith("https://")
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
 
@@ -31,6 +35,8 @@ def hash_password(password: str) -> str:
 
 
 def verify_password(password: str, stored: str) -> bool:
+    if not isinstance(password, str) or not isinstance(stored, str):
+        return False
     try:
         _, salt_hex, digest_hex = stored.split("$")
         digest = hashlib.scrypt(password.encode("utf-8"), salt=bytes.fromhex(salt_hex),
@@ -38,6 +44,11 @@ def verify_password(password: str, stored: str) -> bool:
         return hmac.compare_digest(digest.hex(), digest_hex)
     except (ValueError, TypeError):
         return False
+
+
+# Verified against when an email is unknown, so a failed sign-in costs the same
+# time whether or not the account exists.
+DUMMY_HASH = hash_password(secrets.token_urlsafe(16))
 
 
 def check_password_strength(password: str):

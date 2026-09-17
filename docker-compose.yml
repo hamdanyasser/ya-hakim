@@ -6,7 +6,7 @@ services:
     env_file: .env
     environment:
       YH_DB: /data/yahakim.db
-      YH_SECURE_COOKIES: "1"
+      # Cookies are marked Secure automatically when APP_URL (in .env) is https://.
     volumes:
       - yahakim-data:/data
     restart: unless-stopped

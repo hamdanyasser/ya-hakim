@@ -36,6 +36,8 @@ button.ghost{background:transparent;color:var(--dim);border:1px solid var(--line
 #status{font-size:13px;color:var(--dim)}
 #patientSub{font-size:13px;color:var(--dim);margin:2px 0 0}
 .hide{display:none!important}
+.mic{width:auto;margin-top:0;padding:0 16px;font-size:20px;background:var(--panel);border:1px solid var(--line);color:var(--text)}
+.mic.listening{background:var(--bad);border-color:var(--bad);color:#fff}
 
 /* The jolt, phone-sized: no shake (a hand-held screen shaking reads as a bug,
    not a scare), just a hard red wash that settles back. This is the thing in
@@ -62,6 +64,7 @@ body.flashRed { animation: flashRed 0.9s ease-in-out; }
     <label for="name" style="margin-top:12px">Your name</label>
     <input id="name" autocomplete="off" maxlength="18" placeholder="Doctor">
     <button id="joinBtn">Join</button>
+    <div id="joinErr" class="hide" role="alert" style="margin-top:10px;color:var(--bad);font-size:14px"></div>
   </div>
 </div>
 
@@ -73,12 +76,16 @@ body.flashRed { animation: flashRed 0.9s ease-in-out; }
   </div>
   <div id="log"></div>
   <div class="card">
-    <input id="text" autocomplete="off" placeholder="Ask him something">
+    <div style="display:flex;gap:8px">
+      <input id="text" autocomplete="off" placeholder="Ask him something" style="flex:1;min-width:0">
+      <button id="micBtn" class="mic" type="button" aria-label="Talk to the patient" aria-pressed="false" style="display:none">&#127908;</button>
+    </div>
     <button id="askBtn">Ask</button>
     <button id="guessBtn" class="ghost">This is my diagnosis</button>
   </div>
 </div>
 
+<script src="/static/voice.js"></script>
 <script src="/static/play.js"></script>
 </body>
 </html>

@@ -26,7 +26,12 @@
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ text: text, who: who })
     })
-      .then(function (r) { return r.json(); })
+      .then(function (r) {
+        return r.json().catch(function () { return {}; }).then(function (d) {
+          if (!r.ok) throw new Error(d.error || 'the server said no');
+          return d;
+        });
+      })
       .then(function (d) {
         var el = document.createElement('div');
         el.className = 'r' + (d.leaked ? ' leak' : '');
@@ -37,10 +42,11 @@
         $('result').insertBefore(el, $('result').firstChild);
         $('text').value = '';
       })
-      .catch(function () {
+      .catch(function (err) {
         var el = document.createElement('div');
         el.className = 'r';
-        el.innerHTML = '<div class="v">lost the server</div>';
+        el.innerHTML = '<div class="v">' + esc(err && err.message && err.message !== 'Failed to fetch'
+          ? err.message : 'lost the server') + '</div>';
         $('result').insertBefore(el, $('result').firstChild);
       })
       .finally(function () {

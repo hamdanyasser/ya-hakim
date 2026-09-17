@@ -7,6 +7,9 @@ closing the server ends every round, which is correct for a party game.
 from __future__ import annotations
 
 import random
+import re
+import secrets
+import time
 
 from engine import llm
 from engine.game import Room
@@ -68,13 +71,50 @@ def build(code: str, level: int) -> Room:
     )
 
 
+MAX_ROOMS = 300                 # a busy festival, not an open-ended allocation
+IDLE_SECONDS = 3 * 3600         # a room nobody has touched in three hours is gone
+CODE_RE = re.compile(r"^[A-Z0-9]{3,8}$")
+
+
+class RoomLimit(Exception):
+    """Too many live rooms on this server."""
+
+
+def valid_code(code) -> bool:
+    return isinstance(code, str) and bool(CODE_RE.match(code.upper()))
+
+
+def touch(room: Room):
+    room.touched = time.monotonic()
+
+
+def get(code: str) -> Room | None:
+    if not valid_code(code):
+        return None
+    return rooms.get(code.upper())
+
+
 def get_or_make(code: str | None = None, level: int = 1) -> Room:
+    if code and not valid_code(code):
+        raise ValueError("invalid room code")
     if code and code.upper() in rooms:
-        return rooms[code.upper()]
+        room = rooms[code.upper()]
+        touch(room)
+        return room
+    reap()
+    if len(rooms) >= MAX_ROOMS:
+        raise RoomLimit()
     code = (code or new_code()).upper()
     room = build(code, level)
+    touch(room)
     rooms[code] = room
     return room
+
+
+def _carry(old: Room, new: Room):
+    """What survives a level change or a reset: the host, and the clock."""
+    new.host_key = old.host_key
+    touch(new)
 
 
 def advance(code: str) -> Room | None:
@@ -91,15 +131,50 @@ def advance(code: str) -> Room | None:
     room = build(code, old.level + 1)
     for name, player in old.players.items():
         room.add_player(name)["score"] = player["score"]
+    _carry(old, room)
     rooms[code] = room
     return room
 
 
 def reset(code: str) -> Room:
     code = code.upper()
-    level = rooms[code].level if code in rooms else 1
-    rooms.pop(code, None)
-    return get_or_make(code, level)
+    old = rooms.get(code)
+    room = build(code, old.level if old else 1)
+    if old:
+        _carry(old, room)
+    touch(room)
+    rooms[code] = room
+    return room
+
+
+def claim_host(room: Room, key: str | None) -> str | None:
+    """The projector that owns a room gets a key; phones never have it.
+
+    The first screen to claim an unowned room owns it. A screen presenting the
+    key it was given (it keeps it across reloads) is recognised again. Anyone
+    else is refused, which is what stops a phone in the audience from killing
+    the patient or resetting the round.
+    """
+    if room.host_key is None:
+        room.host_key = key if (isinstance(key, str) and 16 <= len(key) <= 64) else secrets.token_urlsafe(24)
+        return room.host_key
+    if isinstance(key, str) and secrets.compare_digest(key, room.host_key):
+        return room.host_key
+    return None
+
+
+def is_host(room: Room, key) -> bool:
+    return room.host_key is not None and isinstance(key, str) and secrets.compare_digest(key, room.host_key)
+
+
+def reap(now: float | None = None, has_watchers=lambda code: False) -> int:
+    """Drop rooms idle for IDLE_SECONDS that nobody is watching."""
+    now = time.monotonic() if now is None else now
+    stale = [c for c, r in rooms.items()
+             if now - getattr(r, "touched", now) > IDLE_SECONDS and not has_watchers(c)]
+    for c in stale:
+        rooms.pop(c, None)
+    return len(stale)
 
 
 def opening_card(level: int = 1):

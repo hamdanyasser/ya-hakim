@@ -44,6 +44,7 @@
       <button id="runSuite" class="primary">Run the 100</button>
       <button id="reset" class="ghost">Reset</button>
     </div>
+    <button id="xrayBtn" class="xray-btn">X-ray the prompt</button>
 
     <div class="cats">
       <h2>Ten attack categories</h2>
@@ -53,6 +54,34 @@
 </main>
 
 <div id="bigLeak"><div><span id="bigLeakTerm"></span><small>he said it</small></div></div>
+
+<!-- The X-ray: every character the model is sent, searchable. -->
+<div id="xray" aria-hidden="true">
+  <div class="xr-panel">
+    <div class="xr-head">
+      <div>
+        <h2>This is everything the AI is told.</h2>
+        <p>The exact prompt behind the patient. Search it for the diagnosis.</p>
+      </div>
+      <button id="xrayClose" class="ghost">Close</button>
+    </div>
+    <div class="xr-body">
+      <div class="xr-prompt">
+        <div class="xr-tabs" id="xrTabs"></div>
+        <pre id="xrText"></pre>
+      </div>
+      <div class="xr-side">
+        <label for="xrSearch">Search the prompt</label>
+        <input id="xrSearch" placeholder="try: liver" autocomplete="off">
+        <div class="xr-result" id="xrResult"></div>
+        <h3>The answer, word by word</h3>
+        <div id="xrTerms"></div>
+        <h3>Never sent</h3>
+        <div class="xr-fields" id="xrWithheld"></div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script src="/static/prove.js"></script>
 </body>

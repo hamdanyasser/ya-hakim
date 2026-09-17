@@ -171,8 +171,8 @@ def normalise(raw: dict) -> dict:
     return case
 
 
-def slug(text: str) -> str:
-    return re.sub(r"[^a-z0-9]+", "-", (text or "").lower()).strip("-")[:48] or "case"
+def slug(text) -> str:
+    return re.sub(r"[^a-z0-9]+", "-", str(text or "").lower()).strip("-")[:48] or "case"
 
 
 REQUIRED = [
@@ -182,8 +182,47 @@ REQUIRED = [
 ]
 
 
-def validate(case: dict) -> list:
-    """Everything that would make this case unsafe or unplayable. Empty = ok."""
+TYPES = {
+    "name": str, "age": int, "description": str, "personality": str, "symptoms": list,
+    "lie": str, "truth": str, "cracks_when": str, "red_herrings": list, "opening_line": str,
+    "diagnosis": str, "accepted_answers": list, "key_questions": list, "key_keywords": list,
+    "canned": dict, "vitals_start": dict, "vitals_decline": dict, "level_card": list,
+}
+OPTIONAL_TYPES = {
+    "partial_answers": list, "key_question_reasons": list, "crack_keywords": list,
+    "history": dict, "presentation": dict, "exam": dict, "investigations": dict,
+    "key_exams": list, "key_investigations": list, "key_treatments": list,
+    "harmful_treatments": dict, "management_points": list, "management_keywords": list,
+    "teaching": (dict, str), "guidelines": list, "title": str, "sex": str, "lie_topic": str,
+}
+
+
+def validate(case) -> list:
+    """Everything that would make this case unsafe or unplayable. Empty = ok.
+
+    Never raises. The editor calls this on arbitrary JSON an instructor typed,
+    so a wrong type must come back as a problem to fix, not a server error.
+    """
+    if not isinstance(case, dict):
+        return ["the case must be a JSON object"]
+    problems = []
+    for f, t in TYPES.items():
+        if f in case and case[f] not in ("", [], {}, None) and not isinstance(case[f], t):
+            problems.append("%s has the wrong type (expected %s)" % (f, t.__name__))
+    for f, t in OPTIONAL_TYPES.items():
+        if case.get(f) is not None and not isinstance(case[f], t):
+            problems.append("%s has the wrong type" % f)
+    if isinstance(case.get("age"), bool):
+        problems.append("age has the wrong type (expected int)")
+    if problems:
+        return problems
+    try:
+        return _validate(case)
+    except Exception as e:                     # malformed nested content
+        return ["the case is malformed (%s: %s)" % (type(e).__name__, str(e)[:120])]
+
+
+def _validate(case: dict) -> list:
     problems = []
     for f in REQUIRED:
         if f not in case or case[f] in ("", [], {}, None):

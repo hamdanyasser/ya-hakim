@@ -207,3 +207,53 @@ button:disabled { opacity: .45; transform: none; cursor: default; }
   .stat .val { font-size: 52px; }
   .stat.leaks .val { font-size: 62px; }
 }
+
+
+/* ------------------------------------------------------------- X-ray */
+.xray-btn {
+  margin-top: 12px; width: 100%; font: inherit; font-size: 17px; font-weight: 800; cursor: pointer;
+  border: 2px solid var(--ink); background: var(--card); color: var(--ink); border-radius: 12px; padding: 12px;
+}
+.xray-btn:hover { background: var(--ink); color: #fff; }
+#xray {
+  position: fixed; inset: 0; z-index: 80; display: none; padding: 28px;
+  background: rgba(22,24,29,.55); backdrop-filter: blur(6px);
+}
+#xray.show { display: flex; animation: xrIn .25s ease-out; }
+@keyframes xrIn { from { opacity: 0; } to { opacity: 1; } }
+.xr-panel {
+  margin: auto; width: min(1500px, 100%); height: min(92vh, 1000px); background: var(--paper);
+  border-radius: 22px; box-shadow: var(--lift-3); display: flex; flex-direction: column; overflow: hidden;
+}
+.xr-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; padding: 22px 28px 14px; }
+.xr-head h2 { margin: 0 0 4px; font-size: 34px; letter-spacing: -.03em; }
+.xr-head p { margin: 0; color: var(--ink-2); font-size: 18px; }
+.xr-head button { width: auto; flex: 0 0 auto; margin: 0; font: inherit; font-weight: 700; padding: 10px 18px; border-radius: 10px; cursor: pointer;
+                  background: transparent; border: 1px solid var(--edge-2); color: var(--ink-2); }
+.xr-body { flex: 1; min-height: 0; display: grid; grid-template-columns: 1.6fr 1fr; gap: 20px; padding: 0 28px 24px; }
+.xr-prompt { min-height: 0; display: flex; flex-direction: column; background: #12141A; border-radius: 16px; overflow: hidden; }
+.xr-tabs { display: flex; gap: 6px; padding: 10px 12px 0; }
+.xr-tabs button { font: inherit; font-size: 13px; font-weight: 700; border: 0; border-radius: 8px 8px 0 0; padding: 8px 14px;
+                  cursor: pointer; background: transparent; color: #9AA0AC; text-transform: uppercase; letter-spacing: 1px; }
+.xr-tabs button.on { background: #1E2129; color: #fff; }
+.xr-prompt pre {
+  flex: 1; min-height: 0; overflow: auto; margin: 0; padding: 18px 20px; background: #1E2129; color: #D8DCE4;
+  font-family: var(--mono); font-size: 14.5px; line-height: 1.55; white-space: pre-wrap;
+}
+.xr-prompt mark { background: #FFC857; color: #12141A; border-radius: 3px; padding: 0 2px; }
+.xr-side { min-height: 0; overflow: auto; }
+.xr-side label { display: block; font-size: 12px; letter-spacing: 1.6px; text-transform: uppercase; font-weight: 800; color: var(--ink-3); margin-bottom: 6px; }
+.xr-side input { width: 100%; font: inherit; font-size: 22px; padding: 12px 14px; border-radius: 12px; border: 2px solid var(--edge-2); background: var(--card); }
+.xr-side input:focus { outline: none; border-color: var(--blue); }
+.xr-result { margin: 10px 0 18px; font-size: 18px; color: var(--ink-2); min-height: 26px; }
+.xr-result.miss { color: #03664f; } .xr-result.miss b { color: var(--ok); font-size: 28px; }
+.xr-result.hit { color: var(--ink); } .xr-result.hit b { color: var(--amber); font-size: 28px; }
+.xr-side h3 { margin: 16px 0 8px; font-size: 12px; letter-spacing: 1.6px; text-transform: uppercase; color: var(--ink-3); }
+.xr-term { display: flex; justify-content: space-between; width: 100%; font: inherit; font-size: 17px; cursor: pointer;
+           background: var(--card); border: 1px solid var(--edge); border-radius: 10px; padding: 9px 12px; margin-bottom: 6px; text-align: left; }
+.xr-term:hover { border-color: var(--ink-3); }
+.xr-term b { font-family: var(--mono); font-size: 13px; }
+.xr-term b.ok { color: var(--ok); } .xr-term b.bad { color: var(--bad); }
+.xr-fields { display: flex; flex-wrap: wrap; gap: 6px; }
+.xr-fields span { font-family: var(--mono); font-size: 13px; background: var(--bad-soft); color: #9b1c2a; border-radius: 6px; padding: 4px 8px; }
+@media (max-width: 900px) { .xr-body { grid-template-columns: 1fr; } .xr-panel { height: auto; max-height: 94vh; overflow: auto; } }

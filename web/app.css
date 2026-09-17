@@ -75,6 +75,18 @@ small, .muted { color: var(--dim); }
 .usermenu { display: flex; align-items: center; gap: 10px; color: var(--text-2); font-size: 14px; white-space: nowrap; }
 .usermenu .org { display: none; }
 @media (min-width: 1200px) { .usermenu .org { display: inline; } }
+@media (max-width: 900px) {
+  /* Every destination must stay reachable on a phone: the bar wraps, and the
+     links become a row you can swipe instead of being clipped off the edge. */
+  .topbar .wrap { height: auto; flex-wrap: wrap; gap: 6px 12px; padding: 8px 0; }
+  .topbar .nav { order: 5; flex: 1 1 100%; overflow-x: auto; scrollbar-width: none; margin-left: 0 !important;
+                 -webkit-overflow-scrolling: touch; padding-bottom: 2px; }
+  .topbar .nav::-webkit-scrollbar { display: none; }
+  .topbar .nav a { flex: 0 0 auto; }
+  .topbar .spacer { display: none; }
+  .usermenu { margin-left: auto; }
+  .usermenu > span:not(.avatar) { display: none; }
+}
 .avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--panel-2); border: 1px solid var(--line-2);
   display: grid; place-items: center; font-size: 12px; font-weight: 700; color: var(--text); }
 
@@ -188,8 +200,6 @@ tbody tr:hover td { background: rgba(255,255,255,.02); }
 .enc-top .who span { color: var(--dim); font-weight: 500; margin-left: 8px; }
 .enc-top .clock { font-size: 24px; font-weight: 700; }
 .enc-body { display: grid; grid-template-columns: minmax(360px, 1.1fr) minmax(0, 1.3fr); min-height: 0; }
-@media (max-width: 1000px) { .enc-body { grid-template-columns: 1fr; grid-template-rows: auto 1fr; overflow: auto; } .enc { height: auto; } }
-.patient-col { display: grid; grid-template-rows: auto 1fr auto; min-height: 0; border-right: 1px solid var(--line); background: var(--bg); }
 .monitor { padding: 12px 16px; border-bottom: 1px solid var(--line); background: var(--panel); display: grid; grid-template-columns: 1fr 190px; gap: 12px; align-items: center; }
 .monitor canvas { width: 100%; height: 96px; display: block; }
 .vitals { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px; }
@@ -197,7 +207,8 @@ tbody tr:hover td { background: rgba(255,255,255,.02); }
 .vital .val { font-size: 21px; font-weight: 700; line-height: 1.1; }
 .vital .val small { font-size: 11px; color: var(--dim); font-weight: 500; margin-left: 3px; }
 .feed { overflow-y: auto; padding: 16px 18px; display: flex; flex-direction: column; gap: 12px; min-height: 0; }
-.msg { max-width: 92%; padding: 10px 13px; border-radius: 14px; line-height: 1.45; font-size: 15.5px; animation: rise .22s var(--ease); }
+.msg { max-width: 92%; padding: 10px 13px; border-radius: 14px; line-height: 1.45; font-size: 15.5px; }
+.msg.new { animation: rise .22s var(--ease); }
 .msg .who { display: block; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 3px; color: var(--dim); font-weight: 700; }
 .msg.reply { background: var(--panel); border: 1px solid var(--line); align-self: flex-start; border-bottom-left-radius: 4px; }
 .msg.reply .who { color: var(--ok); }
@@ -206,7 +217,7 @@ tbody tr:hover td { background: rgba(255,255,255,.02); }
 .msg.system { align-self: center; background: rgba(226,75,74,.12); border: 1px solid rgba(226,75,74,.35); color: #ffc9c9; font-size: 13.5px; text-align: center; }
 .msg.thinking { color: var(--dim); font-style: italic; }
 .ask { display: flex; gap: 8px; padding: 12px 14px; border-top: 1px solid var(--line); background: var(--bg-2); }
-.ask input { flex: 1; font-size: 15.5px; }
+.ask input { flex: 1; min-width: 0; font-size: 15.5px; }
 .mood { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; }
 .mood.dim { color: var(--dim); } .mood.warn { color: var(--warn); } .mood.bad { color: var(--bad); animation: pulse 1.1s ease-in-out infinite; }
 @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .5; } }
@@ -227,7 +238,7 @@ tbody tr:hover td { background: rgba(255,255,255,.02); }
 .finding.abn { border-left-color: var(--warn); }
 .finding.pending { border-left-color: var(--line-2); color: var(--dim); }
 .finding b { display: block; font-size: 12px; color: var(--text-2); margin-bottom: 3px; }
-.chart dl { display: grid; grid-template-columns: 150px 1fr; gap: 8px 14px; margin: 0; font-size: 14px; }
+.chart dl { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 8px 14px; margin: 0; font-size: 14px; }
 .chart dt { color: var(--dim); } .chart dd { margin: 0; }
 .chart ul { margin: 0; padding-left: 18px; }
 .enc-foot { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-top: 1px solid var(--line); background: var(--bg-2); }
@@ -264,3 +275,43 @@ body.codeRed::after { content: ''; position: fixed; inset: 0; pointer-events: no
   body { background: #fff; color: #111; } .topbar, .btn, .no-print { display: none !important; }
   .card { border-color: #ddd; background: #fff; box-shadow: none; } .print-only { display: block; }
 }
+
+/* ------------------------------------------------ encounter on small screens
+   Kept last so these override the base encounter rules above. */
+@media (max-width: 1000px) {
+  .enc { height: auto; min-height: 100vh; grid-template-rows: auto 1fr; overflow: visible; }
+  .enc-top { min-height: 58px; }
+  .enc-body { grid-template-columns: 1fr; grid-template-rows: auto auto; overflow: visible; }
+  .patient-col { border-right: 0; border-bottom: 1px solid var(--line); }
+  .feed { max-height: 55vh; min-height: 220px; }
+  .work { overflow: visible; }
+}
+@media (max-width: 700px) {
+  /* Phones: the header wraps instead of pushing the clock and Commit off
+     screen; vitals sit under the trace; the chart stacks label over value. */
+  .enc-top { flex-wrap: wrap; gap: 6px 10px; padding: 8px 12px; }
+  .enc-top .who { font-size: 15.5px; }
+  .enc-top .spacer { display: none; }
+  .enc-top #commit { flex: 1 1 100%; order: 10; }
+  .enc-top .clock { margin-left: auto; font-size: 20px; }
+  .monitor { grid-template-columns: 1fr; padding: 10px 12px; }
+  .vitals { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .vital .val { font-size: 17px; }
+  .chart dl { grid-template-columns: 1fr; gap: 2px 0; }
+  .chart dt { margin-top: 8px; font-size: 12px; text-transform: uppercase; letter-spacing: .5px; }
+  .work-tabs { overflow-x: auto; scrollbar-width: none; padding: 8px 8px 0; }
+  .work-tabs::-webkit-scrollbar { display: none; }
+  .work-tabs button { padding: 10px 11px; flex: 0 0 auto; }
+  .work { padding: 12px; }
+}
+.patient-col { display: grid; grid-template-rows: auto 1fr auto; min-height: 0; border-right: 1px solid var(--line); background: var(--bg); }
+
+/* Wide tables scroll inside their card instead of being clipped on phones. */
+.card.tight { overflow-x: auto; }
+.card.tight table { min-width: 520px; }
+@media (min-width: 700px) { .card.tight table { min-width: 0; } }
+
+
+/* ------------------------------------------------------------ voice input */
+.ask .mic { padding: 0 14px; font-size: 18px; }
+.ask .mic.listening { background: var(--bad); border-color: var(--bad); color: #fff; animation: pulse 1s ease-in-out infinite; }
