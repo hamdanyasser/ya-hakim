@@ -6,29 +6,38 @@
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
 
 :root {
-  /* paper */
-  --paper:      #FFF8EC;
-  --paper-2:    #FFFCF5;
+  /* paper: cool and bright rather than the old warm cream */
+  --paper:      #F2F6F3;
+  --paper-2:    #FAFDFB;
   --card:       #FFFFFF;
 
-  /* ink: warm brown, never black */
-  --ink:        #33251C;
-  --ink-soft:   #8A7364;
-  --line:       #2A1D15;
+  /* ink: deep slate */
+  --ink:        #1C2430;
+  --ink-soft:   #6B7A8C;
+  --line:       #141C26;
 
-  /* the palette. each colour has a soft face and a deep one. */
-  --teal:       #9BE3D2;   --teal-deep:   #2BB79A;
-  --clay:       #FFB59C;   --clay-deep:   #F2704A;
-  --saffron:    #FFDB8A;   --saffron-deep:#F0A92C;
-  --plum:       #D5BDF5;   --plum-deep:   #8A5CD6;
-  --sky:        #A9D6FF;   --sky-deep:    #3D93E8;
-  --rose:       #FFB0BE;   --rose-deep:   #E8536F;
+  /* the palette: fresher, cooler, higher energy.
+     each colour keeps a soft face and a deep one. */
+  --mint:       #9DF3D0;   --mint-deep:   #12C48E;
+  --lemon:      #FFE873;   --lemon-deep:  #E8B21F;
+  --bubble:     #FFAFD4;   --bubble-deep: #F0479B;
+  --peri:       #BDC4FF;   --peri-deep:   #5B63F0;
+  --tang:       #FFC08A;   --tang-deep:   #FF8A3D;
+  --aqua:       #A7E6FF;   --aqua-deep:   #1FA8E0;
+
+  /* aliases so the markup does not have to change */
+  --teal: var(--mint);     --teal-deep: var(--mint-deep);
+  --clay: var(--tang);     --clay-deep: var(--tang-deep);
+  --saffron: var(--lemon); --saffron-deep: var(--lemon-deep);
+  --plum: var(--peri);     --plum-deep: var(--peri-deep);
+  --sky: var(--aqua);      --sky-deep: var(--aqua-deep);
+  --rose: var(--bubble);   --rose-deep: var(--bubble-deep);
 
   /* vitals speak in the palette */
-  --ok:    var(--teal-deep);
-  --warn:  var(--saffron-deep);
-  --bad:   var(--rose-deep);
-  --gone:  #A79A90;
+  --ok:    var(--mint-deep);
+  --warn:  var(--tang-deep);
+  --bad:   var(--bubble-deep);
+  --gone:  #96A3B2;
 
   --r-sm: 14px;
   --r-md: 22px;
@@ -39,8 +48,8 @@
   --stroke-thick: 4px;
 
   /* the plush shadow: a hard offset in the ink colour, then a soft one */
-  --plush:      0 6px 0 var(--line), 0 14px 26px rgba(42,29,21,.16);
-  --plush-sm:   0 4px 0 var(--line), 0 8px 16px rgba(42,29,21,.14);
+  --plush:      0 6px 0 var(--line), 0 14px 26px rgba(20,28,38,.16);
+  --plush-sm:   0 4px 0 var(--line), 0 8px 16px rgba(20,28,38,.14);
   --plush-tiny: 0 3px 0 var(--line);
 
   --mono: "Cascadia Mono", Consolas, ui-monospace, monospace;
@@ -77,7 +86,7 @@ html, body {
   box-shadow: var(--plush-sm);
   transition: transform .08s, box-shadow .08s;
 }
-.btn:hover  { transform: translateY(-2px); box-shadow: 0 6px 0 var(--line), 0 12px 22px rgba(42,29,21,.18); }
+.btn:hover  { transform: translateY(-2px); box-shadow: 0 6px 0 var(--line), 0 12px 22px rgba(20,28,38,.18); }
 .btn:active { transform: translateY(4px); box-shadow: var(--plush-tiny); }
 .btn:disabled { opacity: .5; transform: none; box-shadow: var(--plush-tiny); cursor: default; }
 
@@ -131,7 +140,7 @@ h1.title {
   border-radius: var(--r-lg); box-shadow: var(--plush);
   cursor: pointer; transition: transform .1s, box-shadow .1s;
 }
-.case:hover { transform: translateY(-4px); box-shadow: 0 10px 0 var(--line), 0 20px 30px rgba(42,29,21,.2); }
+.case:hover { transform: translateY(-4px); box-shadow: 0 10px 0 var(--line), 0 20px 30px rgba(20,28,38,.2); }
 .case .who { font-size: 26px; font-weight: 900; margin: 10px 0 2px; }
 .case .sub { font-size: 14px; color: var(--ink-soft); font-weight: 700; margin-bottom: 12px; }
 .case .blurb { font-size: 15px; font-weight: 600; line-height: 1.45; color: var(--ink); }
@@ -182,7 +191,7 @@ h1.title {
 .vitals { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .vital {
   border: var(--stroke) solid var(--line); border-radius: var(--r-sm);
-  padding: 8px 13px; background: var(--card); box-shadow: var(--plush-tiny);
+  padding: 8px 11px; background: var(--card); box-shadow: var(--plush-tiny);
   position: relative; overflow: hidden;
 }
 .vital.hr   { background: var(--rose); }
@@ -190,8 +199,8 @@ h1.title {
 .vital.bp   { background: var(--plum); }
 .vital.rr   { background: var(--teal); }
 .vital .k { font-size: 10px; white-space: nowrap; font-weight: 900; letter-spacing: 1.5px; text-transform: uppercase; opacity: .72; }
-.vital .v { font-size: 34px; font-weight: 900; line-height: 1.05; }
-.vital .v small { font-size: 12px; font-weight: 800; opacity: .6; margin-left: 4px; }
+.vital .v { font-size: 32px; font-weight: 900; line-height: 1.05; white-space: nowrap; }
+.vital .v small { font-size: 11px; font-weight: 800; opacity: .6; margin-left: 4px; }
 
 /* the tell */
 .vital.tell { animation: tell .5s ease-out 3; }
@@ -250,12 +259,12 @@ h1.title {
 .overlay {
   position: fixed; inset: 0; z-index: 60; display: none;
   align-items: center; justify-content: center; padding: 40px;
-  background: rgba(42,29,21,.55);
+  background: rgba(20,28,38,.58);
 }
 .overlay.on { display: flex; animation: pop .26s cubic-bezier(.2,1.3,.4,1); }
 .sheet {
   background: var(--paper); border: var(--stroke-thick) solid var(--line);
-  border-radius: var(--r-lg); box-shadow: 0 10px 0 var(--line), 0 30px 60px rgba(42,29,21,.35);
+  border-radius: var(--r-lg); box-shadow: 0 10px 0 var(--line), 0 30px 60px rgba(20,28,38,.35);
   padding: 30px; max-width: 900px; width: 100%; max-height: 82vh; overflow-y: auto;
 }
 .sheet h2 { font-size: 30px; font-weight: 900; margin: 0 0 6px; }
@@ -304,3 +313,34 @@ h1.title {
   .bubble { max-width: 88%; }
   .cases { flex-direction: column; align-items: center; }
 }
+
+
+/* ------------------------------------------------------- he is thinking */
+/* Something has to happen between the keypress and the model answering, or
+   a second and a half of silence reads as the app being broken. */
+.msg.dots { display: inline-flex; gap: 6px; align-items: center; padding: 18px 22px; }
+.msg.dots i {
+  width: 9px; height: 9px; border-radius: 50%;
+  background: var(--ink-soft); display: block;
+  animation: blink 1.1s infinite;
+}
+.msg.dots i:nth-child(2) { animation-delay: .18s; }
+.msg.dots i:nth-child(3) { animation-delay: .36s; }
+@keyframes blink {
+  0%, 80%, 100% { opacity: .25; transform: translateY(0); }
+  40%           { opacity: 1;   transform: translateY(-3px); }
+}
+
+/* ------------------------------------------------------ quick questions */
+.quick {
+  display: flex; gap: 8px; flex-wrap: wrap;
+  padding: 0 24px 10px; flex: 0 0 auto;
+}
+.chip {
+  font-family: inherit; font-size: 14px; font-weight: 800; color: var(--ink);
+  background: var(--card); border: 2px solid var(--line);
+  border-radius: var(--r-pill); padding: 8px 15px; cursor: pointer;
+  box-shadow: 0 2px 0 var(--line); transition: transform .08s, background .12s;
+}
+.chip:hover  { background: var(--lemon); transform: translateY(-2px); }
+.chip:active { transform: translateY(2px); box-shadow: none; }

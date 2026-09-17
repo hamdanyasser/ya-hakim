@@ -15,6 +15,24 @@
   var poll = null;
   var spoken = 0;
   var flatlined = false;
+  var lastSig = '';
+  var pending = null;      // the optimistic bubble waiting on a reply
+
+  function bubble(kind, who, text) {
+    var d = document.createElement('div');
+    d.className = 'bubble ' + kind;
+    d.innerHTML = '<div class="lbl">' + esc(who) + '</div>' +
+                  '<div class="msg">' + esc(text) + '</div>';
+    return d;
+  }
+
+  function thinking() {
+    var d = document.createElement('div');
+    d.className = 'bubble him';
+    d.innerHTML = '<div class="lbl">' + esc(($('eName') || {}).textContent || '') + '</div>' +
+                  '<div class="msg dots"><i></i><i></i><i></i></div>';
+    return d;
+  }
 
   var MOOD = {
     guarded:   ['🛡', 'Guarded',   ''],
@@ -130,16 +148,19 @@
     }
     lastHr = v.vitals.hr;
 
-    var talk = $('talk');
-    talk.innerHTML = '';
-    v.log.forEach(function (l) {
-      var d = document.createElement('div');
-      d.className = 'bubble ' + l.kind;
-      d.innerHTML = '<div class="lbl">' + esc(l.who) + '</div>' +
-                    '<div class="msg">' + esc(l.text) + '</div>';
-      talk.appendChild(d);
-    });
-    talk.scrollTop = talk.scrollHeight;
+    /* Only touch the DOM when the conversation actually changed. Rebuilding
+       every bubble once a second made the whole thread flicker and re-animate,
+       which read as lag even though nothing was slow. */
+    var sig = v.log.length + ':' + (v.log.length ? v.log[v.log.length - 1].text : '');
+    if (sig !== lastSig) {
+      lastSig = sig;
+      var talk = $('talk');
+      talk.innerHTML = '';
+      v.log.forEach(function (l) {
+        talk.appendChild(bubble(l.kind, l.who, l.text));
+      });
+      talk.scrollTop = talk.scrollHeight;
+    }
 
     for (var i = spoken; i < v.log.length; i++) {
       if (v.log[i].kind === 'him') speak(v.log[i].text);
@@ -269,17 +290,54 @@
 
   function send() {
     var t = $('ask').value.trim();
-    if (!t) return;
+    if (!t || pending) return;
     $('ask').value = '';
+
+    /* Your line and his three dots go up before the request leaves, so the
+       screen answers the keypress rather than the network. */
+    var talk = $('talk');
+    talk.appendChild(bubble('you', 'You', t));
+    var dots = thinking();
+    talk.appendChild(dots);
+    talk.scrollTop = talk.scrollHeight;
+    pending = true;
+    lastSig = '';                       // force a clean redraw when it lands
+
     fetch(API + '/ask/' + sid, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ text: t })
     }).then(function (r) { return r.json(); }).then(function (v) {
+      pending = null;
       if (v.reason === 'wait') toast('Give him a second');
       else if (v.reason === 'over') toast('The round is over');
       render(v);
-    }).catch(function () { toast('Lost the server'); });
+    }).catch(function () {
+      pending = null;
+      if (dots.parentNode) dots.parentNode.removeChild(dots);
+      toast('Lost the server');
+    });
   }
+  /* Quick questions. Typing every line is slow on stage and slow for anyone
+     who does not know what to ask a patient. */
+  var QUICK = [
+    ['What brings you in?', 'what brings you in tonight?'],
+    ['How much do you drink?', 'how much do you drink?'],
+    ['Any pain?', 'are you in any pain?'],
+    ['How long?', 'how long has this been going on?'],
+    ['Medications?', 'what medications are you taking?'],
+    ['Your wife?', 'what does your wife think is going on?']
+  ];
+  var qbar = $('quick');
+  if (qbar) {
+    QUICK.forEach(function (q) {
+      var b = document.createElement('button');
+      b.className = 'chip';
+      b.textContent = q[0];
+      b.onclick = function () { $('ask').value = q[1]; send(); };
+      qbar.appendChild(b);
+    });
+  }
+
   $('btnAsk').onclick = send;
   $('ask').addEventListener('keydown', function (e) { if (e.key === 'Enter') send(); });
 
