@@ -128,6 +128,7 @@ def _sample_state(case: dict, phase: str = "playing", mood: str = "guarded") -> 
         phase=phase,
         patient_name=case["name"],
         patient_age=case["age"],
+        patient_sex=case.get("sex", ""),
         description=case.get("description", ""),
         mood=mood,
         vitals={"hr": 96, "spo2": 97, "bp": "104/68", "rr": 18},
@@ -213,7 +214,7 @@ def test_gamestate_has_no_field_beyond_the_contract(case_id):
     import dataclasses
 
     expected = {
-        "room_code", "phase", "patient_name", "patient_age", "description",
+        "room_code", "phase", "patient_name", "patient_age", "patient_sex", "description",
         "mood", "vitals", "status", "seconds_left", "messages", "players",
         "reveal",
     }

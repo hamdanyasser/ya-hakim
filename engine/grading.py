@@ -147,17 +147,7 @@ def mark(case: dict, state: dict) -> dict:
     comm = {"id": "interpersonal", "name": "Communication and professionalism", "max": 20,
             "score": min(20, comm_score), "items": items}
 
-    total = data["score"] + mgmt["score"] + comm["score"]
-    modifiers = []
-    if state["outcome"] == "arrested":
-        modifiers.append({"label": "The patient arrested", "delta": -min(total, max(0, total - 59))})
-        total = min(total, 59)
-    elif state["max_status"] == "critical":
-        modifiers.append({"label": "The patient reached a critical state", "delta": -5})
-        total = max(0, total - 5)
-    if state["max_status"] == "stable" and state["outcome"] == "submitted":
-        modifiers.append({"label": "Never let the patient deteriorate", "delta": +3})
-        total = min(100, total + 3)
+    total, modifiers = totals([data, mgmt, comm], state)
 
     return {
         "total": int(total),
@@ -173,6 +163,32 @@ def mark(case: dict, state: dict) -> dict:
         "question_count": state["question_count"],
         "max_status": state["max_status"],
     }
+
+
+ARREST_CAP = 59
+
+
+def totals(domains: list, state: dict) -> tuple:
+    """The overall score from the domain scores and the outcome.
+
+    The only place the total is computed, so a re-marked domain goes back
+    through the same outcome rules (an arrest still caps the score).
+    """
+    total = sum(d["score"] for d in domains)
+    modifiers = []
+    if state["outcome"] == "arrested":
+        if total > ARREST_CAP:
+            modifiers.append({"label": "The patient arrested", "delta": ARREST_CAP - total})
+            total = ARREST_CAP
+        else:
+            modifiers.append({"label": "The patient arrested", "delta": 0})
+    elif state["max_status"] == "critical":
+        modifiers.append({"label": "The patient reached a critical state", "delta": -min(5, total)})
+        total = max(0, total - 5)
+    if state["max_status"] == "stable" and state["outcome"] == "submitted":
+        modifiers.append({"label": "Never let the patient deteriorate", "delta": min(3, 100 - total)})
+        total = min(100, total + 3)
+    return int(total), modifiers
 
 
 def letter(total: int) -> str:
@@ -234,7 +250,7 @@ NARRATIVE_SCHEMA = {
         "data_gathering": {"type": "string"},
         "clinical_management": {"type": "string"},
         "interpersonal": {"type": "string"},
-        "interpersonal_score": {"type": "integer", "minimum": 0, "maximum": 20},
+        "interpersonal_score": {"type": "integer"},
         "strengths": {"type": "array", "items": {"type": "string"}},
         "improvements": {"type": "array", "items": {"type": "string"}},
         "next_time": {"type": "array", "items": {"type": "string"}},
@@ -338,10 +354,8 @@ def debrief(case: dict, state: dict) -> dict:
         except (TypeError, ValueError):
             new = None
         if new is not None:
-            comm = sheet["domains"][2]
-            delta = new - comm["score"]
-            comm["score"] = new
-            sheet["total"] = max(0, min(100, sheet["total"] + delta))
+            sheet["domains"][2]["score"] = new
+            sheet["total"], sheet["modifiers"] = totals(sheet["domains"], state)
             sheet["grade"] = letter(sheet["total"])
     ids = list(dict.fromkeys(list(story.get("guideline_ids") or []) + guidelines.for_case(case)))
     teaching = case.get("teaching")

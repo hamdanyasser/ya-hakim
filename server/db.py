@@ -109,6 +109,7 @@ def init():
     conn = connect()
     try:
         conn.executescript(SCHEMA)
+        conn.execute("DELETE FROM sessions WHERE expires_at <= ?", (time.time(),))
     finally:
         conn.close()
 
@@ -178,20 +179,27 @@ def visible_cases(org_id: str, include_unpublished: bool = False) -> list:
 
 # ------------------------------------------------------------------- users
 
-def create_org(name: str, plan: str = "free", seats: int = 5) -> dict:
+def _exec(conn, sql, params):
+    if conn is not None:
+        conn.execute(sql, params)
+    else:
+        run(sql, params)
+
+
+def create_org(name: str, plan: str = "free", seats: int = 5, conn=None) -> dict:
     org = {"id": new_id("org_"), "name": name.strip()[:120] or "My school", "plan": plan,
            "seats": seats, "created_at": time.time()}
-    run("INSERT INTO orgs(id, name, plan, seats, created_at) VALUES (?,?,?,?,?)",
-        (org["id"], org["name"], plan, seats, org["created_at"]))
+    _exec(conn, "INSERT INTO orgs(id, name, plan, seats, created_at) VALUES (?,?,?,?,?)",
+          (org["id"], org["name"], plan, seats, org["created_at"]))
     return org
 
 
-def create_user(org_id: str, email: str, name: str, role: str, password_hash: str) -> dict:
+def create_user(org_id: str, email: str, name: str, role: str, password_hash: str, conn=None) -> dict:
     user = {"id": new_id("usr_"), "org_id": org_id, "email": email.strip().lower(),
             "name": name.strip()[:80] or email.split("@")[0], "role": role,
             "created_at": time.time()}
-    run("INSERT INTO users(id, org_id, email, name, role, password_hash, created_at) VALUES (?,?,?,?,?,?,?)",
-        (user["id"], org_id, user["email"], user["name"], role, password_hash, user["created_at"]))
+    _exec(conn, "INSERT INTO users(id, org_id, email, name, role, password_hash, created_at) VALUES (?,?,?,?,?,?,?)",
+          (user["id"], org_id, user["email"], user["name"], role, password_hash, user["created_at"]))
     return user
 
 
@@ -222,7 +230,7 @@ def create_session(user_id: str) -> str:
 
 
 def session_user(token: str) -> dict | None:
-    if not token:
+    if not token or len(token) > 128:
         return None
     row = one("SELECT u.* FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token=? AND s.expires_at > ?",
               (token, time.time()))
@@ -231,6 +239,10 @@ def session_user(token: str) -> dict | None:
 
 def delete_session(token: str):
     run("DELETE FROM sessions WHERE token=?", (token,))
+
+
+def purge_expired_sessions():
+    run("DELETE FROM sessions WHERE expires_at <= ?", (time.time(),))
 
 
 # -------------------------------------------------------------- encounters

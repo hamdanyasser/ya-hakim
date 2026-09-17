@@ -9,6 +9,15 @@
   var encId = location.pathname.split('/').pop();
   var enc = null, catalog = null, ecg = null, raf = null, pollT = null;
   var tab = 'chart', clockBase = 0, clockAt = 0, lastSeenPhase = null, differentials = [];
+  var voiceOn = false;
+  var feedSig = null, feedSeen = 0;
+
+  function drawVoiceBtn() {
+    var b = $('voiceBtn');
+    if (!b) return;
+    b.innerHTML = voiceOn ? '&#128266; Voice on' : '&#128264; Voice off';
+    b.setAttribute('aria-pressed', voiceOn ? 'true' : 'false');
+  }
 
   var MOOD = {
     guarded: ['🛡', 'Guarded', 'dim'], uneasy: ['😕', 'Uneasy', 'dim'],
@@ -37,6 +46,7 @@
       '<div class="enc-top"><a class="brand" href="/app"><span class="mark">YH</span></a>' +
       '<div class="who">' + esc(c.name) + '<span>' + c.age + (c.sex ? ' · ' + c.sex : '') + '</span></div>' +
       '<span class="mood dim" id="mood"></span><div class="spacer"></div>' +
+      '<button class="btn ghost sm" id="voiceBtn" title="Hear the patient speak" aria-pressed="false">&#128264; Voice off</button>' +
       '<span class="chip" id="monitorChip">stable</span><span class="clock num" id="clock">12:00</span>' +
       '<button class="btn primary" id="commit">Commit diagnosis</button></div>' +
       '<div class="enc-body">' +
@@ -46,13 +56,25 @@
       '<div class="vital"><div class="lbl">BP</div><div class="val num" id="vBp">—<small>mmHg</small></div></div>' +
       '<div class="vital"><div class="lbl">Resp</div><div class="val num" id="vRr">—<small>/min</small></div></div></div></div>' +
       '<div class="feed" id="feed"></div>' +
-      '<form class="ask" id="askForm"><input id="ask" autocomplete="off" placeholder="Ask the patient anything…" maxlength="300"><button class="btn primary" type="submit" id="askBtn">Ask</button></form></div>' +
+      '<form class="ask" id="askForm"><input id="ask" autocomplete="off" placeholder="Ask the patient anything…" maxlength="300">' +
+      '<button class="btn ghost mic" type="button" id="micBtn" title="Talk to the patient" aria-label="Talk to the patient" aria-pressed="false" style="display:none">&#127908;</button>' +
+      '<button class="btn primary" type="submit" id="askBtn">Ask</button></form></div>' +
       '<div class="work-col"><div class="work-tabs" id="tabs">' +
       ['chart|Chart', 'examine|Examine', 'investigate|Investigate', 'treat|Treat', 'notes|Notes'].map(function (t) { var p = t.split('|'); return '<button data-tab="' + p[0] + '"' + (p[0] === tab ? ' class="active"' : '') + '>' + p[1] + '<span class="count hide" id="cnt-' + p[0] + '"></span></button>'; }).join('') +
       '</div><div class="work" id="work"></div></div></div></div>';
     ecg = new Ecg($('ecg'));
     $('tabs').querySelectorAll('button').forEach(function (b) { b.onclick = function () { tab = b.dataset.tab; $('tabs').querySelectorAll('button').forEach(function (x) { x.classList.toggle('active', x === b); }); renderWork(); }; });
     $('askForm').onsubmit = ask;
+    Voice.attach($('micBtn'), $('ask'), function () { $('askForm').requestSubmit(); });
+    if (!Voice.canSpeak) $('voiceBtn').style.display = 'none';
+    try { voiceOn = localStorage.getItem('yh_voice') === '1'; } catch (e) {}
+    drawVoiceBtn();
+    $('voiceBtn').onclick = function () {
+      voiceOn = !voiceOn;
+      if (!voiceOn) Voice.hush();
+      try { localStorage.setItem('yh_voice', voiceOn ? '1' : '0'); } catch (e) {}
+      drawVoiceBtn();
+    };
     $('commit').onclick = function () { openCommit(false); };
     document.addEventListener('keydown', function (e) { if (e.key === '/' && document.activeElement !== $('ask')) { e.preventDefault(); $('ask').focus(); } });
     loop();
@@ -85,11 +107,20 @@
     $('mood').className = 'mood ' + (m ? m[2] : 'dim');
     $('mood').textContent = m ? m[0] + ' ' + m[1] : '';
 
+    /* Polled every few seconds: rebuild the conversation only when it changed,
+       and animate only messages the learner has not seen yet. */
     var feed = $('feed'), atBottom = feed.scrollHeight - feed.scrollTop - feed.clientHeight < 40;
-    feed.innerHTML = v.messages.map(function (msg) {
-      var who = msg.kind === 'reply' ? enc.chart.name : msg.kind === 'question' ? 'You' : 'Nurse';
-      return '<div class="msg ' + msg.kind + '"><span class="who">' + esc(who) + ' · ' + mmss(msg.t) + '</span>' + esc(msg.text) + '</div>';
-    }).join('') + (opts && opts.thinking ? '<div class="msg reply thinking"><span class="who">' + esc(enc.chart.name) + '</span>…</div>' : '');
+    var thinking = !!(opts && opts.thinking);
+    var lastMsg = v.messages[v.messages.length - 1];
+    var sig = v.messages.length + '|' + (lastMsg ? lastMsg.kind + ':' + lastMsg.text : '') + '|' + thinking;
+    if (sig !== feedSig) {
+      feed.innerHTML = v.messages.map(function (msg, i) {
+        var who = msg.kind === 'reply' ? enc.chart.name : msg.kind === 'question' ? 'You' : 'Nurse';
+        return '<div class="msg ' + msg.kind + (i >= feedSeen ? ' new' : '') + '"><span class="who">' + esc(who) + ' · ' + mmss(msg.t) + '</span>' + esc(msg.text) + '</div>';
+      }).join('') + (thinking ? '<div class="msg reply thinking new"><span class="who">' + esc(enc.chart.name) + '</span>…</div>' : '');
+      feedSeen = v.messages.length;
+      feedSig = sig;
+    }
     if (atBottom || (opts && opts.scroll)) feed.scrollTop = feed.scrollHeight;
 
     $('cnt-examine').textContent = v.exams.length; $('cnt-examine').classList.toggle('hide', !v.exams.length);
@@ -103,7 +134,7 @@
     }
     if (v.status !== 'active') { $('ask').disabled = true; $('askBtn').disabled = true; $('ask').placeholder = v.outcome === 'arrested' ? 'The patient has arrested.' : 'Time is up.'; }
     lastSeenPhase = v.status;
-    if (d.report) showDebrief(d);
+    if (d.report) { showDebrief(d); return; }
     renderWork();
   }
 
@@ -171,10 +202,21 @@
     var text = $('ask').value.trim();
     if (!text) return;
     $('ask').value = ''; $('askBtn').disabled = true;
-    var view = enc.view; view.messages = view.messages.concat([{ who: 'learner', text: text, kind: 'question', t: view.elapsed }]);
-    apply(enc, { thinking: true, scroll: true });
-    api('/api/encounters/' + encId + '/ask', { text: text }).then(function (d) { apply(d, { scroll: true }); })
-      .catch(fail).finally(function () { if (enc.view.status === 'active') { $('askBtn').disabled = false; $('ask').focus(); } });
+    var optimistic = JSON.parse(JSON.stringify(enc));
+    optimistic.view.messages = optimistic.view.messages.concat([{ who: 'learner', text: text, kind: 'question', t: optimistic.view.elapsed }]);
+    apply(optimistic, { thinking: true, scroll: true });
+    api('/api/encounters/' + encId + '/ask', { text: text }).then(function (d) {
+      apply(d, { scroll: true });
+      if (voiceOn && d.reply) Voice.speak(d.reply, { sex: enc.chart.sex, age: enc.chart.age });
+    })
+      .catch(function (err) {
+        /* The question never reached the patient: take the optimistic copy
+           back off the screen and give the learner their words back. */
+        fail(err);
+        $('ask').value = text;
+        return api('/api/encounters/' + encId).then(function (d) { apply(d); }).catch(function () {});
+      })
+      .finally(function () { if (enc.view.status === 'active') { $('askBtn').disabled = false; $('ask').focus(); } });
   }
 
   /* ------------------------------------------------------------ commit */

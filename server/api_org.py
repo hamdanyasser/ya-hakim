@@ -8,13 +8,15 @@ import time
 from collections import defaultdict
 
 from fastapi import APIRouter, HTTPException, Request
+from fastapi.concurrency import run_in_threadpool
 
 from engine import authoring, llm
-from server import api_auth, auth, billing, db
+from server import api_auth, auth, billing, db, guard
 
 router = APIRouter(prefix="/api")
 
 STAFF = ("instructor", "admin")
+_drafts = guard.RateLimit(20, 3600)    # AI case drafts per school per hour
 
 
 def _org_of(user: dict) -> dict:
@@ -24,7 +26,7 @@ def _org_of(user: dict) -> dict:
 # ------------------------------------------------------------------ org
 
 @router.get("/org")
-async def org_info(request: Request):
+def org_info(request: Request):
     user = auth.require_role(request, *STAFF)
     org = _org_of(user)
     counts = db.one("SELECT SUM(role='learner') AS learners, SUM(role='instructor') AS instructors, "
@@ -35,9 +37,9 @@ async def org_info(request: Request):
 
 
 @router.post("/org/name")
-async def rename(request: Request, payload: dict):
+def rename(request: Request, payload: dict):
     user = auth.require_role(request, "admin")
-    name = (payload.get("name") or "").strip()[:120]
+    name = guard.text(payload, "name", 120)
     if not name:
         raise HTTPException(400, "Give the school a name.")
     db.run("UPDATE orgs SET name=? WHERE id=?", (name, user["org_id"]))
@@ -45,7 +47,7 @@ async def rename(request: Request, payload: dict):
 
 
 @router.get("/org/members")
-async def members(request: Request):
+def members(request: Request):
     user = auth.require_role(request, *STAFF)
     rows = db.all_("SELECT id, email, name, role, created_at, last_seen FROM users WHERE org_id=? ORDER BY role, name",
                    (user["org_id"],))
@@ -59,9 +61,9 @@ async def members(request: Request):
 
 
 @router.post("/org/members/{user_id}/role")
-async def set_role(request: Request, user_id: str, payload: dict):
+def set_role(request: Request, user_id: str, payload: dict):
     admin = auth.require_role(request, "admin")
-    role = payload.get("role")
+    role = guard.text(payload, "role", 20)
     if role not in ("learner", "instructor", "admin"):
         raise HTTPException(400, "Unknown role.")
     target = db.user_by_id(user_id)
@@ -75,21 +77,21 @@ async def set_role(request: Request, user_id: str, payload: dict):
 
 
 @router.post("/org/invites")
-async def invite(request: Request, payload: dict):
+def invite(request: Request, payload: dict):
     user = auth.require_role(request, *STAFF)
-    role = payload.get("role") or "learner"
+    role = guard.text(payload, "role", 20) or "learner"
     if role not in ("learner", "instructor", "admin"):
         raise HTTPException(400, "Unknown role.")
     if role != "learner" and user["role"] != "admin":
         raise HTTPException(403, "Only an admin can invite staff.")
-    cohort_id = payload.get("cohort_id") or None
+    cohort_id = guard.text(payload, "cohort_id", 200) or None
     if cohort_id and not db.one("SELECT id FROM cohorts WHERE id=? AND org_id=?", (cohort_id, user["org_id"])):
         raise HTTPException(404, "Cohort not found.")
     return api_auth.make_invite(user["org_id"], role, cohort_id, user["id"])
 
 
 @router.get("/org/invites")
-async def invites(request: Request):
+def invites(request: Request):
     user = auth.require_role(request, *STAFF)
     rows = db.all_("SELECT i.code, i.role, i.uses, i.max_uses, i.created_at, c.name AS cohort FROM invites i "
                    "LEFT JOIN cohorts c ON c.id=i.cohort_id WHERE i.org_id=? ORDER BY i.created_at DESC LIMIT 50",
@@ -100,7 +102,7 @@ async def invites(request: Request):
 # -------------------------------------------------------------- cohorts
 
 @router.get("/org/cohorts")
-async def cohorts(request: Request):
+def cohorts(request: Request):
     user = auth.require_role(request, *STAFF)
     rows = db.all_(
         "SELECT c.id, c.name, c.created_at, c.archived, COUNT(cm.user_id) AS members FROM cohorts c "
@@ -110,9 +112,9 @@ async def cohorts(request: Request):
 
 
 @router.post("/org/cohorts")
-async def create_cohort(request: Request, payload: dict):
+def create_cohort(request: Request, payload: dict):
     user = auth.require_role(request, *STAFF)
-    name = (payload.get("name") or "").strip()[:80]
+    name = guard.text(payload, "name", 80)
     if not name:
         raise HTTPException(400, "Give the cohort a name, e.g. 'Year 4, 2026'.")
     cid = db.new_id("coh_")
@@ -123,11 +125,11 @@ async def create_cohort(request: Request, payload: dict):
 
 
 @router.post("/org/cohorts/{cohort_id}/members")
-async def add_member(request: Request, cohort_id: str, payload: dict):
+def add_member(request: Request, cohort_id: str, payload: dict):
     user = auth.require_role(request, *STAFF)
     if not db.one("SELECT id FROM cohorts WHERE id=? AND org_id=?", (cohort_id, user["org_id"])):
         raise HTTPException(404, "Cohort not found.")
-    target = db.user_by_id(payload.get("user_id") or "")
+    target = db.user_by_id(guard.text(payload, "user_id", 200))
     if not target or target["org_id"] != user["org_id"]:
         raise HTTPException(404, "Member not found.")
     db.run("INSERT OR IGNORE INTO cohort_members(cohort_id, user_id, joined_at) VALUES (?,?,?)",
@@ -136,7 +138,7 @@ async def add_member(request: Request, cohort_id: str, payload: dict):
 
 
 @router.get("/org/cohorts/{cohort_id}")
-async def cohort_detail(request: Request, cohort_id: str):
+def cohort_detail(request: Request, cohort_id: str):
     user = auth.require_role(request, *STAFF)
     cohort = db.one("SELECT * FROM cohorts WHERE id=? AND org_id=?", (cohort_id, user["org_id"]))
     if not cohort:
@@ -172,23 +174,23 @@ async def cohort_detail(request: Request, cohort_id: str):
 
 
 @router.post("/org/cohorts/{cohort_id}/assignments")
-async def assign(request: Request, cohort_id: str, payload: dict):
+def assign(request: Request, cohort_id: str, payload: dict):
     user = auth.require_role(request, *STAFF)
     if not db.one("SELECT id FROM cohorts WHERE id=? AND org_id=?", (cohort_id, user["org_id"])):
         raise HTTPException(404, "Cohort not found.")
-    case = db.case_row(payload.get("case_id") or "")
+    case = db.case_row(guard.text(payload, "case_id", 200))
     if not case or (case["org_id"] and case["org_id"] != user["org_id"]) or not case["published"]:
         raise HTTPException(400, "Choose a published case.")
     aid = db.new_id("asg_")
-    due = payload.get("due_at")
+    due = guard.number(payload, "due_at", lo=0)
     db.run("INSERT INTO assignments(id, org_id, cohort_id, case_id, title, due_at, created_by, created_at) VALUES (?,?,?,?,?,?,?,?)",
-           (aid, user["org_id"], cohort_id, case["id"], (payload.get("title") or case["title"])[:120],
-            float(due) if due else None, user["id"], time.time()))
+           (aid, user["org_id"], cohort_id, case["id"], guard.text(payload, "title", 120) or case["title"],
+            due, user["id"], time.time()))
     return {"id": aid}
 
 
 @router.get("/my/assignments")
-async def my_assignments(request: Request):
+def my_assignments(request: Request):
     user = auth.require_user(request)
     rows = db.all_(
         "SELECT a.id, a.title, a.due_at, a.case_id, c.title AS case_title, c.specialty, co.name AS cohort "
@@ -208,7 +210,7 @@ async def my_assignments(request: Request):
 # ------------------------------------------------------------ dashboard
 
 @router.get("/org/dashboard")
-async def dashboard(request: Request):
+def dashboard(request: Request):
     user = auth.require_role(request, *STAFF)
     org_id = user["org_id"]
     encs = db.all_("SELECT e.id, e.user_id, e.case_id, e.score, e.grade, e.status, e.started_at, e.finished_at, e.report, "
@@ -262,6 +264,14 @@ async def dashboard(request: Request):
 
 # ------------------------------------------------------------ case editor
 
+def _opt_str(value, limit: int = 120):
+    return value.strip()[:limit] if isinstance(value, str) else None
+
+
+def _title(data: dict) -> str:
+    return _opt_str(data.get("title")) or _opt_str(data.get("name")) or "Untitled"
+
+
 def _own_case(user: dict, case_id: str) -> dict:
     row = db.case_row(case_id)
     if not row or (row["org_id"] and row["org_id"] != user["org_id"]):
@@ -270,7 +280,7 @@ def _own_case(user: dict, case_id: str) -> dict:
 
 
 @router.get("/org/cases/{case_id}")
-async def get_case(request: Request, case_id: str):
+def get_case(request: Request, case_id: str):
     user = auth.require_role(request, *STAFF)
     row = _own_case(user, case_id)
     data = json.loads(row["data"])
@@ -279,7 +289,7 @@ async def get_case(request: Request, case_id: str):
 
 
 @router.post("/org/cases")
-async def create_case(request: Request, payload: dict):
+def create_case(request: Request, payload: dict):
     user = auth.require_role(request, *STAFF)
     data = payload.get("case")
     if not isinstance(data, dict):
@@ -290,14 +300,14 @@ async def create_case(request: Request, payload: dict):
     now = time.time()
     db.run("INSERT INTO cases(id, org_id, title, specialty, difficulty, data, published, builtin, created_by, created_at, updated_at) "
            "VALUES (?,?,?,?,?,?,0,0,?,?,?)",
-           (cid, user["org_id"], data.get("title") or data.get("name") or "Untitled", data.get("specialty"),
-            data.get("difficulty", "standard"), json.dumps(data), user["id"], now, now))
+           (cid, user["org_id"], _title(data), _opt_str(data.get("specialty")),
+            _opt_str(data.get("difficulty")) or "standard", json.dumps(data), user["id"], now, now))
     db.audit("case.create", org_id=user["org_id"], user_id=user["id"], detail={"case": cid})
     return {"id": cid, "problems": problems}
 
 
 @router.put("/org/cases/{case_id}")
-async def update_case(request: Request, case_id: str, payload: dict):
+def update_case(request: Request, case_id: str, payload: dict):
     user = auth.require_role(request, *STAFF)
     row = _own_case(user, case_id)
     if row["builtin"]:
@@ -309,27 +319,27 @@ async def update_case(request: Request, case_id: str, payload: dict):
     problems = authoring.validate(data)
     published = bool(row["published"]) and not problems
     db.run("UPDATE cases SET title=?, specialty=?, difficulty=?, data=?, published=?, updated_at=? WHERE id=?",
-           (data.get("title") or data.get("name") or "Untitled", data.get("specialty"),
-            data.get("difficulty", "standard"), json.dumps(data), int(published), time.time(), case_id))
+           (_title(data), _opt_str(data.get("specialty")),
+            _opt_str(data.get("difficulty")) or "standard", json.dumps(data), int(published), time.time(), case_id))
     return {"id": case_id, "problems": problems, "published": published}
 
 
 @router.post("/org/cases/{case_id}/duplicate")
-async def duplicate_case(request: Request, case_id: str):
+def duplicate_case(request: Request, case_id: str):
     user = auth.require_role(request, *STAFF)
     row = _own_case(user, case_id)
     data = json.loads(row["data"])
     data["title"] = (data.get("title") or row["title"]) + " (copy)"
-    return await create_case(request, {"case": data})
+    return create_case(request, {"case": data})
 
 
 @router.post("/org/cases/{case_id}/publish")
-async def publish_case(request: Request, case_id: str, payload: dict):
+def publish_case(request: Request, case_id: str, payload: dict):
     user = auth.require_role(request, *STAFF)
     row = _own_case(user, case_id)
     if row["builtin"]:
         raise HTTPException(400, "Built-in cases are always published.")
-    want = bool(payload.get("published", True))
+    want = payload.get("published", True) is not False if isinstance(payload, dict) else True
     problems = authoring.validate(json.loads(row["data"])) if want else []
     if problems:
         raise HTTPException(400, "Fix these before publishing: " + "; ".join(problems[:5]))
@@ -338,7 +348,7 @@ async def publish_case(request: Request, case_id: str, payload: dict):
 
 
 @router.delete("/org/cases/{case_id}")
-async def delete_case(request: Request, case_id: str):
+def delete_case(request: Request, case_id: str):
     user = auth.require_role(request, "admin")
     row = _own_case(user, case_id)
     if row["builtin"]:
@@ -354,12 +364,14 @@ async def delete_case(request: Request, case_id: str):
 
 
 @router.post("/org/cases/draft")
-async def draft_case(request: Request, payload: dict):
+def draft_case(request: Request, payload: dict):
     user = auth.require_role(request, *STAFF)
     if not llm.available():
         raise HTTPException(400, "Case drafting needs an Anthropic API key on the server.")
-    case = authoring.draft(payload.get("brief") or "", payload.get("specialty") or "",
-                           payload.get("difficulty") or "standard", payload.get("language") or "English")
+    _drafts.check(user["org_id"], "Your school has drafted a lot of cases this hour. Try again later.")
+    case = authoring.draft(guard.text(payload, "brief", 2000), guard.text(payload, "specialty", 80),
+                           guard.text(payload, "difficulty", 20) or "standard",
+                           guard.text(payload, "language", 40) or "English")
     if not case:
         raise HTTPException(502, "The model did not return a usable draft. Try again with a clearer brief.")
     db.audit("case.draft", org_id=user["org_id"], user_id=user["id"])
@@ -367,7 +379,7 @@ async def draft_case(request: Request, payload: dict):
 
 
 @router.get("/org/case-template")
-async def case_template(request: Request):
+def case_template(request: Request):
     auth.require_role(request, *STAFF)
     return {"case": db.load_case_data("kamal")}
 
@@ -375,19 +387,20 @@ async def case_template(request: Request):
 # --------------------------------------------------------------- billing
 
 @router.get("/billing")
-async def billing_info(request: Request):
+def billing_info(request: Request):
     user = auth.require_role(request, "admin")
     return billing.plan_info(_org_of(user))
 
 
 @router.post("/billing/checkout")
-async def checkout(request: Request, payload: dict):
+def checkout(request: Request, payload: dict):
     user = auth.require_role(request, "admin")
-    return {"url": billing.checkout_url(_org_of(user), user, payload.get("seats") or 25)}
+    seats = int(guard.number(payload, "seats", default=25, lo=1, hi=5000))
+    return {"url": billing.checkout_url(_org_of(user), user, seats)}
 
 
 @router.post("/billing/portal")
-async def portal(request: Request):
+def portal(request: Request):
     user = auth.require_role(request, "admin")
     return {"url": billing.portal_url(_org_of(user))}
 
@@ -395,4 +408,7 @@ async def portal(request: Request):
 @router.post("/billing/webhook")
 async def webhook(request: Request):
     payload = await request.body()
-    return billing.handle_webhook(payload, request.headers.get("stripe-signature", ""))
+    # Verification is local, but a completed checkout fetches the subscription
+    # from Stripe, which is network I/O -- keep it off the event loop.
+    return await run_in_threadpool(billing.handle_webhook, payload,
+                                   request.headers.get("stripe-signature", ""))

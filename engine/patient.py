@@ -287,6 +287,7 @@ def ask(case, history, question, cracked=False, client=None, mood=None):
             resp = llm.create(
                 client=api,
                 timeout=20.0,
+                model=llm.PATIENT_MODEL,
                 max_tokens=MAX_TOKENS,
                 system=[{"type": "text", "text": system,
                          "cache_control": {"type": "ephemeral"}}],

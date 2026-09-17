@@ -18,6 +18,7 @@ class GameState:
     phase: str            # lobby | playing | flatline | reveal
     patient_name: str
     patient_age: int
+    patient_sex: str      # male | female | "" -- picks the voice the patient speaks in
     description: str      # short, non-medical bio line -- same allowlist as personality
     mood: str             # guarded | uneasy | defensive | rattled | scared |
                            # pleading | resigned | flatline -- see engine/mood.py

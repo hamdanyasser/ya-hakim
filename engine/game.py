@@ -13,6 +13,7 @@ in engine/encounter.py.
 
 from __future__ import annotations
 
+import threading
 import time
 
 from engine import scoring
@@ -59,6 +60,22 @@ class Room:
         self.correct_guessers = []   # in order, for 100 / 60 / 40
         self.killed_by_wrong_answer = False
         self.scored = False
+
+        # Server bookkeeping, not game state: who hosts the room, when it was
+        # last used, and a lock so two phones asking at once cannot interleave
+        # their turns in the transcript or the live patient's history.
+        self.host_key = None
+        self.touched = 0.0
+        self.ask_lock = threading.Lock()
+
+        # The story of the round, for the case file at the reveal: who drew
+        # the lie out, who broke him, who found each clue, who talked a lot and
+        # found nothing. Never sent before the reveal.
+        self.lie_heard = None        # {"by", "at", "question"}
+        self.cracked_by = None       # {"by", "at", "question"}
+        self.found_by = {}           # key question -> {"by", "at"}
+        self.stats = {}              # player -> {"asked", "useful", "wasted"}
+        self.fatal_guess = None      # {"by", "guess"}
 
     # ------------------------------------------------------------- lifecycle
 
@@ -175,10 +192,24 @@ class Room:
         self.last_ask[player["name"]] = now
         self.say(player["name"], question, "question")
 
+        was_cracked = self.cracked
         landing = land(self.case, question, self.lie_asks, self.cracked)
         self.lie_asks = landing.lie_asks
         self.cracked = landing.cracked
         topic = landing.topic
+
+        at = self.wall_elapsed
+        mine = self.stats.setdefault(player["name"], {"asked": 0, "useful": 0, "wasted": 0})
+        mine["asked"] += 1
+        if topic is None:
+            mine["wasted"] += 1
+        elif topic not in self.found_by:
+            mine["useful"] += 1
+            self.found_by[topic] = {"by": player["name"], "at": at}
+        if landing.telling_lie and self.lie_heard is None:
+            self.lie_heard = {"by": player["name"], "at": at, "question": question}
+        if self.cracked and not was_cracked:
+            self.cracked_by = {"by": player["name"], "at": at, "question": question}
 
         if topic is None:
             player["score"] += scoring.WASTED_QUESTION
@@ -220,6 +251,7 @@ class Room:
         # Higher levels are unforgiving: a wrong call costs him his life.
         if self.level >= 3 and self.phase == "playing":
             self.killed_by_wrong_answer = True
+            self.fatal_guess = {"by": player["name"], "guess": (text or "").strip()[:80]}
             self.flatline()
         return False
 
@@ -254,7 +286,63 @@ class Room:
                 [dict(p) for p in self.players.values()],
                 key=lambda p: -p["score"],
             ),
+            "case_file": self.case_file(),
+            "awards": self.awards(),
         }
+
+    def case_file(self):
+        """What actually happened, told back to the room once it is over.
+
+        The secret is out by now, so this is the one place the lie, the truth
+        and the key questions are shown -- as the story of the round: what he
+        hid, who caught it, and what nobody thought to ask and why it mattered.
+        """
+        kq = self.case["key_questions"]
+        reasons = self.case.get("key_question_reasons") or []
+        why = {q: (reasons[i] if i < len(reasons) else "") for i, q in enumerate(kq)}
+        teaching = self.case.get("teaching")
+        pearls = teaching.get("pearls", []) if isinstance(teaching, dict) else []
+        return {
+            "lie": self.case["lie"],
+            "truth": self.case["truth"],
+            "lie_topic": self.case.get("lie_topic"),
+            "lie_heard": _clock(self.lie_heard),
+            "cracked": _clock(self.cracked_by),
+            "found": [{"topic": q, "by": self.found_by[q]["by"], "at": _mmss(ROUND_SECONDS - self.found_by[q]["at"]),
+                       "why": why[q]} for q in kq if q in self.found_by],
+            "missed": [{"topic": q, "why": why[q]} for q in kq if q not in self.found_by],
+            "pearl": pearls[0] if pearls else None,
+            "fatal_guess": self.fatal_guess,
+        }
+
+    def awards(self):
+        """A superlative or two per round. The room remembers these more than
+        the score -- and each one is a lesson wearing a joke."""
+        out = []
+        female = self.case.get("sex") == "female"
+        pronoun, subject = ("her", "she") if female else ("him", "he")
+        if self.lie_heard:
+            out.append({"title": "Lie detector", "who": self.lie_heard["by"],
+                        "why": "Asked the question %s lied to. The monitor caught it." % subject})
+        if self.cracked_by:
+            out.append({"title": "The confessor", "who": self.cracked_by["by"],
+                        "why": "Got the truth out of %s." % pronoun})
+        if self.correct_guessers:
+            out.append({"title": "First to call it", "who": self.correct_guessers[0],
+                        "why": "Right diagnosis, before anyone else."})
+        if self.stats:
+            best = max(self.stats.items(), key=lambda kv: (kv[1]["useful"], -kv[1]["asked"]))
+            if best[1]["useful"] >= 2:
+                out.append({"title": "Detective", "who": best[0],
+                            "why": "Found %d of the clues that mattered." % best[1]["useful"]})
+            chatty = max(self.stats.items(), key=lambda kv: kv[1]["wasted"])
+            if chatty[1]["wasted"] >= 3:
+                out.append({"title": "Bedside manner, no bedside point", "who": chatty[0],
+                            "why": "%d questions. None of them bought %s a second." % (chatty[1]["wasted"], pronoun)})
+        if self.fatal_guess:
+            out.append({"title": "Malpractice", "who": self.fatal_guess["by"],
+                        "why": "Called it \u201c%s\u201d. That was not it." % self.fatal_guess["guess"]})
+        return out[:5]
 
     def _headline(self, won):
         pronoun = "She" if (self.case.get("sex") == "female") else "He"
@@ -273,6 +361,7 @@ class Room:
             phase=self.phase,
             patient_name=self.case["name"],
             patient_age=self.case["age"],
+            patient_sex=self.case.get("sex") or "",
             description=self.case.get("description", ""),
             mood=self.mood(),
             vitals=self.current_vitals(),
@@ -284,3 +373,17 @@ class Room:
             ),
             reveal=self.reveal_payload() if self.phase == "reveal" else None,
         )
+
+
+def _mmss(seconds: float) -> str:
+    seconds = max(0, int(round(seconds)))
+    return "%d:%02d" % (seconds // 60, seconds % 60)
+
+
+def _clock(event):
+    """An event with its time as the round clock showed it."""
+    if not event:
+        return None
+    out = dict(event)
+    out["at"] = _mmss(ROUND_SECONDS - event["at"])
+    return out

@@ -12,8 +12,8 @@
   'use strict';
 
   var PX_PER_SEC = 220;     // scroll speed
-  var MAX_DT = 0.05;
-  var R_PEAK = 0.32;      // where the tall spike lands in a beat        // a tab hiccup must not fast-forward the trace
+  var MAX_DT = 0.05;        // a tab hiccup must not fast-forward the trace
+  var R_PEAK = 0.32;        // where the tall spike lands in a beat
 
   var COLOURS = {
     stable:    '#00A98A',

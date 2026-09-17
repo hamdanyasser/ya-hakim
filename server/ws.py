@@ -7,12 +7,14 @@ serialised -- `public_state()` builds the payload field by field.
 from __future__ import annotations
 
 import asyncio
+import logging
 
 from fastapi import WebSocket
 
 from server import rooms as room_registry
 
 sockets: dict[str, set] = {}
+log = logging.getLogger("yahakim.ws")
 
 
 def register(code: str, socket: WebSocket):
@@ -45,21 +47,36 @@ async def broadcast(code: str):
         sockets[code].discard(socket)
 
 
+def watched(code: str) -> bool:
+    return bool(sockets.get(code.upper()))
+
+
 async def ticker():
     """One task for every room, once a second.
 
     The clock is authoritative here; the projector interpolates between these
     broadcasts so it can render a smooth countdown at 60fps without the server
-    sending 60 messages a second.
+    sending 60 messages a second. Once a minute, rooms idle for hours with
+    nobody watching are dropped, so the registry cannot grow without bound.
     """
+    n = 0
     while True:
         await asyncio.sleep(1.0)
+        n += 1
         for code, room in list(room_registry.rooms.items()):
-            before = room.phase
-            room.tick()
-            if room.phase == "playing" or room.phase != before:
-                await broadcast(code)
+            try:
+                before = room.phase
+                room.tick()
+                if room.phase == "playing" or room.phase != before:
+                    await broadcast(code)
+            except Exception:
+                # One broken room must never stop the clock for every other room.
+                log.exception("tick failed for room %s", code)
+        if n % 60 == 0:
+            room_registry.reap(has_watchers=watched)
+            for code in [c for c, s in sockets.items() if not s]:
+                sockets.pop(code, None)
 
 
 def start_ticker():
-    asyncio.create_task(ticker())
+    return asyncio.create_task(ticker())

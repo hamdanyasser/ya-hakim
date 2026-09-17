@@ -228,3 +228,54 @@ def test_results_never_name_the_diagnosis(case):
 def test_secret_split_is_disjoint():
     assert not set(patient.SECRET_FIELDS) & set(patient.ENGINE_ONLY_FIELDS)
     assert not set(patient.ALLOWED_IN_PROMPT) & set(patient.ENGINE_ONLY_FIELDS)
+
+
+# ------------------------------------------------------- model-facing schemas
+
+UNSUPPORTED_SCHEMA_KEYS = {"minimum", "maximum", "exclusiveMinimum", "exclusiveMaximum", "multipleOf",
+                           "minLength", "maxLength", "minItems", "maxItems", "pattern", "uniqueItems"}
+
+
+def _walk_schema(node, path="$"):
+    if isinstance(node, dict):
+        for k, v in node.items():
+            assert k not in UNSUPPORTED_SCHEMA_KEYS, "%s uses unsupported keyword %r" % (path, k)
+            if k == "type" and v == "object":
+                assert node.get("additionalProperties") is False, path + " must set additionalProperties: false"
+            _walk_schema(v, path + "." + k)
+    elif isinstance(node, list):
+        for i, v in enumerate(node):
+            _walk_schema(v, "%s[%d]" % (path, i))
+
+
+def test_structured_output_schemas_only_use_supported_features():
+    """Structured outputs reject numeric and length constraints. The attending
+    schema once carried minimum/maximum, which would have made every live
+    narrative request fail and silently fall back to the checklist."""
+    from engine.authoring import CASE_SCHEMA
+    from engine.grading import NARRATIVE_SCHEMA
+    _walk_schema(NARRATIVE_SCHEMA)
+    _walk_schema(CASE_SCHEMA)
+
+
+def test_a_remarked_domain_still_respects_the_arrest_cap(case, monkeypatch):
+    """The model may re-mark communication; an arrest must still cap the total."""
+    st = perfect_run(case)
+    st["outcome"] = "arrested"
+    monkeypatch.setattr(grading, "narrative", lambda c, s, sheet: {
+        "summary": "s", "data_gathering": "d", "clinical_management": "c", "interpersonal": "i",
+        "interpersonal_score": 20, "strengths": [], "improvements": [], "next_time": [],
+        "guideline_ids": ["not-a-real-guideline"]})
+    rep = grading.debrief(case, st)
+    assert rep["total"] <= grading.ARREST_CAP
+    assert rep["domains"][2]["score"] == 20
+    assert "not-a-real-guideline" not in {c["id"] for c in rep["citations"]}
+
+
+def test_remark_score_is_clamped(case, monkeypatch):
+    st = perfect_run(case)
+    monkeypatch.setattr(grading, "narrative", lambda c, s, sheet: {
+        "summary": "s", "data_gathering": "", "clinical_management": "", "interpersonal": "",
+        "interpersonal_score": 999, "strengths": [], "improvements": [], "next_time": [], "guideline_ids": []})
+    rep = grading.debrief(case, st)
+    assert rep["domains"][2]["score"] == 20 and rep["total"] <= 100

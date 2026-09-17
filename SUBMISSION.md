@@ -4,25 +4,25 @@ Deadline: **Thursday 17 September, 23:59. No extensions.**
 
 ---
 
-## Project description (148 words — the form caps at 150)
+## Project description (137 words — the form caps at 150)
 
 > **Ya Hakim** — Arabic for *"hey, doctor."*
 >
-> A patient appears on the projector. The whole room interrogates him from their
-> phones. He is proud, funny, and hiding exactly one thing — and the heart
-> monitor catches him lying before anyone else does. Waste time and he
-> deteriorates. At zero he flatlines, the room goes silent for two full seconds,
-> and the diagnosis is revealed.
+> A patient appears on the projector. The room interrogates him from their
+> phones — typing or just talking. He is proud, funny, and hiding one thing, and
+> the heart monitor catches him lying before anyone else does. Waste time and he
+> deteriorates. At zero he flatlines, the room falls silent, and the case file
+> opens: what he hid, who caught the lie, what nobody asked and why it
+> mattered — with awards for the room.
 >
-> The trick underneath: **the diagnosis is never sent to the AI.** Case fields
-> are copied into the prompt by allowlist, so the answer is structurally absent
-> — not filtered out, never present. We ship 100 adversarial attacks proving it.
-> At the festival, the audience gets to try: every jailbreak they type goes on
-> the big screen, HELD or LEAK.
+> The trick: **the diagnosis is never sent to the AI.** You can open the exact
+> prompt and search it — zero matches. 100 jailbreaks prove it, then the
+> audience attacks it live on the big screen.
 >
-> The same engine is also a clinical-reasoning simulator for medical schools.
+> The same engine is a clinical-reasoning simulator for medical schools, with
+> AI debriefs cited against real guidelines.
 >
-> 281 tests. Plays with no internet.
+> 311 tests. Plays with no internet.
 
 ---
 
@@ -33,19 +33,24 @@ Rehearse this. The timings are the point — especially the silence.
 | Time | What happens | What you say |
 |---|---|---|
 | 0:00 | Title card on the projector | "Ya Hakim. There's a man in that bed and he will not tell you what's wrong with him." |
-| 0:10 | QR up, crowd joins | "Scan that. You're the doctors." |
+| 0:10 | QR up, crowd joins | "Scan that. You're the doctors. Type, or just hold the mic and talk to him." |
 | 0:30 | Questions land, he deflects | *say nothing, let him be funny* |
-| 0:50 | Someone asks about drinking. **Point at the monitor** | "He just said two glasses. Watch his heart rate." **96 → 114.** "He's lying." |
+| 0:50 | Someone asks about drinking. **Point at the monitor** — the card flares *he's lying* | "He just said two glasses. Watch his heart rate." **96 → 114.** "He's lying." |
 | 1:20 | Vitals go amber, then red | "Nobody's asked about his eyes yet." |
-| 1:45 | **FLATLINE.** Tone. Colour drains. | *stop talking* |
-| 1:50 | **Two seconds of black silence** | *do not fill it* |
-| 1:53 | Reveal card | "He died. Someone got it right." |
-| 2:05 | Switch to `/prove` | "Now the part I actually care about." |
-| 2:15 | Hit **Run the 100** | "His diagnosis was never in the prompt. Here's 100 jailbreaks proving it." Counter climbs. **0 leaks.** |
-| 2:35 | QR on screen | "Your turn. Try to make him say it." Crowd attacks live. |
-| 2:50 | Flash `/app` for five seconds | "And the same engine trains medical students. That part's free for schools." |
+| 1:45 | **FLATLINE.** Red jolt. Tone. Colour drains. | *stop talking* |
+| 1:50 | **Two seconds of silence** | *do not fill it* |
+| 1:53 | **The case file.** His lie crossed out, the truth under it, who caught it, what nobody asked | "That's who caught the lie. And that's the question nobody asked — the one that would have saved him." |
+| 2:05 | Awards pop in | Read one out. *Let the room laugh at "Bedside manner, no bedside point".* |
+| 2:15 | Switch to `/prove`, hit **Run the 100** | "His diagnosis was never in the prompt. 100 jailbreaks." Counter climbs. **0 leaks.** |
+| 2:30 | Press **X-ray the prompt**, type **liver** | "This is every word the AI is told. Search it." **0 matches.** "It can't leak what it never had." |
+| 2:45 | QR on screen | "Your turn. Try to make him say it." Crowd attacks live. |
+| 2:55 | Flash `/app` for five seconds | "And the same engine trains medical students." |
 
 **Do not** open with the SaaS dashboard. Open with the man in the bed.
+
+**No crowd?** Open `/screen?demo=1`, click once for sound, and the whole round
+plays itself in a minute — named doctors, the lie, the confession, a correct
+call, the flatline and the case file.
 
 ---
 
@@ -53,11 +58,11 @@ Rehearse this. The timings are the point — especially the silence.
 
 | Criterion | Weight | Our play |
 |---|---|---|
-| Functionality | 20% | 281 tests, CI green, works offline |
-| Creativity & Originality | 20% | The answer is never in the prompt — and we let you attack it |
-| **Entertainment / Fun** | 20% | A room of 200 shouting at a dying man; the flatline |
+| Functionality | 20% | 311 tests, CI green, works offline |
+| Creativity & Originality | 20% | The answer is never in the prompt — you can read the prompt, search it, and attack it |
+| **Entertainment / Fun** | 20% | A room shouting (literally — voice) at a dying man; the flatline; awards |
 | **Demo Presentation** | 20% | Scripted above. The silence does the work |
-| Impact / Usefulness | 20% | The school simulator, third act |
+| Impact / Usefulness | 20% | The case file teaches what was missed and why; the school simulator, third act |
 
 The competition optimises for the last row. Four of the five rows reward
 theatre, and that is where we spend the stage time.

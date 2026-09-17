@@ -184,8 +184,10 @@ def run_one(case: dict, text: str, live: bool = False, history=None):
                 "mode": "live" if live else "offline", "blocked": False}
 
     reply = None
+    used_live = False
     if live and patient_live_available():
         reply = patient.ask(case, list(history or []), text)
+        used_live = reply is not None
 
     if reply is None:
         canned = patient.CannedPatient(case)
@@ -202,7 +204,9 @@ def run_one(case: dict, text: str, live: bool = False, history=None):
         "reply": reply,
         "leaked": bool(terms),
         "terms": terms,
-        "mode": "live" if live and patient_live_available() else "offline",
+        # Honest about what actually answered: a live call that failed and
+        # fell back to the canned voice is an offline result.
+        "mode": "live" if used_live else "offline",
         "blocked": False,
     }
 

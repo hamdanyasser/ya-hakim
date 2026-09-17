@@ -23,6 +23,7 @@
   var clockBase = null, clockAt = 0;
 
   var spokenUpto = 0;
+  var lastFeedSig = null, feedSeen = 0, lastSub = null;
   var flatlined = false;
   var lastPhase = null;
 
@@ -146,19 +147,9 @@
   }
 
   /* --------------------------------------------------------------- tts */
-  function speak(text) {
-    if (!window.speechSynthesis) return;
-    try {
-      var u = new SpeechSynthesisUtterance(text);
-      u.rate = 0.97;
-      u.pitch = 0.85;
-      window.speechSynthesis.speak(u);
-    } catch (e) { /* speech is a bonus, never a dependency */ }
-  }
-
-  function hush() {
-    try { if (window.speechSynthesis) window.speechSynthesis.cancel(); } catch (e) {}
-  }
+  var patientVoice = {};
+  function speak(text) { Voice.speak(text, patientVoice); }   /* M mutes the monitor, not the patient */
+  function hush() { Voice.hush(); }
 
   /* ------------------------------------------------------------ render */
   function fmtClock(s) {
@@ -173,6 +164,9 @@
   }
 
   function renderState(s) {
+    patientVoice = { sex: s.patient_sex, age: s.patient_age };
+    $('ask').placeholder = (s.patient_sex === 'female' ? 'Ask her' : 'Ask him') + ' anything, then press enter' +
+      (Voice.canListen ? ' \u2014 or tap the mic' : '');
     $('patient').innerHTML = esc(s.patient_name) +
       '<span>' + s.patient_age + '</span>';
 
@@ -185,7 +179,9 @@
     if (s.description) {
       sub += (sub ? ' <span class="sep">•</span> ' : '') + esc(s.description);
     }
-    $('patientSub').innerHTML = sub;
+    /* State arrives every second. Rewriting unchanged markup restarts its
+       animations, so only touch the DOM when something actually changed. */
+    if (sub !== lastSub) { $('patientSub').innerHTML = sub; lastSub = sub; }
 
     $('vHr').innerHTML = s.vitals.hr + '<small>bpm</small>';
     $('vSpo2').innerHTML = s.vitals.spo2 + '<small>%</small>';
@@ -213,15 +209,25 @@
       room3d.setRespiratoryRate(s.vitals.rr);
     }
 
-    var feed = $('feed');
-    feed.innerHTML = '';
-    s.messages.slice(-4).forEach(function (m) {
-      var d = document.createElement('div');
-      d.className = 'msg ' + m.kind;
-      d.innerHTML = '<span class="who">' + esc(m.who) + '</span>' +
-                    '<div class="body">' + esc(m.text) + '</div>';
-      feed.appendChild(d);
-    });
+    /* Rebuild the transcript only when a message arrives, and animate only
+       the new ones. Rebuilding on every one-second tick made the whole
+       conversation fade out and back in, once a second, on the projector. */
+    var last = s.messages[s.messages.length - 1];
+    var feedSig = s.messages.length + '|' + (last ? last.who + ':' + last.text : '');
+    if (feedSig !== lastFeedSig) {
+      var feed = $('feed');
+      var shownFrom = Math.max(0, s.messages.length - 4);
+      feed.innerHTML = '';
+      s.messages.slice(shownFrom).forEach(function (m, i) {
+        var d = document.createElement('div');
+        d.className = 'msg ' + m.kind + (shownFrom + i >= feedSeen ? ' new' : '');
+        d.innerHTML = '<span class="who">' + esc(m.who) + '</span>' +
+                      '<div class="body">' + esc(m.text) + '</div>';
+        feed.appendChild(d);
+      });
+      feedSeen = s.messages.length;
+      lastFeedSig = feedSig;
+    }
 
     if (!MULTI && s.players.some(function (p) { return p.name !== 'You'; })) {
       document.body.classList.add('multi');
@@ -290,7 +296,7 @@
 
         setTimeout(function () {
           /* 5. the reveal */
-          fetch('/api/' + code + '/reveal', { method: 'POST' });
+          host('reveal');
         }, 2000);
       }, 1200);
     }, 900);
@@ -315,14 +321,72 @@
       box.appendChild(d);
     });
 
+    renderCaseFile(r);
+
     $('nextBtn').style.display = r.is_last ? 'none' : '';
     $('nextBtn').textContent = 'Next patient';
     $('reveal').classList.add('show');
   }
 
+  /* The case file. The round's punchline: what he hid, who caught it, what
+     nobody asked and why it would have mattered. Everything here arrives only
+     in the reveal payload, after the diagnosis is already on screen. */
+  function renderCaseFile(r) {
+    var cf = r.case_file;
+    $('caseFile').style.display = cf ? '' : 'none';
+    $('awards').innerHTML = '';
+    if (!cf) return;
+
+    var she = /^She /.test(r.headline || '');
+    $('cfHidTitle').textContent = she ? 'What she hid' : 'What he hid';
+    $('cfLie').textContent = cf.lie;
+    $('cfTruth').textContent = cf.truth;
+
+    var caught = [];
+    if (cf.lie_heard) {
+      caught.push('<b>' + esc(cf.lie_heard.by) + '</b> drew out the lie at ' + esc(cf.lie_heard.at) +
+                  ' <span class="rv-dim">&mdash; the heart rate jumped as ' + (she ? 'she' : 'he') + ' answered.</span>');
+    } else {
+      caught.push('Nobody asked about ' + esc(cf.lie_topic || 'it') + '. The lie was never even told.');
+    }
+    if (cf.cracked) {
+      caught.push('<b>' + esc(cf.cracked.by) + '</b> got the truth at ' + esc(cf.cracked.at) +
+                  ': <span class="rv-dim">&ldquo;' + esc(cf.cracked.question) + '&rdquo;</span>');
+    } else if (cf.lie_heard) {
+      caught.push('Nobody pushed back. ' + (she ? 'She' : 'He') + ' took the truth to the grave.');
+    }
+    if (cf.fatal_guess) {
+      caught.push('<b>' + esc(cf.fatal_guess.by) + '</b> called it &ldquo;' + esc(cf.fatal_guess.guess) + '&rdquo;. That killed ' + (she ? 'her' : 'him') + '.');
+    }
+    $('cfCaught').innerHTML = caught.map(function (c) { return '<div>' + c + '</div>'; }).join('');
+
+    $('cfMissed').innerHTML = cf.missed.length
+      ? cf.missed.map(function (m) {
+          return '<div class="rv-miss"><div class="rv-q">&ldquo;' + esc(m.topic) + '?&rdquo;</div>' +
+                 '<div class="rv-why">' + esc(m.why) + '</div></div>';
+        }).join('')
+      : '<div class="rv-miss rv-all"><div class="rv-q">Nothing. The room asked every question that mattered.</div></div>';
+
+    $('cfFound').innerHTML = cf.found.length
+      ? '<span class="rv-dim">Found:</span> ' + cf.found.map(function (f) {
+          return '<span class="rv-chip">' + esc(f.topic) + ' <em>' + esc(f.by) + '</em></span>';
+        }).join('')
+      : '';
+    $('cfPearl').textContent = cf.pearl || '';
+    $('cfPearl').style.display = cf.pearl ? '' : 'none';
+
+    $('awards').innerHTML = (r.awards || []).map(function (a, i) {
+      return '<div class="rv-award" style="animation-delay:' + (1.4 + i * 0.35) + 's">' +
+             '<div class="rv-award-title">' + esc(a.title) + '</div>' +
+             '<div class="rv-award-who">' + esc(a.who) + '</div>' +
+             '<div class="rv-award-why">' + esc(a.why) + '</div></div>';
+    }).join('');
+  }
+
   /* -------------------------------------------------------- level card */
   function showCard(level, levels, lines, then) {
     $('cardLevel').textContent = 'Patient ' + level + ' of ' + levels;
+    $('level').textContent = 'Patient ' + level + ' of ' + levels;
     var box = $('cardLines');
     box.innerHTML = '';
     (lines || []).forEach(function (line) {
@@ -403,11 +467,25 @@
   }
 
   /* ------------------------------------------------------------ inputs */
-  function send(path, text) {
+  function send(path, text, who) {
     return fetch('/api/' + code + '/' + path, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: 'You', text: text })
+      body: JSON.stringify({ name: who || 'You', text: text })
+    });
+  }
+
+  /* Starting, revealing, advancing, killing and resetting the round need the
+     key this screen got when it claimed the room. Phones never have it. */
+  var hostKey = null;
+  function hostKeyStore() { return 'yh_host_' + code; }
+  function host(path) {
+    return fetch('/api/' + code + '/' + path, {
+      method: 'POST',
+      headers: { 'X-Host-Key': hostKey || '' }
+    }).then(function (r) {
+      if (r.status === 403) notice('Another screen is hosting this room -- controls are off here');
+      return r;
     });
   }
 
@@ -439,31 +517,25 @@
   $('ask').addEventListener('keydown', function (e) {
     if (e.key === 'Enter') $('askBtn').click();
   });
+  /* Talk to the patient. What you say lands in the box, then asks itself. */
+  Voice.attach($('micBtn'), $('ask'), function () { $('askBtn').click(); });
 
   /* Next patient: carries scores forward, shows the card, starts the round. */
   $('nextBtn').onclick = function () {
     $('nextBtn').textContent = 'Loading...';
-    fetch('/api/' + code + '/next', { method: 'POST' })
+    host('next')
       .then(function (r) { return r.json(); })
       .then(function (d) {
         if (d.done) { $('nextBtn').style.display = 'none'; return; }
         resetForNextRound();
         showCard(d.level, d.levels, d.card, function () {
-          fetch('/api/' + code + '/start', { method: 'POST' });
+          host('start');
           startLoop();
           if (DEMO_MODE) runDemo();
         });
       });
   };
 
-  /* In demo mode, don't wait for anyone to press anything. */
-  if (DEMO_MODE) {
-    setTimeout(function () { $('begin').click(); }, 900);
-    setTimeout(function () {
-      var go = $('cardGo');
-      if (go && $('card').classList.contains('show')) go.click();
-    }, 4200);
-  }
 
   function resetForNextRound() {
     $('reveal').classList.remove('show');
@@ -471,6 +543,9 @@
     $('overlay').classList.remove('show');
     flatlined = false;
     spokenUpto = 0;
+    lastFeedSig = null;
+    feedSeen = 0;
+    lastSub = null;
     lastHr = null;
     lastPhase = null;
     ecg.revive();
@@ -482,7 +557,7 @@
      land ten times in a row, which should not mean ten full rounds. */
   document.addEventListener('keydown', function (e) {
     if (document.activeElement === $('ask')) return;
-    if (e.key === 'k' || e.key === 'K') fetch('/api/' + code + '/kill', { method: 'POST' });
+    if (e.key === 'k' || e.key === 'K') host('kill');
     if (e.key === 'r' || e.key === 'R') location.reload();
     if (e.key === 'm' || e.key === 'M') { muted = !muted; notice(muted ? 'Monitor muted' : 'Monitor on'); }
   });
@@ -493,28 +568,34 @@
      Two reasons this exists. A judge opening the link sees the entire thing
      without anyone presenting it, and on stage nobody has to type into a text
      box in front of two hundred people while their hands shake. */
+  /* A small room of doctors, so the reveal has a story to tell: who drew out
+     the lie, who broke him, who wasted their breath, who called it. */
   var DEMO = [
-    [1500,  'good evening. what brings you in tonight?'],
-    [7000,  'how much do you drink?'],
-    [14000, 'your wife says your eyes look yellow. do you see it?'],
-    [21000, 'has your belly been swelling?'],
-    [28000, 'do you bruise easily?'],
-    [35000, 'what does your wife think is going on?'],
-    [43000, 'be honest with me. how much, really?']
+    [1500,  'Dr Sara', 'good evening. what brings you in tonight?'],
+    [6000,  'Omar',    'do you like football?'],
+    [10500, 'Dr Sara', 'how much do you drink?'],     /* >8s after her first: the room cooldown */
+    [15000, 'Lina',    'have your eyes or your skin gone yellow at all?'],
+    [20000, 'Omar',    'any holidays planned this year?'],
+    [23000, 'Dr Sara', 'has your belly been swelling?'],
+    [30000, 'Omar',    'what did you have for lunch?'],
+    [33000, 'Lina',    'what does your wife think is going on?'],
+    [41000, 'Dr Sara', 'do you bruise easily?']
   ];
 
   function runDemo() {
     DEMO.forEach(function (step) {
-      setTimeout(function () { send('ask', step[1]); }, step[0]);
+      setTimeout(function () { send('ask', step[2], step[1]); }, step[0]);
     });
+    setTimeout(function () { send('guess', 'his liver is failing', 'Lina'); }, 47000);
     /* Let the last answer breathe, then end it. */
     setTimeout(function () {
-      fetch('/api/' + code + '/kill', { method: 'POST' });
+      host('kill');
     }, 52000);
   }
 
   /* ------------------------------------------------------------- start */
   $('begin').onclick = function () {
+    if ($('title').classList.contains('hide')) return;
     ensureAudio();                     /* the gesture that unblocks audio */
     if (audio && audio.state === 'suspended') audio.resume();
     $('title').classList.add('hide');
@@ -523,20 +604,30 @@
       .then(function (r) { return r.json(); })
       .then(function (d) {
         showCard(d.level, d.levels, d.card, function () {
-          fetch('/api/' + code + '/start', { method: 'POST' });
+          host('start');
           startLoop();
           if (DEMO_MODE) runDemo();
         });
       });
   };
 
-  /* In demo mode, don't wait for anyone to press anything. */
+  /* Demo mode plays itself. Browsers only allow sound after a real click, and
+     this demo is mostly sound -- the monitor, the voice, the flatline tone --
+     so it asks for one click, and starts on its own (silently) if nobody
+     gives it. */
   if (DEMO_MODE) {
-    setTimeout(function () { $('begin').click(); }, 900);
-    setTimeout(function () {
+    $('begin').textContent = '\u25B6  Play the one-minute demo  \u00B7  sound on';
+    var autoGo = function () {
       var go = $('cardGo');
       if (go && $('card').classList.contains('show')) go.click();
-    }, 4200);
+    };
+    var clicked = false;
+    $('begin').addEventListener('click', function () {
+      if (clicked) return;
+      clicked = true;
+      setTimeout(autoGo, 3300);
+    });
+    setTimeout(function () { if (!clicked) $('begin').click(); }, 8000);
   }
 
   (function init() {
@@ -547,7 +638,12 @@
         body: JSON.stringify({})
       })
         .then(function (r) { return r.json(); })
-        .then(function (d) { location.search = '?c=' + d.code; });
+        .then(function (d) {
+          try { localStorage.setItem('yh_host_' + d.code, d.host_key); } catch (e) {}
+          params.set('c', d.code);
+          location.search = params.toString();
+        })
+        .catch(function () { notice('Could not reach the server'); });
       return;
     }
     code = code.toUpperCase();
@@ -567,7 +663,24 @@
       }
     }
 
-    connect();
+    try { hostKey = localStorage.getItem(hostKeyStore()); } catch (e) {}
+    fetch('/api/' + code + '/host', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key: hostKey })
+    })
+      .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+      .then(function (res) {
+        if (res.ok) {
+          hostKey = res.d.host_key;
+          try { localStorage.setItem(hostKeyStore(), hostKey); } catch (e) {}
+        } else {
+          hostKey = null;
+          notice('Another screen is hosting this room -- controls are off here');
+        }
+      })
+      .catch(function () { notice('Could not reach the server'); })
+      .then(function () { connect(); });
     ecg.frame(performance.now());
   })();
 })();
