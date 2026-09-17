@@ -215,17 +215,37 @@
     var last = s.messages[s.messages.length - 1];
     var feedSig = s.messages.length + '|' + (last ? last.who + ':' + last.text : '');
     if (feedSig !== lastFeedSig) {
+      /* Dialogue on the stage, findings in the panel. An examination is a
+         four-line clinical paragraph; rendered as a speech bubble it covered
+         the entire room, which is the one thing the stage exists to show. */
+      var talk = s.messages.filter(function (m) { return m.kind !== 'exam'; });
+      var exams = s.messages.filter(function (m) { return m.kind === 'exam'; });
+
       var feed = $('feed');
-      var shownFrom = Math.max(0, s.messages.length - 4);
+      var shownFrom = Math.max(0, talk.length - 3);
       feed.innerHTML = '';
-      s.messages.slice(shownFrom).forEach(function (m, i) {
+      talk.slice(shownFrom).forEach(function (m, i) {
         var d = document.createElement('div');
         d.className = 'msg ' + m.kind + (shownFrom + i >= feedSeen ? ' new' : '');
         d.innerHTML = '<span class="who">' + esc(m.who) + '</span>' +
                       '<div class="body">' + esc(m.text) + '</div>';
         feed.appendChild(d);
       });
-      feedSeen = s.messages.length;
+
+      var fbox = $('findings');
+      if (fbox) {
+        $('findingsBox').style.display = exams.length ? '' : 'none';
+        fbox.innerHTML = '';
+        exams.slice().reverse().forEach(function (m) {
+          var d = document.createElement('div');
+          d.className = 'finding';
+          d.innerHTML = '<div class="fname">' + esc(m.who) + '</div>' +
+                        '<div class="ftext">' + esc(m.text) + '</div>';
+          fbox.appendChild(d);
+        });
+      }
+
+      feedSeen = talk.length;
       lastFeedSig = feedSig;
     }
 

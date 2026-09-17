@@ -520,3 +520,21 @@ body.multi #joinBox, body.multi #boardBox { display: block; }
   font-size: 12px; letter-spacing: 1.4px; text-transform: uppercase;
   font-weight: 700; color: rgba(255,255,255,.42);
 }
+
+/* ---------------------------------------------- examination findings */
+/* Clinical paragraphs belong in a panel you read, not in a speech bubble
+   over the patient. The side column was empty in single player anyway. */
+#findingsBox { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+#findings {
+  overflow-y: auto; display: flex; flex-direction: column; gap: 9px; min-height: 0;
+}
+#findings::-webkit-scrollbar { width: 0; }
+.finding {
+  background: var(--sunk); border-left: 3px solid var(--ok);
+  border-radius: 9px; padding: 9px 12px; animation: rise .25s ease-out;
+}
+.fname {
+  font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase;
+  font-weight: 800; color: var(--ok); margin-bottom: 3px;
+}
+.ftext { font-size: 14px; line-height: 1.42; color: var(--ink-2); }

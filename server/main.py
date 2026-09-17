@@ -311,7 +311,7 @@ async def api_examine(code: str, payload: dict):
     room.examined.add(exam_id)
 
     finding = clinical.exam_finding(room.case, exam_id)
-    room.say("Examination", exam["name"] + " — " + finding, "reply")
+    room.say(exam["name"], finding, "exam")
     await sockets.broadcast(room.room_code)
     return {"finding": finding, "name": exam["name"]}
 
