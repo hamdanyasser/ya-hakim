@@ -1,136 +1,144 @@
 # Ya Hakim
 
-A live multiplayer medical mystery for a room of people.
+**Clinical reasoning practice with patients who hide things.** A browser-based
+simulator for medical and nursing schools: a learner interviews a patient with a
+personality and a secret, examines, orders investigations, treats, commits to a
+diagnosis and plan — and an attending debriefs them against published
+guidelines. Plus a classroom mode: one projector, a room of phones, one patient,
+a 150-second clock.
 
-A patient appears on a projector. Players join from their phones by QR code and
-ask him questions in plain language. He answers in character — evasive, joking,
-hiding exactly one thing. A heart monitor runs the whole time. Good questions
-stabilise him; wasted time makes him deteriorate. If the clock reaches zero he
-flatlines, the room goes quiet, and the diagnosis is revealed with a leaderboard.
-
-**This is a party game. It is not a medical tool, it is not medical advice, and
-nothing it says should be used for any clinical purpose.** The cases are written
-to be fun, not to be right.
+**This is an education tool with synthetic patients. It is not a medical
+device, not clinical decision support, and not medical advice.**
 
 ---
+
+## What is in the box
+
+| Surface | For | What it does |
+|---|---|---|
+| `/` | Everyone | The site: what it is, how it works, pricing. |
+| `/app` | Schools | Accounts, cohorts, assignments, the case library, the encounter, the debrief, dashboards, the case editor (with AI drafting), billing. |
+| `/screen` + `/play` | A lecture theatre | Classroom mode: projector + phones, a three-patient campaign with a leaderboard. |
+
+Three built-in cases (decompensated alcoholic liver disease, diabetic
+ketoacidosis, carbon monoxide poisoning), each written to current published
+guidance and validated on every commit. Schools write their own; a case
+publishes only when it passes the same checks.
 
 ## The one rule this project is built around
 
-**The diagnosis never reaches the model.**
+**The diagnosis never reaches the model.** A case file's `diagnosis`,
+`accepted_answers`, `partial_answers`, `key_questions` and `key_keywords` never
+enter a prompt, a client payload before the debrief, a log a learner can see,
+or a URL. The prompt is built from an **allowlist** — fields are copied *in* by
+name (`ALLOWED_IN_PROMPT` in `engine/patient.py`), so a field added next week
+cannot leak. An output guard checks every reply anyway. `tests/test_no_leak.py`
+proves all of it, including with a canary field injected into every case.
 
-A case file contains `diagnosis`, `accepted_answers`, `key_questions` and
-`key_keywords`. None of them may enter a prompt, a client payload, a log a
-player can see, or a URL.
+Two consequences worth knowing:
 
-This is an **allowlist**, not a denylist. Fields are copied *in* by name:
-
-```python
-ALLOWED_IN_PROMPT = ["name", "age", "personality", "symptoms",
-                     "lie", "truth", "cracks_when", "red_herrings"]
-
-def build_persona(case):
-    fields = {k: case[k] for k in ALLOWED_IN_PROMPT}   # copy IN, never filter OUT
-```
-
-A field added to a case file next week is not copied, so it cannot leak. There
-is no filter to forget to update. `tests/test_no_leak.py` proves this by
-injecting a canary field into every case and asserting it never appears.
-
-Two further guarantees:
-
-- **`truth` is not in the prompt until it is earned.** The engine counts how
-  many times he has been pressed and only then swaps `lie` for `truth`. On the
-  first question the truth is not in the payload at all.
-- **`GameState` is constructed field by field.** The room object is never
-  serialised and stripped — that is the pattern that leaks, because a field
-  added later is included by default.
-
-There is also an **output guard**: the model may not be *told* the diagnosis,
-but it could still infer it from the symptoms and say it unprompted. Every
-reply is checked, on word boundaries, against the secret terms before it
-reaches a client. A hit is thrown away and he is nudged back into character.
-
-### Two defects this caught
-
-1. **The spec's own case data leaked.** `cracks_when` shipped as
-   `"...asked about his liver..."` — and `cracks_when` is on the allowlist. That
-   put `liver`, an accepted answer, straight into the system prompt. Reworded;
-   the real trigger now lives in the engine where secrets are safe.
-2. **The patient never reached critical.** The specified decline rates needed
-   11–15 minutes to cross the critical thresholds in a 150-second round, so the
-   red state never appeared and the "never reached critical" bonus was free for
-   everyone. `vitals_decline` was retuned; `test_vitals.py` now asserts a round
-   passes through all three colours.
-
----
+- **Exam findings and results are revealed only by an action** (examining,
+  ordering) and are meant to point at the answer — that is clinical reasoning.
+  They may never *name* it; that is tested.
+- **The debrief cites guidance by id from a curated registry**
+  (`engine/guidelines.py`: NICE, RCEM, BSG, EASL, ESC, AHA, JBDS, ADA, GINA,
+  GOLD, BTS, Resuscitation Council UK, UK NPIS, GMC). The model chooses ids; the
+  engine resolves them. A source not in the registry cannot be cited.
 
 ## Running it
 
-Python 3.10 or newer.
-
-**macOS / Linux**
+Python 3.10+.
 
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-uvicorn server.main:app --host 0.0.0.0 --port 8000
-```
-
-**Windows (PowerShell)**
-
-```powershell
 python -m venv .venv
-.\.venv\Scripts\Activate.ps1
+source .venv/bin/activate          # Windows: .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 uvicorn server.main:app --host 0.0.0.0 --port 8000
 ```
 
-> If your copy of this folder is inside OneDrive, Dropbox or another synced
-> directory, put the venv somewhere else — e.g. `python -m venv $env:LOCALAPPDATA\yahakim-venv`.
-> A venv in a synced folder means thousands of files syncing and occasional
-> file locks mid-demo.
+Open **http://localhost:8000**, click *Start free*, create your school. That
+account is the admin; invite instructors from *Admin*, create a cohort and share
+its invite link with learners.
 
-Then open **http://localhost:8000/screen** on the projector.
+Copy `.env.example` to `.env` for the live model (`ANTHROPIC_API_KEY`) and for
+billing (`STRIPE_*`). **Both are optional.**
 
-Add `?flat=1` to the URL to disable the 3D room and ship the flat view. That is
-the phase-5 kill switch and it touches nothing else.
+- **No model key:** the patient has a scripted voice built from the same
+  allowlisted material; the debrief still marks every line of the mark sheet.
+  This is the development path and what CI runs.
+- **No Stripe keys:** every school is on the free plan (5 seats, every feature).
 
-For the live patient, copy `.env.example` to `.env` and add an Anthropic API
-key. **Without a key the game still plays** — see below.
+Docker: `docker compose up --build` (data in a named volume; set `APP_URL` and
+`YH_SECURE_COOKIES=1` behind HTTPS).
 
-### It runs with no key and no network
+## How an encounter works
 
-The patient has a canned offline voice built from the same allowlisted material
-the model gets. Everything else — vitals, scoring, the clock, the ECG, the
-flatline — never touches the API at all. The model upgrades exactly one thing:
-how good his dialogue is.
+Twelve minutes on the clock. The monitor runs the whole time; untreated, the
+patient reaches a critical state at around ten minutes and then arrests.
 
-That was the development path, it is what CI runs, and it doubles as the
-insurance policy if the venue has no internet.
+- **Interview.** Each case has four to six key history topics. Covering one for
+  the first time stabilises the patient briefly. The **first** topic is the one
+  the patient lies about — press it twice, or ask the person who brought them
+  in, and the front drops. While they are lying, **their heart rate spikes on
+  the monitor** in front of the learner. An engine-derived **mood** (guarded →
+  defensive → rattled → scared → pleading → resigned) shows on screen and, in
+  live mode, steers the model's tone.
+- **Examine, order, treat.** A generic catalog (`engine/clinical.py`: 14
+  examinations, 40 investigations with realistic turnaround, 30 treatments)
+  identical for every case, so the menu never gives the diagnosis away. A case
+  records only what is abnormal. Key treatments visibly improve the monitor;
+  harmful ones set the patient back, and the debrief explains why for *this*
+  patient.
+- **Commit.** Working diagnosis, differentials, plan, reasoning.
+- **Debrief** (`engine/grading.py`). A deterministic mark sheet — data gathering
+  40, clinical management 40, communication 20, with outcome modifiers — where
+  every point is explained. Then, with a key, a narrative from the attending
+  model grounded in that sheet, allowed to re-mark communication within bounds,
+  citing the registry by id. Without a key, a checklist narrative.
 
-### It runs with no phones
+## For instructors
 
-`/screen` has an input bar along the bottom. One person types at the laptop and
-the whole game plays. This is built in from the start, not bolted on, and it is
-the fallback if the venue wifi is hostile.
+- **Cohorts** with their own invite links; **assignments** with due dates.
+- **Dashboard:** domain averages, diagnosis accuracy, the most-missed questions
+  and examinations across the school, harmful treatments given, hardest cases,
+  learners who need attention, every debrief on record.
+- **Case editor:** duplicate a built-in case, or *Draft with AI* from a one-line
+  brief. `cases/schema.md` documents the format. Validation (`engine/authoring.py`)
+  runs on every save and gates publishing: the answer must be absent from the
+  persona, keyword groups must not collide, every key question needs an offline
+  reply that survives the guard, vitals must pass through all three colours.
+  *Test-drive* starts an encounter on an unpublished draft.
 
----
+## Architecture
 
-## Demo day
+```
+engine/   pure logic, no I/O
+  patient.py     the allowlist, the persona, the output guard, live + canned voices
+  encounter.py   how a question lands (topic, cracking, the lie) — shared by both modes
+  practice.py    the solo encounter: a JSON state document, wall-clock timestamps
+  grading.py     the mark sheet + the attending narrative
+  clinical.py    the exam / investigation / treatment catalog
+  guidelines.py  the citation registry
+  authoring.py   case schema, model drafting, validation
+  mood.py vitals.py scoring.py game.py state.py llm.py
+server/   FastAPI
+  main.py        pages + classroom endpoints;  api_auth.py  api_practice.py  api_org.py
+  db.py          SQLite (WAL), one file, no ORM;  auth.py  billing.py  rooms.py  ws.py
+web/      vanilla HTML/CSS/JS, no build step
+  index.html app.html app.js practice.html practice.js debrief.js app.css
+  screen.html screen.js play.html play.js ecg.js room3d.js style.css   (classroom)
+cases/    the built-in cases + schema.md
+tests/    269 tests, no key, no network
+```
 
-- **Find the right LAN IP.** `ipconfig` (Windows) or `ifconfig` / `ip addr`
-  (macOS, Linux) lists several adapters; you want the Wi-Fi or Ethernet one,
-  not WSL, Hyper-V, Docker or a VPN adapter.
-- **Windows Defender will prompt** the first time you bind to `0.0.0.0`. Trigger
-  that at home, not on stage.
-- **Some venue wifi has AP isolation**, which makes phone→laptop impossible no
-  matter how correct the code is. Test before you present. The fallback is a
-  laptop hotspot the phones join.
-- **Keys on the projector:** `K` flatlines on demand (so the sequence can be
-  rehearsed without playing a full round), `R` reloads.
+Encounter state and debriefs are stored as JSON documents in SQLite; a faculty's
+worth of concurrent learners runs on one small VM, and the schema moves to
+Postgres without redesign when a customer needs it.
 
----
+Model: `claude-opus-5` by default (`YH_MODEL` to override), with server-side
+refusal fallbacks so a declined turn never ends an encounter. Patient replies use
+prompt caching on the persona and low effort for latency; the debrief and case
+drafting use structured outputs and high effort.
 
 ## Tests
 
@@ -138,78 +146,28 @@ the fallback if the venue wifi is hostile.
 pytest -q
 ```
 
-CI runs these on every push. They need no API key and no network.
+- `test_no_leak.py` — the allowlist guarantee, the canary, the output guard, the
+  offline dialogue, the `GameState` contract.
+- `test_practice.py` — the solo engine: chart and view carry no secrets, key
+  history stabilises and cracks, results arrive after turnaround, arrest and
+  time-up, key treatments help and harmful ones set back, the mark sheet scores
+  a perfect run high and an empty one low, partial credit, offline debrief
+  cites only the registry, arrest caps the score, results never name the
+  diagnosis.
+- `test_vitals.py`, `test_mood.py`, `test_injection.py` (100 attacks; `YH_LIVE=1`
+  runs them against the real model).
 
-- `test_no_leak.py` — the diagnosis is absent from the persona in both cracked
-  and uncracked states, absent from server-authored `GameState`, and a field
-  invented next week cannot leak. Also asserts the feed cannot mark a question
-  as "key", which would hand players the key list one question at a time.
-- `test_vitals.py` — decline is monotonic, thresholds fire at exactly the
-  specified boundaries, a round passes through all three colours, and
-  stabilising pauses decline for exactly 45s including overlapping stabilisations.
-- `test_injection.py` — 100 attacks across ten categories (direct ask,
-  instruction override, role break, system extraction, false authority,
-  hypothetical framing, multiple choice, Arabic, French, encoded text). Prints
-  the leak count. Runs offline in CI; `YH_LIVE=1` runs the same 100 against the
-  real model, which is what to run on stage.
+## Security notes for deployers
 
-All tests run with no API key and no network.
+Sessions are opaque random tokens stored server-side in an HttpOnly,
+SameSite=Lax cookie; all mutating endpoints take JSON. Passwords are scrypt.
+Stripe's webhook is the only thing that changes a school's plan. Set
+`YH_SECURE_COOKIES=1` and `APP_URL` behind HTTPS. Instructors can read any
+debrief in their school; learners only their own. Patient prompts contain no
+learner identifiers.
 
-**Honest caveat:** the offline injection run exercises the pipeline and the
-output guard, not the model's own resistance. The number that matters on stage
-is the `YH_LIVE=1` run, and that has not been executed yet because no key was
-available during the build.
+## Classroom mode
 
----
-
-## The campaign
-
-Three patients, hardest last. Scores carry across all three; `guessed` does not,
-so every round is a fresh chance to call it.
-
-| Level | Patient | Stakes |
-|---|---|---|
-| 1 | Kamal, 54 | The trial. His card tells you to watch the monitor. |
-| 2 | Rita, 31 | Standard. |
-| 3 | Georges, 62 | A wrong call kills him — and the reveal has a twist. |
-
-Each round is 150 seconds. A round passes through all three monitor colours:
-green for ~40s, amber to ~120s, then ~30s of red before he goes.
-
-`cases/schema.md` documents the file format, including the trap that
-`accepted_answers` double as the words the patient may never say.
-
-## The 3D room
-
-`web/room3d.js`, three.js r128, every shape a primitive. Floor, wall, a bed of
-boxes, a form under a sheet that breathes at his respiratory rate, an IV pole,
-and a monitor whose screen is a `CanvasTexture` of the *existing* ECG canvas —
-the waveform is not rebuilt in 3D.
-
-Lighting is what sells it: ambient fill, a warm overhead spot with soft shadows,
-a cool rim light, and a point light at the monitor that tracks his status.
-The camera drifts on a slow sine path and freezes during the two seconds of
-silence, along with everything else.
-
-There is an fps readout in the corner. Gate 5 is 60fps or delete it — and
-deleting it is `?flat=1`, or removing one `<script>` tag.
-
-## A note on this being a public repo
-
-`cases/*.json` contain the answers in plain text. That is fine and intended —
-the guarantee is that the diagnosis never reaches **the model**, not that it is
-hidden from anyone reading the source. But it does mean a player who finds this
-repository can read the answers to all three cases. If you run this
-competitively, either keep the case files out of the public tree or write new
-ones for the event.
-
-## What is deliberately not here
-
-No accounts, no database, no payments, no voice input, no character model, no
-spectator replays, no difficulty settings, no admin panel. Rooms live in memory
-and cases load from JSON on disk.
-
-All visual assets are generated in code — canvas, CSS, primitives. Nothing is
-downloaded at runtime and nothing resembles any existing game, film or
-character. The ECG waveform, the paper grid, the flatline tone and the room
-code alphabet are all original.
+Unchanged from the party-game origins and still the best way to open a session:
+`/screen` on the projector (`?flat=1` disables the 3D room), phones join by QR.
+`K` flatlines on demand for rehearsal, `R` reloads. Cases load from `cases/`.

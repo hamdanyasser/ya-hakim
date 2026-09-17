@@ -8,8 +8,9 @@ from __future__ import annotations
 
 import random
 
+from engine import llm
 from engine.game import Room
-from engine.patient import load_case
+from engine.patient import CannedPatient, PatientSession, load_case
 
 # No 0/O and no 1/I/L. Someone is reading this off a projector.
 CODE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"
@@ -32,6 +33,23 @@ def case_for_level(level: int) -> str:
     return LEVELS[max(1, min(level, len(LEVELS))) - 1]
 
 
+def make_patient(case: dict):
+    """Live if a key is configured and the client builds; canned otherwise.
+
+    This is the one place that decision gets made. `.env` (loaded in
+    server/main.py) or the real environment supplies the key; with none set,
+    behaviour is unchanged from before this existed. A bad or expired key must
+    never crash a round -- it falls back to the offline voice exactly the way
+    a failed API call already does mid-round in engine/patient.py.
+    """
+    if llm.available():
+        try:
+            return PatientSession(case=case)
+        except Exception:
+            return CannedPatient(case)
+    return CannedPatient(case)
+
+
 def build(code: str, level: int) -> Room:
     """Construct a room for a level, wiring up the card for the NEXT one."""
     level = max(1, min(level, len(LEVELS)))
@@ -39,12 +57,14 @@ def build(code: str, level: int) -> Room:
     next_card = None
     if not is_last:
         next_card = load_case(LEVELS[level]).get("level_card")
+    case = load_case(case_for_level(level))
     return Room(
-        load_case(case_for_level(level)),
+        case,
         room_code=code,
         level=level,
         next_card=next_card,
         is_last=is_last,
+        patient=make_patient(case),
     )
 
 

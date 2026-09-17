@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ya Hakim — clinical reasoning practice with patients who hide things</title>
+<meta name="description" content="A clinical-reasoning simulator for medical and nursing schools. Interview a patient who is hiding one thing, examine, order, treat, and get a guideline-cited debrief from an attending. Runs in the browser.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/app.css">
+<style>
+  .hero { padding: 84px 0 40px; display: grid; grid-template-columns: 1.05fr 1fr; gap: 48px; align-items: center; }
+  @media (max-width: 900px) { .hero { grid-template-columns: 1fr; padding-top: 48px; } }
+  .hero h1 { font-size: clamp(38px, 5.4vw, 62px); letter-spacing: -.03em; line-height: 1.02; margin-bottom: 18px; }
+  .hero h1 em { font-style: normal; color: var(--ok); }
+  .hero p.lead { font-size: 19px; color: var(--text-2); max-width: 52ch; margin-bottom: 26px; }
+  .eyebrow { display: inline-flex; gap: 8px; align-items: center; font-size: 12.5px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--ok); font-weight: 700; margin-bottom: 18px; }
+  .eyebrow i { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 0 4px rgba(93,202,165,.18); animation: pulse 1.6s infinite; }
+  .demo { background: var(--panel); border: 1px solid var(--line-2); border-radius: 18px; padding: 16px; box-shadow: var(--shadow); position: relative; overflow: hidden; }
+  .demo::before { content: ''; position: absolute; inset: -40% -20% auto; height: 60%; background: radial-gradient(closest-side, rgba(93,202,165,.14), transparent); pointer-events: none; }
+  .demo .top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
+  .demo .top b { font-size: 18px; } .demo .top b span { color: var(--dim); font-weight: 500; margin-left: 8px; }
+  .demo .clock { font-family: var(--mono); font-weight: 700; color: var(--ok); font-size: 20px; }
+  .ecg-box { background: #0b0d11; border: 1px solid var(--line); border-radius: 10px; height: 92px; overflow: hidden; position: relative;
+    background-image: linear-gradient(rgba(93,202,165,.07) 1px, transparent 1px), linear-gradient(90deg, rgba(93,202,165,.07) 1px, transparent 1px); background-size: 12px 12px; }
+  .ecg-box svg { position: absolute; inset: 0; width: 200%; height: 100%; animation: scroll 3.2s linear infinite; }
+  @keyframes scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+  .demo .vit { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 12px 0; }
+  .demo .vit div { background: var(--bg-2); border: 1px solid var(--line); border-radius: 9px; padding: 8px 10px; }
+  .demo .vit small { display: block; color: var(--dim); font-size: 10.5px; letter-spacing: .6px; text-transform: uppercase; }
+  .demo .vit b { font-family: var(--mono); font-size: 18px; }
+  .demo .chat { display: flex; flex-direction: column; gap: 8px; }
+  .demo .m { padding: 9px 12px; border-radius: 12px; font-size: 14px; max-width: 88%; }
+  .demo .m.q { align-self: flex-end; background: rgba(133,183,235,.1); border: 1px solid rgba(133,183,235,.22); }
+  .demo .m.r { align-self: flex-start; background: var(--bg-2); border: 1px solid var(--line); }
+  .demo .m .w { display: block; font-size: 10.5px; letter-spacing: 1px; text-transform: uppercase; color: var(--ok); font-weight: 700; margin-bottom: 2px; }
+  .demo .m.q .w { color: var(--info); }
+  .demo .tell { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 13px; color: var(--warn); font-weight: 600; }
+  .logos { display: flex; gap: 22px; flex-wrap: wrap; color: var(--dim); font-size: 13px; padding: 22px 0 60px; border-bottom: 1px solid var(--line); }
+  section.block { padding: 72px 0; border-bottom: 1px solid var(--line); }
+  section.block h2 { font-size: clamp(26px, 3vw, 36px); letter-spacing: -.02em; margin-bottom: 8px; }
+  section.block .lead { color: var(--text-2); font-size: 17px; max-width: 60ch; margin-bottom: 34px; }
+  .step { position: relative; padding-top: 12px; }
+  .step .n { font-family: var(--mono); color: var(--ok); font-weight: 700; font-size: 13px; letter-spacing: 1px; margin-bottom: 8px; }
+  .feature h3 { display: flex; align-items: center; gap: 10px; }
+  .feature .ic { width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center; background: rgba(93,202,165,.12); color: var(--ok); font-size: 15px; }
+  .feature p { color: var(--text-2); margin: 0; font-size: 14.5px; }
+  .price { display: flex; flex-direction: column; gap: 14px; }
+  .price .amt { font-size: 38px; font-weight: 800; letter-spacing: -.03em; }
+  .price .amt small { font-size: 14px; color: var(--dim); font-weight: 500; letter-spacing: 0; }
+  .price ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; color: var(--text-2); font-size: 14.5px; }
+  .price li::before { content: '✓'; color: var(--ok); font-weight: 800; margin-right: 8px; }
+  .price.hot { border-color: rgba(93,202,165,.5); box-shadow: 0 0 0 1px rgba(93,202,165,.25), var(--shadow); }
+  .faq details { border-bottom: 1px solid var(--line); padding: 14px 0; }
+  .faq summary { cursor: pointer; font-weight: 600; list-style: none; display: flex; justify-content: space-between; }
+  .faq summary::after { content: '+'; color: var(--dim); }
+  .faq details[open] summary::after { content: '–'; }
+  .faq p { color: var(--text-2); margin: 10px 0 0; }
+  footer { padding: 40px 0 60px; color: var(--dim); font-size: 13.5px; }
+  .cta-band { text-align: center; padding: 80px 0; }
+  .cta-band h2 { font-size: clamp(28px, 4vw, 44px); letter-spacing: -.03em; }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap">
+    <a class="brand" href="/"><span class="mark">YH</span> Ya Hakim</a>
+    <nav class="nav" style="margin-left:auto">
+      <a href="#how">How it works</a>
+      <a href="#features">Features</a>
+      <a href="#pricing">Pricing</a>
+      <a href="/screen">Classroom mode</a>
+    </nav>
+    <a class="btn ghost sm" href="/app/login">Sign in</a>
+    <a class="btn primary sm" href="/app/signup">Start free</a>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="hero">
+    <div>
+      <div class="eyebrow"><i></i> Clinical reasoning, practised on patients who lie</div>
+      <h1>Every patient is hiding <em>one thing</em>.<br>Find it before the monitor does.</h1>
+      <p class="lead">Ya Hakim is a browser-based clinical simulator for medical and nursing schools. Students interview a
+        patient with a personality and a secret, examine, order investigations, treat, and commit to a diagnosis —
+        then a senior debriefs them against published guidelines.</p>
+      <div class="row wrap">
+        <a class="btn primary lg" href="/app/signup">Start free — 5 seats</a>
+        <a class="btn ghost lg" href="#how">See how a case plays</a>
+      </div>
+      <p style="margin-top:16px;font-size:13px;color:var(--dim)">No credit card. Runs without a model key for demos. Synthetic patients only — this is education, not medical advice.</p>
+    </div>
+    <div class="demo" aria-hidden="true">
+      <div class="top"><b>Kamal <span>54 · dock supervisor</span></b><span class="clock">9:41</span></div>
+      <div class="ecg-box">
+        <svg viewBox="0 0 800 92" preserveAspectRatio="none">
+          <polyline fill="none" stroke="#5DCAA5" stroke-width="2" stroke-linejoin="round"
+            points="0,52 40,52 52,48 60,52 70,52 76,58 80,14 86,70 92,52 110,52 118,45 128,52 200,52 240,52 252,48 260,52 270,52 276,58 280,14 286,70 292,52 310,52 318,45 328,52 400,52 440,52 452,48 460,52 470,52 476,58 480,14 486,70 492,52 510,52 518,45 528,52 600,52 640,52 652,48 660,52 670,52 676,58 680,14 686,70 692,52 710,52 718,45 728,52 800,52"/>
+        </svg>
+      </div>
+      <div class="vit">
+        <div><small>Heart rate</small><b style="color:var(--warn)">114</b></div>
+        <div><small>SpO₂</small><b>96%</b></div>
+        <div><small>BP</small><b>102/66</b></div>
+        <div><small>Resp</small><b>19</b></div>
+      </div>
+      <div class="chat">
+        <div class="m q"><span class="w">You</span>How much do you drink, Kamal?</div>
+        <div class="m r"><span class="w">Kamal · defensive</span>Two small glasses of arak with dinner. Like everyone.</div>
+      </div>
+      <div class="tell">⚠ Heart rate jumped 18 bpm as he answered.</div>
+    </div>
+  </section>
+
+  <div class="logos">
+    <span>Built for</span><span>Medical schools</span><span>·</span><span>Nursing faculties</span><span>·</span><span>Foundation programmes</span><span>·</span><span>OSCE prep</span><span>·</span><span>Simulation centres</span>
+  </div>
+
+  <section class="block" id="how">
+    <h2>One encounter, twelve minutes, three things to get right.</h2>
+    <p class="lead">A case is a person with a life, a personality, and one thing they would rather not say. The monitor runs the whole time: good questions steady the patient, wasted time makes them worse.</p>
+    <div class="grid cols-3">
+      <div class="card step"><div class="n">01 — INTERVIEW</div><h3>Take a history from someone who minimises</h3><p class="muted">Kamal jokes. Rita is defensive. Georges does not like to make a fuss. Ask well and they open up; press the right topic twice and the front drops — and their heart rate gives them away when they lie.</p></div>
+      <div class="card step"><div class="n">02 — EXAMINE, ORDER, TREAT</div><h3>Work the case like a real shift</h3><p class="muted">Fourteen examinations, forty investigations with realistic turnaround times, thirty treatments. Key treatments visibly stabilise the monitor. Harmful ones set the patient back — and you find out why in the debrief.</p></div>
+      <div class="card step"><div class="n">03 — COMMIT, THEN DEBRIEF</div><h3>An attending marks the whole encounter</h3><p class="muted">Data gathering, clinical management, communication. Every point on the mark sheet is explained. The narrative cites NICE, ESC, AHA, JBDS, GINA, GOLD and RCEM guidance — from a curated registry, so it cannot invent a source.</p></div>
+    </div>
+  </section>
+
+  <section class="block" id="features">
+    <h2>What makes it different</h2>
+    <p class="lead">Most simulators give students a compliant patient and a checklist. Real patients are not compliant, and real reasoning is about what you did not ask.</p>
+    <div class="grid cols-3">
+      <div class="card feature"><h3><span class="ic">◐</span>The lie tell</h3><p>Each patient hides one thing. When they lie about it, their heart rate spikes on the monitor in front of the student. Learning to read a patient, not just a script.</p></div>
+      <div class="card feature"><h3><span class="ic">◉</span>Mood that responds to you</h3><p>Guarded, defensive, rattled, scared, pleading, resigned. The patient's state is engine-derived from the vitals and how hard they have been pressed — and steers the model's tone.</p></div>
+      <div class="card feature"><h3><span class="ic">▤</span>Debriefs that cannot fabricate</h3><p>The grader chooses citations by id from a registry of published guidelines. If a source is not in the registry, it cannot be cited. Every mark is reproducible without a model at all.</p></div>
+      <div class="card feature"><h3><span class="ic">▥</span>Instructor dashboard</h3><p>Cohorts, assignments with due dates, per-learner trends, per-case difficulty, the most-missed questions across your whole year group, and every debrief on record.</p></div>
+      <div class="card feature"><h3><span class="ic">✎</span>Case editor with AI drafting</h3><p>Describe a case in a sentence; get a complete, validated draft: history, personality, lies, findings, results, teaching points. Edit anything. Publish only when it passes the same checks as ours.</p></div>
+      <div class="card feature"><h3><span class="ic">▣</span>Classroom mode</h3><p>One projector, a room full of phones, one patient, a 150-second clock. A campaign of three patients with a leaderboard. The way to open a teaching session.</p></div>
+    </div>
+    <div class="grid cols-2" style="margin-top:18px">
+      <div class="card feature"><h3><span class="ic">⚙</span>The answer never reaches the model</h3><p>The diagnosis, the accepted answers and the key questions are never in a prompt. The prompt is built from an allowlist of fields; anything else cannot leak. An output guard checks every reply anyway. Tested on every commit with 100 injection attacks.</p></div>
+      <div class="card feature"><h3><span class="ic">◌</span>Works offline, works everywhere</h3><p>No model key? The patient has a scripted voice from the same material, and the debrief still marks every point. Vanilla web, one small server, SQLite — runs on a laptop in a lecture theatre or in Docker on a VM.</p></div>
+    </div>
+  </section>
+
+  <section class="block" id="pricing">
+    <h2>Pricing</h2>
+    <p class="lead">Per seat, per month. A seat is one learner or instructor account. Cancel any time.</p>
+    <div class="grid cols-3">
+      <div class="card price"><h3>Free</h3><div class="amt">$0</div>
+        <ul><li>5 seats</li><li>All built-in cases</li><li>Full debriefs</li><li>Classroom mode</li><li>Case editor</li></ul>
+        <a class="btn block" href="/app/signup">Start free</a></div>
+      <div class="card price hot"><h3>School</h3><div class="amt">$8<small> / seat / month</small></div>
+        <ul><li>Unlimited seats, billed monthly</li><li>Cohorts, assignments, dashboards</li><li>AI case drafting</li><li>Live model patient and attending</li><li>Priority support</li></ul>
+        <a class="btn primary block" href="/app/signup">Start free, upgrade in-app</a></div>
+      <div class="card price"><h3>Institution</h3><div class="amt">Let's talk</div>
+        <ul><li>Self-hosted or dedicated instance</li><li>SSO and LMS export</li><li>Custom case library and rubrics</li><li>Data residency</li><li>Training for faculty</li></ul>
+        <a class="btn block" href="mailto:hello@yahakim.app?subject=Institution%20plan">Contact us</a></div>
+    </div>
+    <p class="muted" style="margin-top:16px;font-size:13px">Model usage is included. Prices in USD; VAT may apply.</p>
+  </section>
+
+  <section class="block faq">
+    <h2>Questions</h2>
+    <details><summary>Is this a medical device or clinical decision support?</summary><p>No. Ya Hakim is an education tool with synthetic patients. Nothing it produces is medical advice, and it should never be used for a real patient.</p></details>
+    <details><summary>How accurate are the cases?</summary><p>Built-in cases are written to current published guidance and validated automatically: vitals, keyword coverage, leak checks. Schools can review, edit and replace any case, and the debrief cites the guidance it marks against so faculty can check every claim.</p></details>
+    <details><summary>What happens to student data?</summary><p>Transcripts and debriefs are stored in your school's own database and visible to your instructors. Patient prompts contain no student identifiers. Self-hosting is available for institutions with residency requirements.</p></details>
+    <details><summary>Do we need an AI key?</summary><p>For the live patient, the narrative debrief and AI case drafting, yes — an Anthropic API key on the server. Without one the product still runs end to end with scripted patients and checklist debriefs, which is also what our CI runs.</p></details>
+    <details><summary>Can we write our own cases?</summary><p>Yes. Draft one from a sentence, or start from a template. A case is a JSON document with a documented schema; it publishes only when it passes the same validation as the built-in cases.</p></details>
+  </section>
+
+  <section class="cta-band">
+    <h2>Give your students a patient who is not on their side.</h2>
+    <p class="lead" style="margin:10px auto 26px;color:var(--text-2)">Five seats free. Three cases ready. A projector and a room full of phones is all classroom mode needs.</p>
+    <a class="btn primary lg" href="/app/signup">Create your school</a>
+  </section>
+</main>
+
+<footer class="wrap">
+  <div class="row between wrap">
+    <span>© Ya Hakim. Education only. Synthetic patients. Not a medical tool, not medical advice.</span>
+    <span><a href="/screen">Classroom</a> · <a href="/app/login">Sign in</a> · <a href="mailto:hello@yahakim.app">Contact</a></span>
+  </div>
+</footer>
+</body>
+</html>

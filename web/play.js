@@ -10,6 +10,16 @@
   var ws = null;
   var lastAsk = 0;
   var guessed = false;
+  var lastPhase = null;
+
+  /* Same small vocabulary as screen.js's MOOD_META -- see the comment there.
+     No build step in this project, so this is duplicated, not imported. */
+  var MOOD_LABEL = {
+    guarded: '🛡 guarded', uneasy: '😕 uneasy',
+    defensive: '✋ defensive', resigned: '😔 resigned',
+    rattled: '😬 rattled', scared: '😨 scared',
+    pleading: '🙏 pleading'
+  };
 
   if (code) $('code').value = code;
   try { $('name').value = localStorage.getItem('yh_name') || ''; } catch (e) {}
@@ -33,6 +43,7 @@
 
   function render(s) {
     $('who').textContent = s.patient_name + ', ' + s.patient_age;
+    $('patientSub').textContent = s.description || '';
 
     if (s.phase === 'reveal' && s.reveal) {
       $('status').textContent = s.reveal.headline + ' ' + s.reveal.diagnosis;
@@ -42,8 +53,17 @@
       $('status').textContent = 'waiting to start';
     } else {
       $('status').textContent = s.seconds_left + 's left  ' +
-        s.vitals.hr + 'bpm  ' + s.status;
+        s.vitals.hr + 'bpm  ' + s.status +
+        (MOOD_LABEL[s.mood] ? '  ' + MOOD_LABEL[s.mood] : '');
     }
+
+    /* The jolt, felt in the hand: a hard red wash the instant he flatlines.
+       Only on the transition, so a reconnect mid-flatline does not re-flash. */
+    if (s.phase === 'flatline' && lastPhase !== 'flatline') {
+      document.body.classList.add('flashRed');
+      setTimeout(function () { document.body.classList.remove('flashRed'); }, 900);
+    }
+    lastPhase = s.phase;
 
     var log = $('log');
     log.innerHTML = '';

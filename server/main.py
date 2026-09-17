@@ -1,7 +1,16 @@
-"""The server. Serves the projector, the phones, and the state that drives both.
+"""The server.
 
-Clients receive GameState and nothing else. There is no endpoint that returns a
-case file, and the room object is never serialised.
+Two products share one process:
+
+- /app          solo practice for medical and nursing schools: accounts,
+                cohorts, assignments, the encounter, the debrief, dashboards,
+                the case editor, billing.
+- /screen /play the classroom mode: one projector, a room of phones, one
+                patient, one clock.
+
+Clients receive what the engine chooses to send and nothing else. No endpoint
+returns a case file to a learner; the encounter and room objects are never
+serialised whole.
 """
 
 from __future__ import annotations
@@ -11,37 +20,63 @@ import sys
 from pathlib import Path
 
 import segno
+from dotenv import load_dotenv
 from fastapi import FastAPI, Request, Response, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
+# Must run before anything reads ANTHROPIC_API_KEY or STRIPE_*. A missing .env
+# is not an error; the app runs offline and on the free plan either way.
+load_dotenv()
+
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from server import rooms as registry          # noqa: E402
-from server import ws as sockets              # noqa: E402
+from engine.patient import CASES_DIR, load_case                       # noqa: E402
+from server import api_auth, api_org, api_practice, db                 # noqa: E402
+from server import rooms as registry                                   # noqa: E402
+from server import ws as sockets                                       # noqa: E402
 
 WEB = Path(__file__).resolve().parent.parent / "web"
 
-app = FastAPI(title="Ya Hakim")
+app = FastAPI(title="Ya Hakim", docs_url=None, redoc_url=None)
+app.include_router(api_auth.router)
+app.include_router(api_practice.router)
+app.include_router(api_org.router)
 
 
 @app.on_event("startup")
 async def _startup():
+    db.init()
+    for path in sorted(CASES_DIR.glob("*.json")):
+        db.upsert_builtin_case(load_case(path.stem))
     sockets.start_ticker()
 
 
-def _room_or_404(code: str):
-    room = registry.rooms.get(code.upper())
-    if not room:
-        return None, JSONResponse({"error": "no such room"}, status_code=404)
-    return room, None
+@app.middleware("http")
+async def _headers(request: Request, call_next):
+    resp = await call_next(request)
+    resp.headers.setdefault("X-Content-Type-Options", "nosniff")
+    resp.headers.setdefault("X-Frame-Options", "SAMEORIGIN")
+    resp.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+    return resp
 
 
 # --------------------------------------------------------------------- pages
 
 @app.get("/")
 async def index():
-    return FileResponse(WEB / "screen.html")
+    return FileResponse(WEB / "index.html")
+
+
+@app.get("/app")
+@app.get("/app/{rest:path}")
+async def app_shell(rest: str = ""):
+    return FileResponse(WEB / "app.html")
+
+
+@app.get("/practice/{enc_id}")
+async def practice_page(enc_id: str):
+    return FileResponse(WEB / "practice.html")
 
 
 @app.get("/screen")
@@ -54,35 +89,38 @@ async def play():
     return FileResponse(WEB / "play.html")
 
 
+@app.get("/healthz")
+async def healthz():
+    return {"ok": True}
+
+
 app.mount("/static", StaticFiles(directory=str(WEB)), name="static")
 
 
-# ----------------------------------------------------------------- the round
+# --------------------------------------------------------------- classroom
+
+def _room_or_404(code: str):
+    room = registry.rooms.get(code.upper())
+    if not room:
+        return None, JSONResponse({"error": "no such room"}, status_code=404)
+    return room, None
+
 
 @app.post("/api/room")
 async def api_room(payload: dict | None = None):
     payload = payload or {}
     room = registry.get_or_make(payload.get("code"), int(payload.get("level", 1)))
-    return {
-        "code": room.room_code,
-        "level": room.level,
-        "card": room.case.get("level_card"),
-        "levels": len(registry.LEVELS),
-    }
+    return {"code": room.room_code, "level": room.level, "card": room.case.get("level_card"),
+            "levels": len(registry.LEVELS)}
 
 
 @app.get("/api/{code}/card")
 async def api_card(code: str):
-    """The story card for the round about to start."""
     room, err = _room_or_404(code)
     if err:
         return err
-    return {
-        "level": room.level,
-        "levels": len(registry.LEVELS),
-        "card": room.case.get("level_card"),
-        "phase": room.phase,
-    }
+    return {"level": room.level, "levels": len(registry.LEVELS), "card": room.case.get("level_card"),
+            "phase": room.phase}
 
 
 @app.post("/api/{code}/start")
@@ -96,11 +134,6 @@ async def api_start(code: str):
 
 @app.post("/api/{code}/join")
 async def api_join(code: str, payload: dict):
-    """Register a player without saying anything.
-
-    Joining used to go through /ask with empty text, which burned the player's
-    cooldown and posted a blank line into the feed.
-    """
     room, err = _room_or_404(code)
     if err:
         return err
@@ -157,26 +190,15 @@ async def api_reveal(code: str):
 
 @app.post("/api/{code}/next")
 async def api_next(code: str):
-    """Advance the campaign, carrying scores forward."""
     room = registry.advance(code)
     if not room:
         return {"done": True}
     await sockets.broadcast(room.room_code)
-    return {
-        "ok": True,
-        "level": room.level,
-        "levels": len(registry.LEVELS),
-        "card": room.case.get("level_card"),
-    }
+    return {"ok": True, "level": room.level, "levels": len(registry.LEVELS), "card": room.case.get("level_card")}
 
 
 @app.post("/api/{code}/kill")
 async def api_kill(code: str):
-    """Debug: trigger the flatline on demand.
-
-    Gate 3 asks for the sequence to land correctly ten times in a row. Without
-    this that would mean ten full rounds.
-    """
     room, err = _room_or_404(code)
     if err:
         return err
@@ -194,24 +216,11 @@ async def api_reset(code: str):
 
 @app.get("/api/{code}/qr.svg")
 async def api_qr(code: str, request: Request):
-    """The join QR, generated in code, server-side.
-
-    A hand-written encoder lived here first and produced codes that no scanner
-    could read -- verified by rendering its output and decoding it. Generating
-    it with a correct library is still generating it in code; nothing is
-    downloaded at runtime.
-    """
     host = request.headers.get("host", "localhost")
     url = "http://" + host + "/play?c=" + code.upper()
-    buf = io.BytesIO()          # segno writes bytes, not str
-    segno.make(url, error="m").save(
-        buf, kind="svg", scale=10, border=4, dark="#000000", light="#ffffff",
-    )
-    return Response(
-        buf.getvalue(),
-        media_type="image/svg+xml",
-        headers={"Cache-Control": "no-store"},
-    )
+    buf = io.BytesIO()
+    segno.make(url, error="m").save(buf, kind="svg", scale=10, border=4, dark="#000000", light="#ffffff")
+    return Response(buf.getvalue(), media_type="image/svg+xml", headers={"Cache-Control": "no-store"})
 
 
 @app.websocket("/ws/{code}")
@@ -223,7 +232,7 @@ async def websocket_endpoint(websocket: WebSocket, code: str):
     try:
         await websocket.send_json(registry.rooms[code].public_state().to_dict())
         while True:
-            await websocket.receive_text()   # keepalive; clients act over REST
+            await websocket.receive_text()
     except WebSocketDisconnect:
         pass
     except Exception:

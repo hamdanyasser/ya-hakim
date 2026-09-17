@@ -187,6 +187,31 @@ def test_a_topic_only_buys_time_once(case):
     assert room.stabilised_until == first, "the same topic stabilised twice"
 
 
+def test_lie_tell_fires_even_when_the_reply_is_paraphrased(case):
+    """Regression: the tell used to key off `reply == case["lie"]`, which only
+    ever matched the offline voice's exact canned string. A live model
+    paraphrases the same lie in its own words, so that check silently never
+    fired for it. It must key off the turn instead -- the drink topic, asked
+    before he has cracked -- regardless of what the reply text actually says.
+    """
+    class Paraphraser:
+        """Stands in for a live model: same interface, freeform text."""
+        def reply(self, question, cracked=False, topic=None, mood=None):
+            return "Not that it's anyone's business, but barely a drop."
+
+    room, t, run_to = _room(case)
+    room.patient = Paraphraser()
+    run_to(10)
+    assert room.lied_at is None
+
+    room.ask("Sara", a_question_hitting(case, 0))   # the drink topic, first press
+    assert room.lied_at == pytest.approx(10)
+
+    calm = vitals_at(case, room.decline_elapsed)["hr"]
+    lying = room.current_vitals()["hr"]
+    assert lying - calm >= 15, "the tell must be readable from the back of a room"
+
+
 def test_the_clock_still_runs_while_stabilised(case):
     """Stabilising freezes the decline, never the round."""
     room, t, run_to = _room(case)

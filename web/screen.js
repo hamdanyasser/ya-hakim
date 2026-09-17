@@ -24,6 +24,21 @@
   var flatlined = false;
   var lastPhase = null;
 
+  /* Mirrors engine/mood.py's MOODS dict. Python owns the logic that picks a
+     mood; this is presentation only, the same split the project already uses
+     for status colours (engine picks stable/declining/critical, CSS owns what
+     that looks like). "flatline" has no entry on purpose -- once he is gone,
+     the overlay and the reveal own the screen and the mood line is moot. */
+  var MOOD_META = {
+    guarded:   { icon: '🛡', label: 'Guarded',   tier: 'dim' },
+    uneasy:    { icon: '😕', label: 'Uneasy',    tier: 'dim' },
+    defensive: { icon: '✋',       label: 'Defensive', tier: 'warn' },
+    resigned:  { icon: '😔', label: 'Resigned',  tier: 'warn' },
+    rattled:   { icon: '😬', label: 'Rattled',   tier: 'bad' },
+    scared:    { icon: '😨', label: 'Scared',    tier: 'bad' },
+    pleading:  { icon: '🙏', label: 'Pleading',  tier: 'bad' }
+  };
+
   /* fps meter, so Gate 5 is a measurement rather than an opinion */
   var fpsFrames = 0, fpsSince = 0, fpsValue = 0;
 
@@ -64,6 +79,33 @@
     gain = null;
   }
 
+  /* The jolt at the top of the flatline sequence -- three sharp beeps before
+     the long continuous tone. This is the "scary" part; the tone that follows
+     is the "held breath" part. Independent of startTone/stopTone so it can
+     never leave a stray oscillator behind if the sequence is interrupted. */
+  function alarmBeeps(n, freq) {
+    ensureAudio();
+    if (!audio) return;
+    if (audio.state === 'suspended') audio.resume();
+    var i = 0;
+    (function beep() {
+      if (i >= n) return;
+      i++;
+      var o = audio.createOscillator();
+      var g = audio.createGain();
+      o.type = 'square';
+      o.frequency.value = freq;
+      g.gain.setValueAtTime(0.0001, audio.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.22, audio.currentTime + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, audio.currentTime + 0.16);
+      o.connect(g);
+      g.connect(audio.destination);
+      o.start();
+      o.stop(audio.currentTime + 0.18);
+      setTimeout(beep, 220);
+    })();
+  }
+
   /* --------------------------------------------------------------- tts */
   function speak(text) {
     if (!window.speechSynthesis) return;
@@ -94,6 +136,17 @@
   function renderState(s) {
     $('patient').innerHTML = esc(s.patient_name) +
       '<span>' + s.patient_age + '</span>';
+
+    var meta = MOOD_META[s.mood];
+    var sub = '';
+    if (meta) {
+      sub += '<span class="moodBadge mood-' + meta.tier + '">' +
+             meta.icon + ' ' + meta.label + '</span>';
+    }
+    if (s.description) {
+      sub += (sub ? ' <span class="sep">•</span> ' : '') + esc(s.description);
+    }
+    $('patientSub').innerHTML = sub;
 
     $('vHr').innerHTML = s.vitals.hr + '<small>bpm</small>';
     $('vSpo2').innerHTML = s.vitals.spo2 + '<small>%</small>';
@@ -153,33 +206,43 @@
     flatlined = true;
     hush();
 
+    /* 0. the jolt: a red vignette, a shake, three sharp alarm beeps. Losing
+          should not fade in -- it should land. This is the part the room
+          asked for by name: "make the screen become like red". */
+    $('page').classList.add('codeRed');
+    alarmBeeps(3, 660);
+
     /* 1. the trace flattens where it stands, mid-beat */
     ecg.kill();
     ecg.draw();
 
-    /* 2. one continuous tone */
-    startTone();
-
-    /* 3. colour drains from the whole page over 1.2s */
-    $('page').classList.add('draining');
-
     setTimeout(function () {
-      /* 4. two full seconds of nothing. No text, no animation, no sound.
-            The rAF loop is cancelled and the 3D scene is frozen, so literally
-            nothing moves -- including the camera drift. */
-      stopTone();
-      hush();
-      $('page').classList.add('blank');
-      $('overlay').classList.add('show');
-      running = false;
-      if (room3d) room3d.freeze();
-      if (raf) { cancelAnimationFrame(raf); raf = null; }
+      $('page').classList.remove('codeRed');
+
+      /* 2. one continuous tone */
+      startTone();
+
+      /* 3. colour drains from the whole page over 1.2s */
+      $('page').classList.add('draining');
 
       setTimeout(function () {
-        /* 5. the reveal */
-        fetch('/api/' + code + '/reveal', { method: 'POST' });
-      }, 2000);
-    }, 1200);
+        /* 4. two full seconds of nothing. No text, no animation, no sound.
+              The rAF loop is cancelled and the 3D scene is frozen, so literally
+              nothing moves -- including the camera drift. */
+        stopTone();
+        hush();
+        $('page').classList.add('blank');
+        $('overlay').classList.add('show');
+        running = false;
+        if (room3d) room3d.freeze();
+        if (raf) { cancelAnimationFrame(raf); raf = null; }
+
+        setTimeout(function () {
+          /* 5. the reveal */
+          fetch('/api/' + code + '/reveal', { method: 'POST' });
+        }, 2000);
+      }, 1200);
+    }, 900);
   }
 
   function showReveal(r) {
@@ -331,7 +394,7 @@
 
   function resetForNextRound() {
     $('reveal').classList.remove('show');
-    $('page').classList.remove('draining', 'blank');
+    $('page').classList.remove('draining', 'blank', 'codeRed');
     $('overlay').classList.remove('show');
     flatlined = false;
     spokenUpto = 0;
