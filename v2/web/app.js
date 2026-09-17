@@ -1,0 +1,605 @@
+/* Ya Hakim v2 -- one screen, five states.
+   splash -> pick -> brief -> encounter -> reveal, with the examine, diagnose
+   and x-ray sheets on top of the encounter. */
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var API = '/api/v2';
+
+  var sid = null;
+  var chosen = null;
+  var cases = [];
+  var ecg = null;
+  var room = null;
+  var raf = null;
+  var lastHr = null;
+  var poll = null;
+  var spoken = 0;
+  var flatlined = false;
+  var lastSig = '';
+  var pending = null;      // the optimistic bubble waiting on a reply
+
+  function bubble(kind, who, text) {
+    var d = document.createElement('div');
+    d.className = 'bubble ' + kind;
+    d.innerHTML = '<div class="lbl">' + esc(who) + '</div>' +
+                  '<div class="msg">' + esc(text) + '</div>';
+    return d;
+  }
+
+  function thinking() {
+    var d = document.createElement('div');
+    d.className = 'bubble him';
+    d.innerHTML = '<div class="lbl">' + esc(($('eName') || {}).textContent || '') + '</div>' +
+                  '<div class="msg dots"><i></i><i></i><i></i></div>';
+    return d;
+  }
+
+  var MOOD = {
+    guarded:   ['🛡', 'Guarded',   ''],
+    defensive: ['✋', 'Defensive', 'saff'],
+    rattled:   ['😬', 'Rattled',   'clay'],
+    scared:    ['😨', 'Scared',    'rose'],
+    resigned:  ['😔', 'Resigned',  'teal'],
+    gone:      ['🕯', 'Gone',      '']
+  };
+
+  function esc(t) {
+    return String(t).replace(/[&<>"]/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+    });
+  }
+
+  function show(id) {
+    ['splash', 'pick', 'brief', 'reveal'].forEach(function (s) {
+      $(s).classList.toggle('on', s === id);
+    });
+    $('encounter').classList.toggle('on', id === 'encounter');
+  }
+
+  function toast(msg) {
+    var t = $('toast');
+    t.textContent = msg;
+    t.classList.add('on');
+    clearTimeout(toast.t);
+    toast.t = setTimeout(function () { t.classList.remove('on'); }, 2400);
+  }
+
+  /* --------------------------------------------------------------- audio */
+  var actx = null, muted = false, spo2 = 98;
+  function audio() {
+    if (!actx) {
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (AC) actx = new AC();
+    }
+    if (actx && actx.state === 'suspended') actx.resume();
+    return actx;
+  }
+  function beep() {
+    if (!actx || muted) return;
+    var t = actx.currentTime;
+    var pitch = 600 + Math.max(0, Math.min(1, (spo2 - 85) / 13)) * 280;
+    var o = actx.createOscillator(), g = actx.createGain();
+    o.type = 'sine'; o.frequency.setValueAtTime(pitch, t);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.06, t + 0.006);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.085);
+    o.connect(g); g.connect(actx.destination);
+    o.start(t); o.stop(t + 0.1);
+  }
+  var tone = null;
+  function flatTone(on) {
+    if (!actx) return;
+    if (on && !tone) {
+      tone = actx.createOscillator();
+      var g = actx.createGain();
+      tone.type = 'sine'; tone.frequency.value = 989;
+      g.gain.setValueAtTime(0.0001, actx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.14, actx.currentTime + 0.03);
+      tone.connect(g); g.connect(actx.destination);
+      tone._g = g; tone.start();
+    } else if (!on && tone) {
+      var t = actx.currentTime;
+      tone._g.gain.exponentialRampToValueAtTime(0.0001, t + 0.05);
+      tone.stop(t + 0.07); tone = null;
+    }
+  }
+  /* ------------------------------------------------------------- his voice */
+  /* Three things make a browser voice sound like a person rather than a
+     station announcement: the right voice for the character, a rate and pitch
+     that are not the defaults, and -- most of all -- breathing. A single long
+     utterance is read flat, so his lines are split at punctuation and spoken
+     as separate phrases with a real gap between them. */
+
+  var VOICES = [];
+  var chosenVoice = null;
+
+  function loadVoices() {
+    VOICES = window.speechSynthesis ? speechSynthesis.getVoices() : [];
+    chosenVoice = null;
+  }
+  if (window.speechSynthesis) {
+    loadVoices();
+    speechSynthesis.onvoiceschanged = loadVoices;
+  }
+
+  function pickVoice(sex) {
+    if (chosenVoice) return chosenVoice;
+    if (!VOICES.length) loadVoices();
+    if (!VOICES.length) return null;
+
+    var en = VOICES.filter(function (v) { return /^en/i.test(v.lang); });
+    if (!en.length) en = VOICES;
+
+    function find(re) {
+      for (var i = 0; i < en.length; i++) if (re.test(en[i].name)) return en[i];
+      return null;
+    }
+
+    /* Neural first if the machine has them -- these are a different league.
+       Windows: Settings > Time & language > Speech > Add voices. */
+    var natural = find(/natural|neural|online/i);
+
+    var male   = find(/david|mark|george|ryan|guy|brian|andrew|christopher/i);
+    var female = find(/zira|hazel|aria|jenny|ava|emma|libby|sonia/i);
+
+    chosenVoice = natural || (sex === 'female' ? (female || male) : (male || female)) || en[0];
+    return chosenVoice;
+  }
+
+  /* per character, so they do not all sound like the same man */
+  var VOICE_TUNE = {
+    kamal:   { rate: 0.92, pitch: 0.78 },   // heavy, tired, 54
+    rita:    { rate: 1.04, pitch: 1.04 },   // quick, sharp, 31
+    georges: { rate: 0.86, pitch: 0.84 }    // slow, formal, 62
+  };
+
+  function speak(text) {
+    if (!window.speechSynthesis || muted || !text) return;
+    var tune = VOICE_TUNE[(chosen && chosen.id) || ''] || { rate: 0.94, pitch: 0.85 };
+    var voice = pickVoice((chosen && chosen.sex) || 'male');
+
+    /* Split into phrases and queue them separately. The gaps between
+       utterances are what read as breath. */
+    var parts = String(text).match(/[^.!?,;:]+[.!?,;:]?/g) || [text];
+    parts.forEach(function (part, i) {
+      part = part.trim();
+      if (!part) return;
+      try {
+        var u = new SpeechSynthesisUtterance(part);
+        if (voice) u.voice = voice;
+        /* drift each phrase a touch so the delivery is not metronomic */
+        u.rate  = tune.rate  + (i % 2 ? 0.03 : -0.02);
+        u.pitch = tune.pitch + (i % 3 === 0 ? 0.03 : -0.02);
+        u.volume = 1;
+        speechSynthesis.speak(u);
+      } catch (e) {}
+    });
+  }
+
+  /* -------------------------------------------------------------- render */
+  function fmt(s) {
+    s = Math.max(0, s | 0);
+    return Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2);
+  }
+
+  function render(v) {
+    if (!v || !v.name) return;
+    $('eName').textContent = v.name;
+    $('eMeta').textContent = v.age + ' years old';
+    $('avatar').textContent = v.avatar || '🧑';
+    if (chosen && v.sex) chosen.sex = v.sex;
+
+    var m = MOOD[v.mood] || MOOD.guarded;
+    $('moodPill').textContent = m[0] + ' ' + m[1];
+    $('moodPill').className = 'pill ' + (m[2] || '');
+
+    $('vHr').innerHTML = v.vitals.hr + '<small>bpm</small>';
+    $('vSpo2').innerHTML = v.vitals.spo2 + '<small>%</small>';
+    $('vBp').innerHTML = v.vitals.bp + '<small>mmHg</small>';
+    $('vRr').innerHTML = v.vitals.rr + '<small>/min</small>';
+    spo2 = v.vitals.spo2;
+
+    $('clock').textContent = fmt(v.seconds_left);
+    $('clock').className = 'clock num' +
+      (v.status === 'critical' ? ' bad' : v.status === 'declining' ? ' warn' : '');
+
+    if (ecg) ecg.set(v.vitals.hr, v.status);
+    if (room) { room.setStatus(v.status); room.setRespiratoryRate(v.vitals.rr); }
+
+    /* the tell: his pulse jumps while his mouth stays calm */
+    if (lastHr !== null && v.vitals.hr - lastHr >= 9 && !v.over) {
+      var c = $('cHr');
+      c.classList.remove('tell'); void c.offsetWidth; c.classList.add('tell');
+      setTimeout(function () { c.classList.remove('tell'); }, 5000);
+    }
+    lastHr = v.vitals.hr;
+
+    /* Only touch the DOM when the conversation actually changed. Rebuilding
+       every bubble once a second made the whole thread flicker and re-animate,
+       which read as lag even though nothing was slow. */
+    var sig = v.log.length + ':' + (v.log.length ? v.log[v.log.length - 1].text : '');
+    if (sig !== lastSig) {
+      lastSig = sig;
+      var talk = $('talk');
+      talk.innerHTML = '';
+      v.log.forEach(function (l) {
+        talk.appendChild(bubble(l.kind, l.who, l.text));
+      });
+      talk.scrollTop = talk.scrollHeight;
+    }
+
+    for (var i = spoken; i < v.log.length; i++) {
+      if (v.log[i].kind === 'him') speak(v.log[i].text);
+    }
+    spoken = v.log.length;
+
+    if (v.over && !flatlined) flatline();
+  }
+
+  /* -------------------------------------------------------------- the room */
+  /* Disposable by design: if three.js is missing or anything in the scene
+     throws, the body gets .noroom, the conversation takes the full width and
+     the round plays exactly as before. */
+  function buildRoom() {
+    if (room || typeof Room3D === 'undefined' || !Room3D.available()) {
+      if (!room) document.body.classList.add('noroom');
+      return;
+    }
+    try {
+      room = new Room3D($('room3d'), $('ecg'));
+      if (!room.ok) { room = null; document.body.classList.add('noroom'); return; }
+    } catch (e) {
+      room = null;
+      document.body.classList.add('noroom');
+      if (window.console) console.error('room disabled:', e);
+      return;
+    }
+
+    var canvas = $('room3d');
+    canvas.style.cursor = 'crosshair';
+
+    canvas.addEventListener('mousemove', function (e) {
+      room.pointerAt(e.clientX, e.clientY, canvas.getBoundingClientRect());
+      var hit = room.hovered;
+      $('examTip').textContent = hit ? hit.userData.label : '';
+      $('examTip').classList.toggle('on', !!hit);
+      canvas.style.cursor = hit ? 'pointer' : 'crosshair';
+    });
+    canvas.addEventListener('mouseleave', function () {
+      room.pointerAt(-9999, -9999, canvas.getBoundingClientRect());
+      $('examTip').classList.remove('on');
+    });
+
+    /* Touching him runs the same examination the sheet does. */
+    canvas.addEventListener('click', function (e) {
+      room.pointerAt(e.clientX, e.clientY, canvas.getBoundingClientRect());
+      var hit = room.pickHotspot();
+      if (!hit || !sid) return;
+      var id = hit.userData.examId;
+      fetch(API + '/examine/' + sid, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ exam: id })
+      }).then(function (r) { return r.json(); }).then(function (v) {
+        if (v.reason === 'already') { toast('Already examined that'); return; }
+        if (v.reason === 'over') { toast('The round is over'); return; }
+        room.markExamined(id);
+        render(v);
+      });
+    });
+  }
+
+  /* ------------------------------------------------------------ the loop */
+  var lastFrame = 0;
+  function frame(now) {
+    var dt = lastFrame ? now - lastFrame : 16;
+    lastFrame = now;
+    if (ecg) ecg.frame(now);
+    if (room) room.frame(dt);
+    raf = requestAnimationFrame(frame);
+  }
+
+  function startPolling() {
+    clearInterval(poll);
+    poll = setInterval(function () {
+      fetch(API + '/state/' + sid).then(function (r) { return r.json(); }).then(render);
+    }, 1000);
+  }
+
+  /* ------------------------------------------------------------ the end */
+  function flatline() {
+    flatlined = true;
+    clearInterval(poll);
+    try { speechSynthesis.cancel(); } catch (e) {}
+    if (ecg) { ecg.onBeat = null; ecg.kill(); ecg.draw(); }
+    flatTone(true);
+    $('encounter').classList.add('draining');
+
+    setTimeout(function () {
+      flatTone(false);
+      $('encounter').classList.add('blank');
+      if (room) room.freeze();          /* nothing moves, camera included */
+      if (raf) { cancelAnimationFrame(raf); raf = null; }
+      setTimeout(showReveal, 2000);     /* two seconds of nothing */
+    }, 1200);
+  }
+
+  function showReveal(result) {
+    $('encounter').classList.remove('on', 'draining', 'blank');
+    if (result) {
+      $('revealTag').textContent = result.correct ? 'You called it' : 'Wrong call';
+      $('revealTag').className = 'pill ' + (result.correct ? 'teal' : 'rose');
+      $('revealDx').textContent = result.diagnosis;
+      $('revealNote').textContent = result.note ||
+        (result.correct ? 'He died. You were right.' : 'He died. Nobody called it.');
+      var box = $('revealScores');
+      box.innerHTML = '';
+      (result.breakdown || []).forEach(function (row) {
+        var d = document.createElement('div');
+        d.className = 'scorerow';
+        d.innerHTML = '<span>' + esc(row[0]) + '</span><span class="num">+' + row[1] + '</span>';
+        box.appendChild(d);
+      });
+      var tot = document.createElement('div');
+      tot.className = 'scorerow';
+      tot.style.background = 'var(--saffron)';
+      tot.innerHTML = '<span>Total</span><span class="num">' + result.score + '</span>';
+      box.appendChild(tot);
+    } else {
+      $('revealTag').textContent = 'Time up';
+      $('revealTag').className = 'pill rose';
+      $('revealDx').textContent = '';
+      $('revealNote').textContent = 'The clock beat you. Open the answer below.';
+      fetch(API + '/diagnose/' + sid, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: '' })
+      }).then(function (r) { return r.json(); }).then(function (d) {
+        $('revealDx').textContent = d.diagnosis;
+        if (d.note) $('revealNote').textContent = d.note;
+      });
+    }
+    show('reveal');
+  }
+
+  /* -------------------------------------------------------------- flow */
+  fetch(API + '/cases').then(function (r) { return r.json(); }).then(function (d) {
+    cases = d.cases;
+    $('caseList').innerHTML = '';
+    cases.forEach(function (c) {
+      var el = document.createElement('div');
+      el.className = 'case';
+      el.innerHTML =
+        '<div class="face" style="background:var(--' +
+          ({ kamal: 'saffron', rita: 'sky', georges: 'plum' }[c.id] || 'teal') + ')">' +
+          c.avatar + '</div>' +
+        '<div class="who">' + esc(c.name) + '</div>' +
+        '<div class="sub">' + c.age + ' &middot; ' + esc(c.setting) + '</div>' +
+        '<div class="blurb">' + esc(c.blurb) + '</div>';
+      el.onclick = function () { chosen = c; toBrief(); };
+      $('caseList').appendChild(el);
+    });
+  });
+
+  function toBrief() {
+    $('briefTag').textContent = chosen.setting || 'Patient';
+    $('briefName').textContent = chosen.name + ', ' + chosen.age;
+    $('briefText').textContent = chosen.blurb;
+    $('briefHint').textContent = '“' + chosen.opening + '”';
+    show('brief');
+  }
+
+  $('toCases').onclick = function () { audio(); show('pick'); };
+  $('toProof').onclick = function () { openProof(); };
+  $('againBtn').onclick = function () { location.reload(); };
+  $('proofBtn').onclick = function () { openProof(); };
+
+  $('toEncounter').onclick = function () {
+    audio();
+    fetch(API + '/start', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ case: chosen.id })
+    }).then(function (r) { return r.json(); }).then(function (v) {
+      sid = v.session;
+      show('encounter');
+      if (!ecg) {
+        ecg = new Ecg($('ecg'));
+        ecg.onBeat = beep;
+        raf = requestAnimationFrame(frame);
+      }
+      buildRoom();
+      render(v);
+      startPolling();
+      $('ask').focus();
+    });
+  };
+
+  function send() {
+    var t = $('ask').value.trim();
+    if (!t || pending) return;
+    $('ask').value = '';
+
+    /* Your line and his three dots go up before the request leaves, so the
+       screen answers the keypress rather than the network. */
+    var talk = $('talk');
+    talk.appendChild(bubble('you', 'You', t));
+    var dots = thinking();
+    talk.appendChild(dots);
+    talk.scrollTop = talk.scrollHeight;
+    pending = true;
+    lastSig = '';                       // force a clean redraw when it lands
+
+    fetch(API + '/ask/' + sid, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: t })
+    }).then(function (r) { return r.json(); }).then(function (v) {
+      pending = null;
+      if (v.reason === 'wait') toast('Give him a second');
+      else if (v.reason === 'over') toast('The round is over');
+      render(v);
+    }).catch(function () {
+      pending = null;
+      if (dots.parentNode) dots.parentNode.removeChild(dots);
+      toast('Lost the server');
+    });
+  }
+  /* Quick questions. Typing every line is slow on stage and slow for anyone
+     who does not know what to ask a patient. */
+  var QUICK = [
+    ['What brings you in?', 'what brings you in tonight?'],
+    ['How much do you drink?', 'how much do you drink?'],
+    ['Any pain?', 'are you in any pain?'],
+    ['How long?', 'how long has this been going on?'],
+    ['Medications?', 'what medications are you taking?'],
+    ['Your wife?', 'what does your wife think is going on?']
+  ];
+  var qbar = $('quick');
+  if (qbar) {
+    QUICK.forEach(function (q) {
+      var b = document.createElement('button');
+      b.className = 'chip';
+      b.textContent = q[0];
+      b.onclick = function () { $('ask').value = q[1]; send(); };
+      qbar.appendChild(b);
+    });
+  }
+
+  $('btnAsk').onclick = send;
+  $('ask').addEventListener('keydown', function (e) { if (e.key === 'Enter') send(); });
+
+  /* ------------------------------------------------------------ examine */
+  var examList = [];
+  fetch(API + '/exams').then(function (r) { return r.json(); }).then(function (d) {
+    examList = d.exams;
+  });
+
+  var ICONS = {
+    general: '👁', hands: '🤲', hydration: '💧', cardiovascular: '🫀',
+    respiratory: '🫁', abdominal: '🤰', neurological: '🧠', cognition: '💭',
+    eyes: '👀', skin: '🩹', legs: '🦵', ent: '👂',
+    genitourinary: '🚻', musculoskeletal: '🦴'
+  };
+
+  function drawExams(done) {
+    $('examGrid').innerHTML = '';
+    examList.forEach(function (e) {
+      var el = document.createElement('div');
+      var isDone = (done || []).indexOf(e.id) >= 0;
+      el.className = 'exam' + (isDone ? ' done' : '');
+      el.innerHTML = '<span class="ic">' + (ICONS[e.id] || '🩺') + '</span>' + esc(e.name);
+      if (!isDone) {
+        el.onclick = function () {
+          fetch(API + '/examine/' + sid, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ exam: e.id })
+          }).then(function (r) { return r.json(); }).then(function (v) {
+            render(v);
+            drawExams(v.examined);
+            $('examineSheet').classList.remove('on');
+          });
+        };
+      }
+      $('examGrid').appendChild(el);
+    });
+  }
+
+  $('btnExamine').onclick = function () {
+    fetch(API + '/state/' + sid).then(function (r) { return r.json(); }).then(function (v) {
+      drawExams(v.examined);
+      $('examineSheet').classList.add('on');
+    });
+  };
+  $('closeExamine').onclick = function () { $('examineSheet').classList.remove('on'); };
+
+  /* ----------------------------------------------------------- diagnose */
+  $('btnDiagnose').onclick = function () { $('dxSheet').classList.add('on'); $('dxInput').focus(); };
+  $('closeDx').onclick = function () { $('dxSheet').classList.remove('on'); };
+  $('submitDx').onclick = function () {
+    var t = $('dxInput').value.trim();
+    if (!t) return;
+    $('dxSheet').classList.remove('on');
+    fetch(API + '/diagnose/' + sid, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: t })
+    }).then(function (r) { return r.json(); }).then(function (res) {
+      clearInterval(poll);
+      flatlined = true;
+      if (ecg) { ecg.onBeat = null; ecg.kill(); ecg.draw(); }
+      flatTone(true);
+      $('encounter').classList.add('draining');
+      setTimeout(function () {
+        flatTone(false);
+        $('encounter').classList.add('blank');
+        if (raf) { cancelAnimationFrame(raf); raf = null; }
+        setTimeout(function () { showReveal(res); }, 2000);
+      }, 1200);
+    });
+  };
+  $('dxInput').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') $('submitDx').click();
+  });
+
+  /* -------------------------------------------------------------- x-ray */
+  var proof = null;
+  function drawProof() {
+    if (!proof) return;
+    var q = $('proofSearch').value.trim();
+    var body = esc(proof.prompt);
+    var n = 0;
+    if (q) {
+      var rx = new RegExp('(' + q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+      body = body.replace(rx, function (m) {
+        n++;
+        return '<mark style="background:var(--rose);padding:1px 3px;border-radius:4px">' + m + '</mark>';
+      });
+    }
+    $('proofText').innerHTML = body;
+    var r = $('proofResult');
+    if (!q) {
+      r.className = 'pill';
+      r.textContent = proof.chars.toLocaleString() + ' characters, sent exactly as you see them';
+    } else if (n) {
+      r.className = 'pill rose';
+      r.textContent = n + ' match' + (n === 1 ? '' : 'es') + ' for "' + q + '"';
+    } else {
+      r.className = 'pill teal';
+      r.textContent = '0 matches for "' + q + '". It is not in there.';
+    }
+  }
+
+  function openProof() {
+    var go = function () { $('proofSheet').classList.add('on'); setTimeout(function () { $('proofSearch').focus(); }, 60); };
+    if (proof) { go(); return; }
+    var id = sid;
+    if (!id) {
+      /* from the splash, spin up a throwaway session just to read the prompt */
+      fetch(API + '/start', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ case: 'kamal' })
+      }).then(function (r) { return r.json(); }).then(function (v) {
+        loadProof(v.session, go);
+      });
+      return;
+    }
+    loadProof(id, go);
+  }
+  function loadProof(id, then) {
+    fetch(API + '/proof/' + id).then(function (r) { return r.json(); }).then(function (d) {
+      proof = d;
+      drawProof();
+      then();
+    });
+  }
+  $('proofSearch').addEventListener('input', drawProof);
+  $('closeProof').onclick = function () { $('proofSheet').classList.remove('on'); };
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') {
+      $('proofSheet').classList.remove('on');
+      $('examineSheet').classList.remove('on');
+      $('dxSheet').classList.remove('on');
+    }
+    if (document.activeElement && document.activeElement.tagName === 'INPUT') return;
+    if (e.key === 'x' || e.key === 'X') openProof();
+    if (e.key === 'm' || e.key === 'M') { muted = !muted; toast(muted ? 'Muted' : 'Monitor on'); }
+  });
+})();

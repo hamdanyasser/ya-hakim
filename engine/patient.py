@@ -222,10 +222,23 @@ def build_persona(case: dict, cracked: bool = False, mood: str | None = None) ->
 
 # ---------------------------------------------------------------- output guard
 
+# Words that turn up inside a diagnosis but are just English. Without this, a
+# diagnosis like "liver disease from untreated hepatitis B" forbids "from" and
+# "untreated", and the patient cannot speak a normal sentence.
+DIAGNOSIS_STOPWORDS = {
+    "from", "with", "were", "that", "this", "than", "then", "your", "into",
+    "untreated", "chronic", "acute", "severe", "mild", "late", "early",
+    "stage", "type", "secondary", "primary", "known", "long", "term",
+    "related", "induced", "caused", "likely", "probable", "suspected",
+    "decompensated", "recurrent", "possible",
+}
+
+
 def guarded_terms(case: dict) -> set:
     terms = set(case["accepted_answers"])
     terms.update(case.get("partial_answers", []))
-    terms.update(re.findall(r"[a-z]{4,}", case["diagnosis"].lower()))
+    terms.update(w for w in re.findall(r"[a-z]{4,}", case["diagnosis"].lower())
+                 if w not in DIAGNOSIS_STOPWORDS)
     return {t.lower() for t in terms if t.strip()}
 
 

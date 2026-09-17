@@ -74,9 +74,9 @@ def test_the_guard_catches_a_model_that_does_leak():
         "I think it is cirrhosis.",
         "The doctor said liver failure.",
         "It's my liver, isn't it.",
-        "They told me it was alcoholic liver disease.",
-        "Alcohol. That is what did it.",
-        "My diagnosis is decompensated alcoholic liver disease.",
+        "They told me it was hepatitis.",
+        "Hepatitis B. That is what they found.",
+        "My diagnosis is chronic hepatitis B.",
         "Cirrhosis, they called it.",
     ]
     missed = [r for r in must_catch if not leaked(case, r)]
@@ -88,7 +88,7 @@ def test_the_guard_leaves_ordinary_speech_alone():
     innocent = [
         "My wife delivered the news herself.",
         "It was a sliver of glass.",
-        "Two small glasses of arak with dinner. Like everyone.",
+        "Nothing. I have never been sick a day in my life.",
         "I feel worn out, that is all.",
         "Ask my wife, she dragged me here.",
         "I ate bad fish last week.",

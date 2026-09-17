@@ -37,6 +37,7 @@ from engine.patient import CASES_DIR, load_case                       # noqa: E4
 from server import api_auth, api_org, api_practice, api_prove, db, guard  # noqa: E402
 from server import rooms as registry                                   # noqa: E402
 from server import ws as sockets                                       # noqa: E402
+from v2.server import api as v2_api                                    # noqa: E402
 
 WEB = Path(__file__).resolve().parent.parent / "web"
 
@@ -57,6 +58,7 @@ app.include_router(api_auth.router)
 app.include_router(api_practice.router)
 app.include_router(api_org.router)
 app.include_router(api_prove.router)
+app.include_router(v2_api.router)
 
 
 @app.middleware("http")
@@ -147,6 +149,15 @@ async def healthz():
 
 
 app.mount("/static", StaticFiles(directory=str(WEB)), name="static")
+
+V2WEB = Path(__file__).resolve().parent.parent / "v2" / "web"
+app.mount("/v2", StaticFiles(directory=str(V2WEB)), name="v2")
+
+
+@app.get("/play2")
+async def play_v2():
+    """The rebuilt single-screen game."""
+    return FileResponse(V2WEB / "app.html")
 
 
 # --------------------------------------------------------------- classroom

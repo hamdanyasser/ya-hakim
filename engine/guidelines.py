@@ -14,13 +14,15 @@ publisher's landing pages, which are stable across revisions.
 from __future__ import annotations
 
 REGISTRY = [
-    # --- liver / alcohol
-    {"id": "nice-cg100", "org": "NICE", "code": "CG100",
-     "title": "Alcohol-use disorders: diagnosis and management of physical complications",
-     "url": "https://www.nice.org.uk/guidance/cg100", "topics": ["alcohol", "liver", "withdrawal"]},
-    {"id": "nice-cg115", "org": "NICE", "code": "CG115",
-     "title": "Alcohol-use disorders: diagnosis, assessment and management of harmful drinking and alcohol dependence",
-     "url": "https://www.nice.org.uk/guidance/cg115", "topics": ["alcohol", "dependence"]},
+    # --- liver / viral hepatitis
+    {"id": "who-hepb-2024", "org": "WHO", "code": "Hepatitis B guidelines",
+     "title": "Guidelines for the prevention, diagnosis, care and treatment of people with chronic hepatitis B",
+     "url": "https://www.who.int/publications/i/item/9789240090903",
+     "topics": ["hepatitis", "liver", "antiviral"]},
+    {"id": "easl-hbv-2017", "org": "EASL", "code": "Clinical Practice Guidelines",
+     "title": "EASL Clinical Practice Guidelines on the management of hepatitis B virus infection",
+     "url": "https://www.journal-of-hepatology.eu/article/S0168-8278(17)30185-X/fulltext",
+     "topics": ["hepatitis", "liver", "cirrhosis"]},
     {"id": "bsg-decompensated-cirrhosis", "org": "BSG / BASL", "code": "Decompensated cirrhosis care bundle",
      "title": "Decompensated cirrhosis care bundle: first 24 hours",
      "url": "https://www.bsg.org.uk/clinical-resource/bsg-basl-decompensated-cirrhosis-care-bundle-first-24-hours",
