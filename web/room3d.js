@@ -65,7 +65,7 @@
   /* hospital vinyl: large tiles, soft speckle, visible seams */
   function floorTexture() {
     return canvasTex(512, 512, function (c, w, h) {
-      c.fillStyle = '#6E7B88';
+      c.fillStyle = '#9A8C7A';
       c.fillRect(0, 0, w, h);
       noise(c, w, h, 26);
       c.strokeStyle = 'rgba(28,34,42,0.55)';
@@ -83,7 +83,7 @@
   /* wall: painted block with a dado rail band */
   function wallTexture() {
     return canvasTex(512, 512, function (c, w, h) {
-      c.fillStyle = '#8C9AA8';
+      c.fillStyle = '#B7A691';
       c.fillRect(0, 0, w, h);
       noise(c, w, h, 16);
       c.fillStyle = 'rgba(40,48,58,0.20)';
@@ -96,7 +96,7 @@
   /* cotton weave for the bedding */
   function sheetTexture() {
     return canvasTex(256, 256, function (c, w, h) {
-      c.fillStyle = '#EFEADC';
+      c.fillStyle = '#F2EADA';
       c.fillRect(0, 0, w, h);
       c.strokeStyle = 'rgba(150,140,120,0.16)';
       c.lineWidth = 1;
@@ -137,7 +137,7 @@
       color: hair, roughness: 0.92, metalness: 0.0
     });
     var gownMat = new THREE.MeshStandardMaterial({
-      color: 0x6E93A8, roughness: 0.86, metalness: 0.0
+      color: 0x7FA8B8, roughness: 0.88, metalness: 0.0
     });
 
     function part(geo, mat, x, y, z) {
@@ -241,11 +241,11 @@
     /* r128 colour management. outputColorSpace does not exist here. */
     this.renderer.outputEncoding = THREE.sRGBEncoding;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.0;
+    this.renderer.toneMappingExposure = 1.08;
 
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0x141A22);
-    this.scene.fog = new THREE.Fog(0x141A22, 4.2, 13);
+    this.scene.background = new THREE.Color(0x201C1A);
+    this.scene.fog = new THREE.Fog(0x201C1A, 4.5, 14);
 
     this.camera = new THREE.PerspectiveCamera(40, W / H, 0.1, 100);
     this.camera.position.set(CAM[0], CAM[1], CAM[2]);
@@ -286,7 +286,7 @@
     var floor = new THREE.Mesh(
       new THREE.PlaneGeometry(24, 24),
       new THREE.MeshStandardMaterial({
-        map: floorTexture(), color: 0x9FB0C0,
+        map: floorTexture(), color: 0xB9AC9A,
         roughness: 0.42, metalness: 0.04
       })
     );
@@ -296,14 +296,14 @@
 
     var wall = new THREE.Mesh(
       new THREE.PlaneGeometry(24, 9),
-      new THREE.MeshStandardMaterial({ map: wallTexture(), color: 0xAEBDC9, roughness: 0.95 })
+      new THREE.MeshStandardMaterial({ map: wallTexture(), color: 0xCBBCA6, roughness: 0.95 })
     );
     wall.position.set(0, 4.5, -3.2);
     wall.receiveShadow = true;
     S.add(wall);
 
     /* ---- bed ---- */
-    var frame = box(1.15, 0.16, 2.25, 0x39434F, 0.55);
+    var frame = box(1.15, 0.16, 2.25, 0x4A5560, 0.5);
     frame.position.set(0, 0.62, 0);
     frame.castShadow = true; frame.receiveShadow = true;
     S.add(frame);
@@ -318,7 +318,7 @@
       S.add(leg);
     }
 
-    var head = box(1.15, 0.5, 0.07, 0x39434F, 0.55);
+    var head = box(1.15, 0.5, 0.07, 0x4A5560, 0.5);
     head.position.set(0, 0.92, -1.12);
     head.castShadow = true;
     S.add(head);
@@ -352,7 +352,7 @@
     var sheet = new THREE.Mesh(
       sheetGeo,
       new THREE.MeshStandardMaterial({
-        map: sheetTexture(), color: 0xD5CDBA,
+        map: sheetTexture(), color: 0xDCD2BE,
         roughness: 0.92, metalness: 0, side: THREE.DoubleSide
       })
     );
@@ -432,15 +432,19 @@
     this.screen = screen;
 
     /* ---- lighting ----
-       The room read as grey boxes because a flat ambient did most of the work.
-       Now a warm key with a visible cone does the shaping, a cool rim peels the
-       body off the wall, and the monitor is a practical light in the scene. */
-    S.add(new THREE.HemisphereLight(0x6E86A6, 0x1B2230, 0.34));
-    S.add(new THREE.AmbientLight(0x38445C, 0.26));
+       Warm-dominant, the way a ward at night actually looks: a sodium-ish key,
+       several small warm practicals rather than one big lamp, and a single
+       cool directional so the shadows are not muddy brown. Moderate ambient --
+       enough that nothing falls to pure black, not so much that shadows die.
+       Our own palette: amber and clay against a teal-leaning cool side. */
 
-    var spot = new THREE.SpotLight(0xFFE0B4, 3.4, 9, Math.PI / 6.6, 0.45, 1.5);
-    spot.position.set(0.30, 2.85, 0.55);
-    spot.target.position.set(0, 0.74, 0.05);
+    S.add(new THREE.HemisphereLight(0xF3E6D0, 0x6B6055, 0.62));
+    S.add(new THREE.AmbientLight(0xFFF3E2, 0.34));
+
+    /* the overhead exam light: the key */
+    var spot = new THREE.SpotLight(0xFFD9A0, 2.4, 9, Math.PI / 6.2, 0.5, 1.5);
+    spot.position.set(0.30, 2.85, 0.42);
+    spot.target.position.set(0, 0.76, -0.10);
     spot.castShadow = true;
     spot.shadow.mapSize.width = 2048;
     spot.shadow.mapSize.height = 2048;
@@ -451,45 +455,52 @@
     S.add(spot);
     S.add(spot.target);
 
-    /* the lamp the light comes out of, so the key has a source on screen */
     var housing = new THREE.Mesh(
       new THREE.CylinderGeometry(0.19, 0.30, 0.16, 20, 1, true),
-      new THREE.MeshStandardMaterial({ color: 0x2C333D, roughness: 0.5,
+      new THREE.MeshStandardMaterial({ color: 0x3A3630, roughness: 0.55,
                                        side: THREE.DoubleSide })
     );
-    housing.position.set(0.30, 2.85, 0.55);
+    housing.position.set(0.30, 2.85, 0.42);
     S.add(housing);
 
     var bulb = new THREE.Mesh(
       new THREE.CircleGeometry(0.19, 20),
-      new THREE.MeshBasicMaterial({ color: 0xFFE4BC })
+      new THREE.MeshBasicMaterial({ color: 0xFFEAC6 })
     );
     bulb.rotation.x = -Math.PI / 2;
-    bulb.position.set(0.30, 2.77, 0.55);
+    bulb.position.set(0.30, 2.77, 0.42);
     S.add(bulb);
 
-    /* the visible cone of light. Cheap, and it is most of the atmosphere. */
     var cone = new THREE.Mesh(
-      new THREE.ConeGeometry(1.05, 2.1, 28, 1, true),
+      new THREE.ConeGeometry(1.00, 2.1, 28, 1, true),
       new THREE.MeshBasicMaterial({
-        color: 0xFFD8A4, transparent: true, opacity: 0.030,
+        color: 0xFFD9A4, transparent: true, opacity: 0.034,
         side: THREE.DoubleSide, depthWrite: false
       })
     );
-    cone.position.set(0.30, 1.78, 0.55);
+    cone.position.set(0.30, 1.78, 0.42);
     S.add(cone);
 
-    /* cool rim, so he is not the same colour as the wall behind him */
-    var rim = new THREE.DirectionalLight(0x8FD0FF, 0.95);
-    rim.position.set(-2.6, 1.7, -1.9);
+    /* one cool directional, so the shade side is not brown */
+    var rim = new THREE.DirectionalLight(0xBFD6EA, 0.46);
+    rim.position.set(-3.0, 2.4, -2.2);
     S.add(rim);
 
-    var fill = new THREE.PointLight(0xAFC6E2, 0.42, 7, 2);
-    fill.position.set(-1.5, 1.5, 1.8);
-    S.add(fill);
+    /* the small warm practicals that make a room feel inhabited */
+    var wallLamp = new THREE.PointLight(0xFFC98A, 0.55, 4.2, 2);
+    wallLamp.position.set(-1.35, 1.72, -1.30);
+    S.add(wallLamp);
+
+    var corridor = new THREE.PointLight(0xFFE0B0, 0.40, 6.0, 2);
+    corridor.position.set(2.30, 1.95, 1.60);
+    S.add(corridor);
+
+    var underBed = new THREE.PointLight(0xFFBE86, 0.26, 2.4, 2);
+    underBed.position.set(0, 0.30, 0.10);
+    S.add(underBed);
 
     /* the monitor lights its own corner, and the colour tracks his status */
-    this.monitorLight = new THREE.PointLight(STATUS_COLOUR.stable, 2.2, 3.4, 2);
+    this.monitorLight = new THREE.PointLight(STATUS_COLOUR.stable, 1.5, 3.2, 2);
     this.monitorLight.position.set(0.78, 1.34, -0.44);
     S.add(this.monitorLight);
 
