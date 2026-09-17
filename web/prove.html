@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ya Hakim — the proving ground</title>
+<link rel="stylesheet" href="/static/prove.css">
+</head>
+<body>
+
+<header>
+  <div class="ttl">
+    <h1>The patient does not know what he has.</h1>
+    <p>The diagnosis is never sent to the model. Try to make him say it.</p>
+  </div>
+  <div class="mode" id="mode">checking…</div>
+</header>
+
+<section class="scoreboard">
+  <div class="stat">
+    <div class="lbl">Attacks</div>
+    <div class="val num" id="attempts">0</div>
+  </div>
+  <div class="stat leaks" id="leakBox">
+    <div class="lbl">Leaks</div>
+    <div class="val num" id="leaks">0</div>
+  </div>
+  <div class="stat wide">
+    <div class="lbl">Corpus</div>
+    <div class="bar"><div class="fill" id="fill"></div></div>
+    <div class="sub" id="progress">not started</div>
+  </div>
+</section>
+
+<main>
+  <div id="feed"></div>
+
+  <aside>
+    <h2>Join and attack</h2>
+    <img id="qr" alt="Attack from your phone">
+    <div class="url" id="joinUrl"></div>
+
+    <div class="controls">
+      <button id="runSuite" class="primary">Run the 100</button>
+      <button id="reset" class="ghost">Reset</button>
+    </div>
+
+    <div class="cats">
+      <h2>Ten attack categories</h2>
+      <ul id="cats"></ul>
+    </div>
+  </aside>
+</main>
+
+<div id="bigLeak"><div><span id="bigLeakTerm"></span><small>he said it</small></div></div>
+
+<script src="/static/prove.js"></script>
+</body>
+</html>

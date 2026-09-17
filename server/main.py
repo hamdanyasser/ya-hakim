@@ -32,7 +32,7 @@ load_dotenv()
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from engine.patient import CASES_DIR, load_case                       # noqa: E402
-from server import api_auth, api_org, api_practice, db                 # noqa: E402
+from server import api_auth, api_org, api_practice, api_prove, db      # noqa: E402
 from server import rooms as registry                                   # noqa: E402
 from server import ws as sockets                                       # noqa: E402
 
@@ -42,6 +42,7 @@ app = FastAPI(title="Ya Hakim", docs_url=None, redoc_url=None)
 app.include_router(api_auth.router)
 app.include_router(api_practice.router)
 app.include_router(api_org.router)
+app.include_router(api_prove.router)
 
 
 @app.on_event("startup")
@@ -77,6 +78,27 @@ async def app_shell(rest: str = ""):
 @app.get("/practice/{enc_id}")
 async def practice_page(enc_id: str):
     return FileResponse(WEB / "practice.html")
+
+
+@app.get("/prove")
+async def prove():
+    """The proving ground: the room tries to break the guarantee, live."""
+    return FileResponse(WEB / "prove.html")
+
+
+@app.get("/attack")
+async def attack_page():
+    return FileResponse(WEB / "attack.html")
+
+
+@app.get("/api/prove/qr.svg")
+async def prove_qr(request: Request):
+    host = request.headers.get("host", "localhost")
+    buf = io.BytesIO()
+    segno.make("http://" + host + "/attack", error="m").save(
+        buf, kind="svg", scale=10, border=4, dark="#000000", light="#ffffff")
+    return Response(buf.getvalue(), media_type="image/svg+xml",
+                    headers={"Cache-Control": "no-store"})
 
 
 @app.get("/screen")
