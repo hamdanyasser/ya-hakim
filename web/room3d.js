@@ -111,6 +111,16 @@
      Stylised on purpose: simple forms, no facial detail. Primitives that reach
      for realism land in the uncanny valley, and a clean stylised head does not.
      The chest is a separate group so breathing moves him rather than the sheet. */
+  /* r128 has no CapsuleGeometry -- it landed in r142 -- so a rounded limb is a
+     cylinder with a cap on each end. Checked with typeof, because `new X ? a : b`
+     evaluates the construction and throws before the ternary can pick. */
+  function limb(radius, length) {
+    if (typeof THREE.CapsuleGeometry === 'function') {
+      return new THREE.CapsuleGeometry(radius, length - radius * 2, 6, 12);
+    }
+    return new THREE.CylinderGeometry(radius, radius, length, 14);
+  }
+
   function buildPatient(skin, hair) {
     var g = new THREE.Group();
 
@@ -177,17 +187,13 @@
     /* arms resting on top of the blanket, slightly out from the body */
     function arm(side) {
       var a = new THREE.Group();
-      var upper = new THREE.Mesh(new THREE.CapsuleGeometry
-        ? new THREE.CapsuleGeometry(0.052, 0.20, 6, 12)
-        : new THREE.CylinderGeometry(0.052, 0.052, 0.26, 12), gownMat);
+      var upper = new THREE.Mesh(limb(0.052, 0.26), gownMat);
       upper.position.set(side * 0.235, 0.795, -0.42);
       upper.rotation.set(0.12, 0, side * 0.16);
       upper.castShadow = true;
       a.add(upper);
 
-      var fore = new THREE.Mesh(new THREE.CapsuleGeometry
-        ? new THREE.CapsuleGeometry(0.046, 0.20, 6, 12)
-        : new THREE.CylinderGeometry(0.046, 0.046, 0.26, 12), flesh);
+      var fore = new THREE.Mesh(limb(0.046, 0.26), flesh);
       fore.position.set(side * 0.255, 0.782, -0.14);
       fore.rotation.set(0.06, 0, side * 0.10);
       fore.castShadow = true;

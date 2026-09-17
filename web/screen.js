@@ -703,12 +703,22 @@
     if (FLAT || !Room3D.available()) {
       document.body.classList.add('flat');
     } else {
-      room3d = new Room3D($('room3d'), $('ecg'));
-      if (!room3d.ok) {
+      /* The 3D is the disposable layer. If anything in it throws, the round
+         must still play -- last time a bad geometry call killed init() before
+         it reached connect(), so no state ever arrived and every number on the
+         page sat at a dash. */
+      try {
+        room3d = new Room3D($('room3d'), $('ecg'));
+        if (room3d && room3d.ok) {
+          wireInspection();
+        } else {
+          room3d = null;
+          document.body.classList.add('flat');
+        }
+      } catch (e) {
         room3d = null;
         document.body.classList.add('flat');
-      } else {
-        wireInspection();
+        if (window.console) console.error('3D disabled:', e);
       }
     }
 
