@@ -215,7 +215,7 @@
 
     var feed = $('feed');
     feed.innerHTML = '';
-    s.messages.slice(-7).forEach(function (m) {
+    s.messages.slice(-4).forEach(function (m) {
       var d = document.createElement('div');
       d.className = 'msg ' + m.kind;
       d.innerHTML = '<span class="who">' + esc(m.who) + '</span>' +

@@ -47,13 +47,15 @@
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     /* r128 colour management. outputColorSpace does not exist here. */
     this.renderer.outputEncoding = THREE.sRGBEncoding;
+    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    this.renderer.toneMappingExposure = 1.15;
 
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0x0F1115);
-    this.scene.fog = new THREE.Fog(0x0F1115, 6, 16);
+    this.scene.background = new THREE.Color(0x090B0F);
+    this.scene.fog = new THREE.Fog(0x090B0F, 3.4, 11);
 
-    this.camera = new THREE.PerspectiveCamera(42, W / H, 0.1, 100);
-    this.camera.position.set(2.05, 1.30, 2.85);
+    this.camera = new THREE.PerspectiveCamera(34, W / H, 0.1, 100);
+    this.camera.position.set(1.72, 1.16, 2.22);
     this.camera.lookAt(0, 0.86, 0);
 
     this.build(ecgCanvas);
@@ -90,7 +92,7 @@
     /* ---- shell ---- */
     var floor = new THREE.Mesh(
       new THREE.PlaneGeometry(24, 24),
-      new THREE.MeshStandardMaterial({ color: 0x14171d, roughness: 0.95 })
+      new THREE.MeshStandardMaterial({ color: 0x1A2028, roughness: 0.62, metalness: 0.08 })
     );
     floor.rotation.x = -Math.PI / 2;
     floor.receiveShadow = true;
@@ -98,14 +100,14 @@
 
     var wall = new THREE.Mesh(
       new THREE.PlaneGeometry(24, 9),
-      new THREE.MeshStandardMaterial({ color: 0x191d24, roughness: 1 })
+      new THREE.MeshStandardMaterial({ color: 0x232B36, roughness: 0.95 })
     );
     wall.position.set(0, 4.5, -3.2);
     wall.receiveShadow = true;
     S.add(wall);
 
     /* ---- bed ---- */
-    var frame = box(1.15, 0.16, 2.25, 0x2a2f38, 0.7);
+    var frame = box(1.15, 0.16, 2.25, 0x39434F, 0.55);
     frame.position.set(0, 0.62, 0);
     frame.castShadow = true; frame.receiveShadow = true;
     S.add(frame);
@@ -120,7 +122,7 @@
       S.add(leg);
     }
 
-    var head = box(1.15, 0.5, 0.07, 0x2a2f38, 0.7);
+    var head = box(1.15, 0.5, 0.07, 0x39434F, 0.55);
     head.position.set(0, 0.92, -1.12);
     head.castShadow = true;
     S.add(head);
@@ -155,7 +157,7 @@
     var sheet = new THREE.Mesh(
       sheetGeo,
       new THREE.MeshStandardMaterial({
-        color: 0x9d9a90, roughness: 1.0, metalness: 0,
+        color: 0xE9E3D6, roughness: 0.88, metalness: 0,
         side: THREE.DoubleSide
       })
     );
@@ -167,14 +169,14 @@
     this.sheet = sheet;
 
     /* A suggestion of a head on the pillow. A sphere, no features. */
-    var pillow = box(0.42, 0.10, 0.26, 0xb3afa3, 0.98);
+    var pillow = box(0.42, 0.10, 0.26, 0xF2ECDF, 0.92);
     pillow.position.set(0, 0.75, -0.92);
     pillow.castShadow = true;
     S.add(pillow);
 
     var headForm = new THREE.Mesh(
       new THREE.SphereGeometry(0.115, 20, 16),
-      new THREE.MeshStandardMaterial({ color: 0x8d7f70, roughness: 1 })
+      new THREE.MeshStandardMaterial({ color: 0xB08968, roughness: 0.78 })
     );
     headForm.position.set(0, 0.86, -0.90);
     headForm.scale.set(1, 0.92, 1.05);
@@ -232,7 +234,7 @@
 
     var screen = new THREE.Mesh(
       new THREE.PlaneGeometry(0.58, 0.38),
-      new THREE.MeshBasicMaterial({ map: this.ecgTexture })
+      new THREE.MeshBasicMaterial({ map: this.ecgTexture, toneMapped: false })
     );
     /* A child of the shell at local +Z. Parenting handles the rotation, so the
        screen cannot end up buried inside its own housing. */
@@ -240,31 +242,66 @@
     shell.add(screen);
     this.screen = screen;
 
-    /* ---- lighting: this is what sells it ---- */
-    S.add(new THREE.AmbientLight(0x38404f, 1.25));
+    /* ---- lighting ----
+       The room read as grey boxes because a flat ambient did most of the work.
+       Now a warm key with a visible cone does the shaping, a cool rim peels the
+       body off the wall, and the monitor is a practical light in the scene. */
+    S.add(new THREE.HemisphereLight(0x5B6B82, 0x0C0F14, 0.55));
+    S.add(new THREE.AmbientLight(0x2A3340, 0.45));
 
-    /* one warm overhead spot, soft shadows on the bed */
-    var spot = new THREE.SpotLight(0xffd2a0, 0.78, 14, Math.PI / 5.6, 0.62, 1.3);
-    spot.position.set(0.35, 3.5, 1.0);
-    spot.target.position.set(0, 0.75, 0);
+    var spot = new THREE.SpotLight(0xFFCE94, 2.6, 9, Math.PI / 7.4, 0.5, 1.6);
+    spot.position.set(0.30, 2.85, 0.55);
+    spot.target.position.set(0, 0.74, 0.05);
     spot.castShadow = true;
-    spot.shadow.mapSize.width = 1024;
-    spot.shadow.mapSize.height = 1024;
+    spot.shadow.mapSize.width = 2048;
+    spot.shadow.mapSize.height = 2048;
     spot.shadow.camera.near = 0.6;
-    spot.shadow.camera.far = 9;
-    spot.shadow.bias = -0.0022;        /* against acne on the sheet */
-    spot.shadow.radius = 3;
+    spot.shadow.camera.far = 7;
+    spot.shadow.bias = -0.0016;
+    spot.shadow.radius = 4;
     S.add(spot);
     S.add(spot.target);
 
-    /* cool rim light, separates him from the wall */
-    var rim = new THREE.DirectionalLight(0x7fb0e6, 0.85);
-    rim.position.set(-3.2, 2.2, -2.6);
+    /* the lamp the light comes out of, so the key has a source on screen */
+    var housing = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.19, 0.30, 0.16, 20, 1, true),
+      new THREE.MeshStandardMaterial({ color: 0x2C333D, roughness: 0.5,
+                                       side: THREE.DoubleSide })
+    );
+    housing.position.set(0.30, 2.85, 0.55);
+    S.add(housing);
+
+    var bulb = new THREE.Mesh(
+      new THREE.CircleGeometry(0.19, 20),
+      new THREE.MeshBasicMaterial({ color: 0xFFE4BC })
+    );
+    bulb.rotation.x = -Math.PI / 2;
+    bulb.position.set(0.30, 2.77, 0.55);
+    S.add(bulb);
+
+    /* the visible cone of light. Cheap, and it is most of the atmosphere. */
+    var cone = new THREE.Mesh(
+      new THREE.ConeGeometry(1.05, 2.1, 28, 1, true),
+      new THREE.MeshBasicMaterial({
+        color: 0xFFD8A4, transparent: true, opacity: 0.052,
+        side: THREE.DoubleSide, depthWrite: false
+      })
+    );
+    cone.position.set(0.30, 1.78, 0.55);
+    S.add(cone);
+
+    /* cool rim, so he is not the same colour as the wall behind him */
+    var rim = new THREE.DirectionalLight(0x7FC4FF, 1.5);
+    rim.position.set(-2.6, 1.7, -1.9);
     S.add(rim);
 
-    /* the monitor's own glow, tracking his status */
-    this.monitorLight = new THREE.PointLight(STATUS_COLOUR.stable, 1.5, 4.2, 2);
-    this.monitorLight.position.set(0.72, 1.32, -0.42);
+    var fill = new THREE.PointLight(0x9FB8D8, 0.5, 7, 2);
+    fill.position.set(-1.5, 1.5, 1.8);
+    S.add(fill);
+
+    /* the monitor lights its own corner, and the colour tracks his status */
+    this.monitorLight = new THREE.PointLight(STATUS_COLOUR.stable, 2.2, 3.4, 2);
+    this.monitorLight.position.set(0.78, 1.34, -0.44);
     S.add(this.monitorLight);
   };
 
@@ -272,7 +309,7 @@
     if (!this.ok) return;
     var colour = STATUS_COLOUR[status] || STATUS_COLOUR.stable;
     this.monitorLight.color.setHex(colour);
-    this.monitorLight.intensity = (status === 'flatline') ? 0.35 : 1.5;
+    this.monitorLight.intensity = (status === 'flatline') ? 0.45 : 2.2;
   };
 
   Room3D.prototype.setRespiratoryRate = function (rr) {
