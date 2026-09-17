@@ -41,6 +41,17 @@
 
   /* fps meter, so Gate 5 is a measurement rather than an opinion */
   var fpsFrames = 0, fpsSince = 0, fpsValue = 0;
+  var lastHr = null, tellTimer = null;
+
+  function flagTell() {
+    var card = $('vHr').closest('.vital');
+    if (!card) return;
+    card.classList.remove('tell');
+    void card.offsetWidth;          /* restart the animation */
+    card.classList.add('tell');
+    clearTimeout(tellTimer);
+    tellTimer = setTimeout(function () { card.classList.remove('tell'); }, 5200);
+  }
 
   /* ------------------------------------------------------------- audio */
   var audio = null, osc = null, gain = null;
@@ -153,10 +164,19 @@
     $('vBp').innerHTML = s.vitals.bp + '<small>mmHg</small>';
     $('vRr').innerHTML = s.vitals.rr + '<small>/min</small>';
 
-    var cls = 'val num status-' + s.status;
-    $('vHr').className = cls;
-    $('vSpo2').className = cls;
+    $('vHr').className = 'val num status-' + s.status;
+    $('vSpo2').className = 'val num status-' + s.status;
     $('clock').className = 'num status-' + s.status;
+    document.body.setAttribute('data-status', s.status);
+
+    /* THE TELL.
+       He answers calmly and his pulse jumps. Previously that was a number
+       changing by fifteen, which nobody sees from the back of a room. Now the
+       heart-rate card flares and calls it. */
+    if (lastHr !== null && s.vitals.hr - lastHr >= 9 && s.status !== 'flatline') {
+      flagTell();
+    }
+    lastHr = s.vitals.hr;
 
     ecg.set(s.vitals.hr, s.status);
     if (room3d) {
@@ -169,7 +189,8 @@
     s.messages.slice(-7).forEach(function (m) {
       var d = document.createElement('div');
       d.className = 'msg ' + m.kind;
-      d.innerHTML = '<span class="who">' + esc(m.who) + '</span>' + esc(m.text);
+      d.innerHTML = '<span class="who">' + esc(m.who) + '</span>' +
+                    '<div class="body">' + esc(m.text) + '</div>';
       feed.appendChild(d);
     });
 
@@ -398,6 +419,7 @@
     $('overlay').classList.remove('show');
     flatlined = false;
     spokenUpto = 0;
+    lastHr = null;
     lastPhase = null;
     ecg.revive();
     if (room3d) room3d.unfreeze();

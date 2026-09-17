@@ -15,11 +15,15 @@
   var MAX_DT = 0.05;        // a tab hiccup must not fast-forward the trace
 
   var COLOURS = {
-    stable:    '#5DCAA5',
-    declining: '#EF9F27',
-    critical:  '#E24B4A',
-    flatline:  '#888780'
+    stable:    '#00A98A',
+    declining: '#E8890C',
+    critical:  '#E23D4C',
+    flatline:  '#9AA0AC'
   };
+
+  var PAPER = '#FFF3F0';
+  var GRID_MINOR = 'rgba(226,61,76,0.16)';
+  var GRID_MAJOR = 'rgba(226,61,76,0.34)';
 
   function gauss(x, centre, width) {
     var d = (x - centre) / width;
@@ -81,14 +85,14 @@
     c.setTransform(dpr, 0, 0, dpr, 0, 0);
 
     var x, y;
-    c.strokeStyle = 'rgba(44,44,42,0.55)';
+    c.strokeStyle = GRID_MINOR;
     c.lineWidth = 1;
     c.beginPath();
     for (x = 0; x <= this.w; x += 10) { c.moveTo(x + 0.5, 0); c.lineTo(x + 0.5, this.h); }
     for (y = 0; y <= this.h; y += 10) { c.moveTo(0, y + 0.5); c.lineTo(this.w, y + 0.5); }
     c.stroke();
 
-    c.strokeStyle = 'rgba(44,44,42,1)';
+    c.strokeStyle = GRID_MAJOR;
     c.beginPath();
     for (x = 0; x <= this.w; x += 50) { c.moveTo(x + 0.5, 0); c.lineTo(x + 0.5, this.h); }
     for (y = 0; y <= this.h; y += 50) { c.moveTo(0, y + 0.5); c.lineTo(this.w, y + 0.5); }
@@ -155,7 +159,7 @@
   Ecg.prototype.draw = function () {
     var ctx = this.ctx, w = this.w, h = this.h;
     ctx.clearRect(0, 0, w, h);
-    ctx.fillStyle = '#16191F';
+    ctx.fillStyle = PAPER;
     ctx.fillRect(0, 0, w, h);
     if (this.grid) ctx.drawImage(this.grid, 0, 0, w, h);
 
@@ -167,12 +171,13 @@
     var x0 = w - n;
 
     var colour = COLOURS[this.status] || COLOURS.stable;
-    ctx.strokeStyle = colour;
-    ctx.lineWidth = 2.4;
+    ctx.strokeStyle = this.status === 'stable' ? '#12141A' : colour;
+    ctx.lineWidth = 3.0;
     ctx.lineJoin = 'round';
     ctx.lineCap = 'round';
-    ctx.shadowColor = colour;
-    ctx.shadowBlur = 8;
+    ctx.shadowColor = 'rgba(0,0,0,0.18)';
+    ctx.shadowBlur = 2;
+    ctx.shadowOffsetY = 1;
 
     ctx.beginPath();
     for (var i = 0; i < n; i++) {
@@ -182,6 +187,7 @@
     }
     ctx.stroke();
     ctx.shadowBlur = 0;
+    ctx.shadowOffsetY = 0;
   };
 
   Ecg.prototype.frame = function (now) {

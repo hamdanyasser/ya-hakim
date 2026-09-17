@@ -37,13 +37,14 @@
   <section id="monitor">
     <div id="ecgWrap"><canvas id="ecg"></canvas></div>
     <div id="vitals">
-      <div class="vital"><div class="lbl">Heart rate</div>
-        <div class="val num" id="vHr">&mdash;<small>bpm</small></div></div>
-      <div class="vital"><div class="lbl">Oxygen</div>
+      <div class="vital is-hr"><div class="lbl">Heart rate</div>
+        <div class="val num" id="vHr">&mdash;<small>bpm</small></div>
+        <div id="tellBadge">he's lying</div></div>
+      <div class="vital is-spo2"><div class="lbl">Oxygen</div>
         <div class="val num" id="vSpo2">&mdash;<small>%</small></div></div>
-      <div class="vital"><div class="lbl">Blood pressure</div>
+      <div class="vital is-bp"><div class="lbl">Blood pressure</div>
         <div class="val num" id="vBp">&mdash;<small>mmHg</small></div></div>
-      <div class="vital"><div class="lbl">Breathing</div>
+      <div class="vital is-rr"><div class="lbl">Breathing</div>
         <div class="val num" id="vRr">&mdash;<small>/min</small></div></div>
     </div>
   </section>
