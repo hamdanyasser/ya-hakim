@@ -16,6 +16,12 @@
 (function (global) {
   'use strict';
 
+  /* Where the camera sits. One definition, used by the constructor and by the
+     drift, because having the value in two places is how it ended up pinned
+     two metres away while three separate edits moved the other copy. */
+  var CAM = [1.26, 1.52, 1.30];
+  var LOOK = [-0.04, 0.80, -0.30];
+
   var STATUS_COLOUR = {
     stable:    0x5DCAA5,
     declining: 0xEF9F27,
@@ -131,7 +137,7 @@
       color: hair, roughness: 0.92, metalness: 0.0
     });
     var gownMat = new THREE.MeshStandardMaterial({
-      color: 0xBFD3DA, roughness: 0.88, metalness: 0.0
+      color: 0x6E93A8, roughness: 0.86, metalness: 0.0
     });
 
     function part(geo, mat, x, y, z) {
@@ -155,28 +161,28 @@
 
     /* hair as a cap, thinning at the front the way a man of 54 wears it */
     var cap = part(new THREE.SphereGeometry(0.113, 24, 18,
-                   0, Math.PI * 2, 0, Math.PI * 0.62), hairMat, 0, 0.912, -0.815);
-    cap.scale.set(0.98, 1.02, 1.10);
-    cap.rotation.x = -0.10;
+                   0, Math.PI * 2, 0, Math.PI * 0.58), hairMat, 0, 0.906, -0.806);
+    cap.scale.set(1.0, 0.95, 1.10);
+    cap.rotation.x = -0.36;
 
     var ear1 = part(new THREE.SphereGeometry(0.026, 12, 10), flesh, -0.102, 0.895, -0.795);
     ear1.scale.set(0.5, 1, 0.8);
     var ear2 = part(new THREE.SphereGeometry(0.026, 12, 10), flesh, 0.102, 0.895, -0.795);
     ear2.scale.set(0.5, 1, 0.8);
 
-    var neck = part(new THREE.CylinderGeometry(0.056, 0.064, 0.10, 14), flesh, 0, 0.836, -0.715);
-    neck.rotation.x = 0.30;
+    var neck = part(new THREE.CylinderGeometry(0.058, 0.066, 0.13, 14), flesh, 0, 0.828, -0.700);
+    neck.rotation.x = Math.PI / 2 - 0.22;
 
     /* chest and shoulders in their own group so breathing moves the man */
     var chest = new THREE.Group();
     var torso = new THREE.Mesh(new THREE.SphereGeometry(0.20, 24, 18), gownMat);
-    torso.scale.set(1.18, 0.62, 1.62);
-    torso.position.set(0, 0.80, -0.44);
+    torso.scale.set(1.12, 0.52, 1.55);
+    torso.position.set(0, 0.778, -0.42);
     torso.castShadow = true; torso.receiveShadow = true;
     chest.add(torso);
 
     var shoulder1 = new THREE.Mesh(new THREE.SphereGeometry(0.086, 16, 14), gownMat);
-    shoulder1.position.set(-0.205, 0.805, -0.60);
+    shoulder1.position.set(-0.185, 0.792, -0.585);
     shoulder1.castShadow = true;
     chest.add(shoulder1);
     var shoulder2 = shoulder1.clone();
@@ -187,21 +193,21 @@
     /* arms resting on top of the blanket, slightly out from the body */
     function arm(side) {
       var a = new THREE.Group();
-      var upper = new THREE.Mesh(limb(0.052, 0.26), gownMat);
-      upper.position.set(side * 0.235, 0.795, -0.42);
-      upper.rotation.set(0.12, 0, side * 0.16);
+      var upper = new THREE.Mesh(limb(0.052, 0.30), gownMat);
+      upper.position.set(side * 0.225, 0.800, -0.40);
+      upper.rotation.set(Math.PI / 2, 0, side * 0.10);   /* lie along the bed */
       upper.castShadow = true;
       a.add(upper);
 
-      var fore = new THREE.Mesh(limb(0.046, 0.26), flesh);
-      fore.position.set(side * 0.255, 0.782, -0.14);
-      fore.rotation.set(0.06, 0, side * 0.10);
+      var fore = new THREE.Mesh(limb(0.046, 0.30), flesh);
+      fore.position.set(side * 0.242, 0.792, -0.10);
+      fore.rotation.set(Math.PI / 2, 0, side * -0.05);
       fore.castShadow = true;
       a.add(fore);
 
-      var hand = new THREE.Mesh(new THREE.SphereGeometry(0.055, 16, 12), flesh);
-      hand.position.set(side * 0.263, 0.778, 0.03);
-      hand.scale.set(0.82, 0.55, 1.15);
+      var hand = new THREE.Mesh(new THREE.SphereGeometry(0.056, 16, 12), flesh);
+      hand.position.set(side * 0.236, 0.796, 0.09);
+      hand.scale.set(0.78, 0.52, 1.10);
       hand.castShadow = true;
       a.add(hand);
 
@@ -235,15 +241,15 @@
     /* r128 colour management. outputColorSpace does not exist here. */
     this.renderer.outputEncoding = THREE.sRGBEncoding;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.35;
+    this.renderer.toneMappingExposure = 1.0;
 
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(0x141A22);
     this.scene.fog = new THREE.Fog(0x141A22, 4.2, 13);
 
     this.camera = new THREE.PerspectiveCamera(40, W / H, 0.1, 100);
-    this.camera.position.set(1.12, 1.02, 1.28);
-    this.camera.lookAt(-0.05, 0.80, -0.16);
+    this.camera.position.set(CAM[0], CAM[1], CAM[2]);
+    this.camera.lookAt(LOOK[0], LOOK[1], LOOK[2]);
 
     this.build(ecgCanvas);
     this.ok = true;
@@ -346,7 +352,7 @@
     var sheet = new THREE.Mesh(
       sheetGeo,
       new THREE.MeshStandardMaterial({
-        map: sheetTexture(), color: 0xFFFFFF,
+        map: sheetTexture(), color: 0xD5CDBA,
         roughness: 0.92, metalness: 0, side: THREE.DoubleSide
       })
     );
@@ -357,10 +363,10 @@
     S.add(sheet);
     this.sheet = sheet;
 
-    this.patient = buildPatient(0xC79B74, 0x3A3129);
+    this.patient = buildPatient(0xA97449, 0x2B2420);
     S.add(this.patient);
 
-    var pillow = box(0.46, 0.11, 0.28, 0xF4EEE1, 0.92);
+    var pillow = box(0.46, 0.11, 0.28, 0xE3DBC9, 0.92);
     pillow.position.set(0, 0.742, -0.86);
     pillow.rotation.x = -0.12;
     pillow.castShadow = true; pillow.receiveShadow = true;
@@ -429,10 +435,10 @@
        The room read as grey boxes because a flat ambient did most of the work.
        Now a warm key with a visible cone does the shaping, a cool rim peels the
        body off the wall, and the monitor is a practical light in the scene. */
-    S.add(new THREE.HemisphereLight(0x8AA0BE, 0x2A3140, 1.05));
-    S.add(new THREE.AmbientLight(0x4A5568, 0.85));
+    S.add(new THREE.HemisphereLight(0x6E86A6, 0x1B2230, 0.34));
+    S.add(new THREE.AmbientLight(0x38445C, 0.26));
 
-    var spot = new THREE.SpotLight(0xFFD9A8, 3.1, 10, Math.PI / 5.2, 0.55, 1.4);
+    var spot = new THREE.SpotLight(0xFFE0B4, 3.4, 9, Math.PI / 6.6, 0.45, 1.5);
     spot.position.set(0.30, 2.85, 0.55);
     spot.target.position.set(0, 0.74, 0.05);
     spot.castShadow = true;
@@ -474,11 +480,11 @@
     S.add(cone);
 
     /* cool rim, so he is not the same colour as the wall behind him */
-    var rim = new THREE.DirectionalLight(0x8FD0FF, 1.9);
+    var rim = new THREE.DirectionalLight(0x8FD0FF, 0.95);
     rim.position.set(-2.6, 1.7, -1.9);
     S.add(rim);
 
-    var fill = new THREE.PointLight(0xAFC6E2, 1.1, 8, 2);
+    var fill = new THREE.PointLight(0xAFC6E2, 0.42, 7, 2);
     fill.position.set(-1.5, 1.5, 1.8);
     S.add(fill);
 
@@ -602,14 +608,17 @@
       pos.needsUpdate = true;
       this.sheet.geometry.computeVertexNormals();
 
-      /* camera drifts on a slow sine path. Never under player control. */
+      /* Camera drifts on a slow sine path. Never under player control.
+         These numbers are the ones that matter: the constructor's position is
+         overwritten on the very first frame, so setting it there and not here
+         moves the camera for exactly one frame and then snaps it back. */
       var a = this.clock * 0.055;
       this.camera.position.set(
-        2.6 + Math.sin(a) * 0.55,
-        1.85 + Math.sin(a * 0.7) * 0.11,
-        3.5 + Math.cos(a) * 0.30
+        CAM[0] + Math.sin(a) * 0.09,
+        CAM[1] + Math.sin(a * 0.7) * 0.035,
+        CAM[2] + Math.cos(a) * 0.06
       );
-      this.camera.lookAt(-0.05, 0.80, -0.16);
+      this.camera.lookAt(LOOK[0], LOOK[1], LOOK[2]);
     }
 
     this.updateHover();
