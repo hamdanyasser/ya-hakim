@@ -315,7 +315,8 @@ class TestCaseFile:
         app.post("/api/%s/start" % code, headers=h)
         room = rooms.rooms[code]
         room.add_player("Sara"); room.add_player("Lina")
-        room.ask("Sara", "how much do you drink?", now=room.clock())
+        room.ask("Sara", "have you ever been told something was wrong before?",
+                 now=room.clock())
         room.ask("Lina", "what does your wife think?", now=room.clock())
         assert room.public_state().reveal is None               # nothing while playing
         app.post("/api/%s/kill" % code, headers=h)
@@ -339,5 +340,5 @@ class TestPromptXray:
         assert len(d["prompts"]) == 2 and all(len(p) > 500 for p in d["prompts"].values())
         assert d["forbidden"] and all(f["matches"] == 0 for f in d["forbidden"])
         blob = " ".join(d["prompts"].values()).lower()
-        assert "cirrhosis" not in blob and "liver" not in blob and "alcohol" not in blob
+        assert "cirrhosis" not in blob and "liver" not in blob and "hepatitis" not in blob
         assert "diagnosis" in d["withheld_fields"]

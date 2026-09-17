@@ -3,22 +3,23 @@
   "title": "The man whose wife made him come",
   "specialty": "Gastroenterology / Acute medicine",
   "setting": "Emergency department, 21:40",
-  "diagnosis": "Decompensated alcoholic liver disease",
+  "diagnosis": "Decompensated liver disease from untreated hepatitis B",
   "accepted_answers": [
+    "hepatitis b",
+    "hepatitis",
     "liver failure",
     "cirrhosis",
-    "alcoholic liver disease",
-    "liver",
-    "alcohol"
+    "liver disease",
+    "liver"
   ],
   "partial_answers": [
-    "hepatic",
-    "hepatitis",
-    "jaundice",
-    "ascites"
+    "heart failure",
+    "kidney failure",
+    "cancer",
+    "infection"
   ],
   "key_questions": [
-    "how much do you drink",
+    "have you ever been told something was wrong before",
     "yellow eyes or skin",
     "belly swelling",
     "bruising easily",
@@ -26,23 +27,24 @@
   ],
   "key_keywords": [
     [
-      "drink",
-      "drinks",
-      "drinking",
-      "drank",
-      "alcohol",
-      "arak",
-      "booze",
-      "bottle",
-      "beer",
-      "wine",
-      "whisky",
-      "whiskey",
-      "spirits",
-      "liquor",
-      "pub",
-      "bar",
-      "units"
+      "told",
+      "before",
+      "test",
+      "tests",
+      "result",
+      "results",
+      "medical",
+      "checkup",
+      "check",
+      "doctor",
+      "diagnosed",
+      "hospital",
+      "clinic",
+      "screening",
+      "years",
+      "serology",
+      "positive",
+      "carrier"
     ],
     [
       "yellow",
@@ -103,7 +105,7 @@
     ]
   ],
   "key_question_reasons": [
-    "The cause. Fifteen years of heavy drinking is the whole story, and he will not volunteer it.",
+    "The cause. Twelve years of an untreated infection is the whole story, and he has never said it out loud.",
     "Jaundice is the sign his wife saw and he ignored; it marks this as decompensation, not fatigue.",
     "Ascites over three weeks is the presenting complaint hiding behind 'middle age'.",
     "Easy bruising means impaired clotting: a failing liver is not making clotting factors.",
@@ -111,9 +113,14 @@
   ],
   "crack_keywords": [
     "wife",
-    "what does she say",
-    "honest with me",
-    "be honest"
+    "marie",
+    "honestly",
+    "truth",
+    "really",
+    "again",
+    "sure",
+    "certain",
+    "hiding"
   ],
   "name": "Kamal",
   "age": 54,
@@ -127,7 +134,8 @@
   "history": {
     "past_medical": [
       "High blood pressure, about five years ago they said",
-      "A hernia repair when I was forty"
+      "A hernia repair when I was forty",
+      "Nothing else. Nothing worth mentioning"
     ],
     "medications": [
       "Amlodipine, one a day. I take it most days"
@@ -137,9 +145,9 @@
     ],
     "social": [
       "I supervise the loading crews at the port. Thirty years there",
-      "I have arak with dinner. A couple of glasses, like anyone",
-      "I smoked until my forties, then stopped",
-      "I live with my wife. The boys have their own places now"
+      "I do not smoke, I stopped in my forties",
+      "I live with my wife. The boys have their own places now",
+      "I have never been one for doctors. My father was the same"
     ],
     "family": [
       "My father died of his heart at seventy",
@@ -156,9 +164,9 @@
     "I bruise easily, and I do not remember knocking into anything",
     "my wife says I was talking nonsense tonight. I don't remember it"
   ],
-  "lie_topic": "your drinking",
-  "lie": "Two small glasses of arak with dinner. Like everyone.",
-  "truth": "Most of a bottle a day, for about fifteen years. More since my brother died.",
+  "lie_topic": "the test you had years ago",
+  "lie": "Nothing. I have never been sick a day in my life, ask anyone.",
+  "truth": "Twelve years ago the work medical found something in my blood. They told me to come back to the clinic. I never went. I never told my wife either.",
   "cracks_when": "pressed on it a second time, or asked what his wife thinks",
   "red_herrings": [
     "ate bad fish last week",
@@ -247,11 +255,11 @@
   "management_points": [
     "Recognise hepatic encephalopathy (asterixis, confusion, day-night reversal) and search for a precipitant: infection, bleeding, constipation, electrolytes, sedatives",
     "Diagnostic ascitic tap on admission to exclude spontaneous bacterial peritonitis (neutrophils above 250/mm3)",
-    "IV thiamine (Pabrinex) before any glucose, and a monitored alcohol withdrawal regimen",
+    "IV thiamine and glucose as needed, with a monitored assessment for encephalopathy.",
     "Lactulose titrated to two or three soft stools a day, with rifaximin if recurrent",
     "Correct potassium and magnesium; restrict sodium and avoid saline; monitor renal function daily",
     "Blood cultures and a low threshold for antibiotics; screen for varices; consider albumin",
-    "Senior and gastroenterology review; document the alcohol history and offer a brief intervention"
+    "Senior and gastroenterology review; confirm the hepatitis serology and start antiviral therapy."
   ],
   "management_keywords": [
     [
@@ -297,29 +305,30 @@
       "infection"
     ],
     [
-      "senior",
       "gastro",
+      "senior",
       "hepatology",
-      "brief intervention",
-      "alcohol",
-      "registrar"
+      "antiviral",
+      "serology",
+      "referral",
+      "specialist"
     ]
   ],
   "teaching": {
-    "summary": "A proud man with fifteen years of hidden heavy drinking presents with three weeks of ascites and jaundice and tonight's hepatic encephalopathy. He minimises everything; the truth comes only when you press, or ask his wife. The danger tonight is the encephalopathy and what precipitated it, not the swelling.",
+    "summary": "A proud man with twelve years of an untreated infection presents with three weeks of abdominal swelling and an hour of confusion. He has never told anyone, including his wife, and he will not volunteer it now.",
     "pearls": [
       "Asterixis is a bedside test that takes ten seconds and changes the whole assessment.",
       "Every new decompensation gets an ascitic tap on the day of admission. SBP is silent in a third of cases.",
       "Thiamine before glucose, always. Wernicke's is a one-way door.",
-      "The drinking history is taken twice: once when they lie, and once when you ask again kindly.",
+      "The history is taken twice: once when they deflect, and once when you ask again, or ask who else knows.",
       "Saline for ascites is not kindness. Sodium restriction and spironolactone are."
     ]
   },
   "guidelines": [
     "bsg-decompensated-cirrhosis",
-    "nice-cg100",
     "easl-decompensated-cirrhosis",
-    "nice-cg115"
+    "who-hepb-2024",
+    "easl-hbv-2017"
   ],
   "vitals_start": {
     "hr": 96,
