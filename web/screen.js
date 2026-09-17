@@ -8,8 +8,10 @@
   var code = params.get('c');
   var FLAT = params.get('flat') === '1';   /* the one-flag 3D kill switch */
   var MULTI = params.get('multi') === '1'; /* phones are opt-in, not default */
+  var DEMO_MODE = params.get('demo') === '1';
 
   var ecg = new Ecg($('ecg'));
+  ecg.onBeat = function () { beep(); };
   var room3d = null;
   var ws = null;
   var running = false;
@@ -55,6 +57,7 @@
 
   /* ------------------------------------------------------------- audio */
   var audio = null, osc = null, gain = null;
+  var muted = false;
 
   function ensureAudio() {
     if (audio) return;
@@ -115,6 +118,31 @@
       o.stop(audio.currentTime + 0.18);
       setTimeout(beep, 220);
     })();
+  }
+
+  /* ------------------------------------------------------- the monitor */
+  /* Everyone in the room already knows this sound, which is why it is worth
+     the thirty lines. Real pulse oximeters drop their pitch as saturation
+     falls, so as he deteriorates the beep sinks -- the room hears him dying
+     before it reads a number. */
+  var spo2Now = 98;
+
+  function beep() {
+    if (!audio || muted) return;
+    var t = audio.currentTime;
+
+    /* 98% -> 880Hz down to 85% -> 600Hz, the way a real probe behaves. */
+    var pitch = 600 + Math.max(0, Math.min(1, (spo2Now - 85) / 13)) * 280;
+
+    var o = audio.createOscillator();
+    var g = audio.createGain();
+    o.type = 'sine';
+    o.frequency.setValueAtTime(pitch, t);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.075, t + 0.006);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.085);
+    o.connect(g); g.connect(audio.destination);
+    o.start(t); o.stop(t + 0.1);
   }
 
   /* --------------------------------------------------------------- tts */
@@ -178,6 +206,7 @@
     }
     lastHr = s.vitals.hr;
 
+    spo2Now = s.vitals.spo2;
     ecg.set(s.vitals.hr, s.status);
     if (room3d) {
       room3d.setStatus(s.status);
@@ -234,6 +263,7 @@
     alarmBeeps(3, 660);
 
     /* 1. the trace flattens where it stands, mid-beat */
+    ecg.onBeat = null;           /* the beeping stops with the heart */
     ecg.kill();
     ecg.draw();
 
@@ -409,9 +439,19 @@
         showCard(d.level, d.levels, d.card, function () {
           fetch('/api/' + code + '/start', { method: 'POST' });
           startLoop();
+          if (DEMO_MODE) runDemo();
         });
       });
   };
+
+  /* In demo mode, don't wait for anyone to press anything. */
+  if (DEMO_MODE) {
+    setTimeout(function () { $('begin').click(); }, 900);
+    setTimeout(function () {
+      var go = $('cardGo');
+      if (go && $('card').classList.contains('show')) go.click();
+    }, 4200);
+  }
 
   function resetForNextRound() {
     $('reveal').classList.remove('show');
@@ -422,6 +462,7 @@
     lastHr = null;
     lastPhase = null;
     ecg.revive();
+    ecg.onBeat = function () { beep(); };
     if (room3d) room3d.unfreeze();
   }
 
@@ -431,7 +472,34 @@
     if (document.activeElement === $('ask')) return;
     if (e.key === 'k' || e.key === 'K') fetch('/api/' + code + '/kill', { method: 'POST' });
     if (e.key === 'r' || e.key === 'R') location.reload();
+    if (e.key === 'm' || e.key === 'M') { muted = !muted; notice(muted ? 'Monitor muted' : 'Monitor on'); }
   });
+
+  /* --------------------------------------------------------------- demo */
+  /* ?demo=1 plays the whole show on its own: the questions land on a timer,
+     the lie arrives where it should, and it ends on the flatline.
+     Two reasons this exists. A judge opening the link sees the entire thing
+     without anyone presenting it, and on stage nobody has to type into a text
+     box in front of two hundred people while their hands shake. */
+  var DEMO = [
+    [1500,  'good evening. what brings you in tonight?'],
+    [7000,  'how much do you drink?'],
+    [14000, 'your wife says your eyes look yellow. do you see it?'],
+    [21000, 'has your belly been swelling?'],
+    [28000, 'do you bruise easily?'],
+    [35000, 'what does your wife think is going on?'],
+    [43000, 'be honest with me. how much, really?']
+  ];
+
+  function runDemo() {
+    DEMO.forEach(function (step) {
+      setTimeout(function () { send('ask', step[1]); }, step[0]);
+    });
+    /* Let the last answer breathe, then end it. */
+    setTimeout(function () {
+      fetch('/api/' + code + '/kill', { method: 'POST' });
+    }, 52000);
+  }
 
   /* ------------------------------------------------------------- start */
   $('begin').onclick = function () {
@@ -445,9 +513,19 @@
         showCard(d.level, d.levels, d.card, function () {
           fetch('/api/' + code + '/start', { method: 'POST' });
           startLoop();
+          if (DEMO_MODE) runDemo();
         });
       });
   };
+
+  /* In demo mode, don't wait for anyone to press anything. */
+  if (DEMO_MODE) {
+    setTimeout(function () { $('begin').click(); }, 900);
+    setTimeout(function () {
+      var go = $('cardGo');
+      if (go && $('card').classList.contains('show')) go.click();
+    }, 4200);
+  }
 
   (function init() {
     if (!code) {

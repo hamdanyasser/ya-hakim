@@ -12,7 +12,8 @@
   'use strict';
 
   var PX_PER_SEC = 220;     // scroll speed
-  var MAX_DT = 0.05;        // a tab hiccup must not fast-forward the trace
+  var MAX_DT = 0.05;
+  var R_PEAK = 0.32;      // where the tall spike lands in a beat        // a tab hiccup must not fast-forward the trace
 
   var COLOURS = {
     stable:    '#00A98A',
@@ -52,6 +53,7 @@
     this.carry = 0;
     this.last = null;
     this.grid = null;
+    this.onBeat = null;     // set by the page that wants to hear it
     this.w = 0;
     this.h = 0;
     this.resize();
@@ -149,8 +151,14 @@
       if (this.dead) {
         this.samples.push(0);
       } else {
+        var before = this.phase;
         this.phase = (this.phase + perSample) % 1;
         this.samples.push(beat(this.phase));
+        /* The R peak sits at 0.32. Firing here keeps the beep on the same
+           frame as the spike, instead of on a second timer that drifts. */
+        if (this.onBeat && before < R_PEAK && (this.phase >= R_PEAK || this.phase < before)) {
+          this.onBeat();
+        }
       }
     }
     while (this.samples.length > this.w) this.samples.shift();
