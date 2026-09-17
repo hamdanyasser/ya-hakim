@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ya Hakim</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="/v2/app.css">
+</head>
+<body>
+
+<!-- ------------------------------------------------------------ splash -->
+<section id="splash" class="screen on">
+  <div class="blob" style="width:340px;height:340px;background:var(--teal);left:6%;top:12%"></div>
+  <div class="blob" style="width:280px;height:280px;background:var(--clay);right:9%;top:20%"></div>
+  <div class="blob" style="width:240px;height:240px;background:var(--plum);left:24%;bottom:8%"></div>
+
+  <div class="pill saff">A party game &middot; not a medical tool</div>
+  <h1 class="title">Ya&nbsp;Hakim</h1>
+  <p class="lead">Every patient is hiding one thing.<br>
+     His mouth lies. His heart doesn't.</p>
+  <button class="btn teal big" id="toCases">Start the shift</button>
+  <button class="btn" id="toProof">How do we know it can't cheat?</button>
+</section>
+
+<!-- ----------------------------------------------------------- case pick -->
+<section id="pick" class="screen">
+  <div class="pill teal">Choose your patient</div>
+  <h1 class="title" style="font-size:clamp(32px,5vw,58px);color:var(--teal)">Who's next?</h1>
+  <div class="cases" id="caseList"></div>
+</section>
+
+<!-- --------------------------------------------------------------- brief -->
+<section id="brief" class="screen">
+  <div class="pill clay" id="briefTag">Patient</div>
+  <h1 class="title" style="font-size:clamp(30px,4.4vw,52px);color:var(--clay)" id="briefName">&mdash;</h1>
+  <p class="lead" id="briefText"></p>
+  <div class="card" style="padding:18px 24px;max-width:640px">
+    <p class="lead" style="font-size:18px;margin:0" id="briefHint"></p>
+  </div>
+  <button class="btn saffron big" id="toEncounter">Go in</button>
+</section>
+
+<!-- ----------------------------------------------------------- encounter -->
+<div id="encounter">
+  <div class="topbar">
+    <div class="who-big">
+      <div class="avatar" id="avatar">🧔</div>
+      <div>
+        <div class="name" id="eName">&mdash;</div>
+        <div class="meta" id="eMeta"></div>
+      </div>
+      <div class="pill" id="moodPill" style="margin-left:8px">Guarded</div>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center">
+      <button class="btn" id="btnExamine" style="font-size:16px;padding:11px 20px">🩺 Examine</button>
+      <button class="btn plum" id="btnDiagnose" style="font-size:16px;padding:11px 20px">Diagnose</button>
+      <div class="clock num" id="clock">2:30</div>
+    </div>
+  </div>
+
+  <div class="monitor">
+    <div class="trace"><canvas id="ecg"></canvas></div>
+    <div class="vitals">
+      <div class="vital hr" id="cHr"><div class="k">Heart rate</div>
+        <div class="v num" id="vHr">&mdash;<small>bpm</small></div><div class="tellflag">he's lying</div></div>
+      <div class="vital spo2"><div class="k">Oxygen</div>
+        <div class="v num" id="vSpo2">&mdash;<small>%</small></div></div>
+      <div class="vital bp"><div class="k">Blood pressure</div>
+        <div class="v num" id="vBp">&mdash;<small>mmHg</small></div></div>
+      <div class="vital rr"><div class="k">Breathing</div>
+        <div class="v num" id="vRr">&mdash;<small>/min</small></div></div>
+    </div>
+  </div>
+
+  <div class="talk" id="talk"></div>
+
+  <div class="askbar">
+    <input id="ask" placeholder="Ask him anything, then press enter" autocomplete="off">
+    <button class="btn teal" id="btnAsk">Ask</button>
+  </div>
+</div>
+
+<!-- ------------------------------------------------------- examine sheet -->
+<div class="overlay" id="examineSheet">
+  <div class="sheet">
+    <h2>Examine him</h2>
+    <p class="sub">Each one you can only do once, and the clock keeps running.</p>
+    <div class="exams" id="examGrid"></div>
+    <button class="btn" id="closeExamine" style="margin-top:20px">Back to the bedside</button>
+  </div>
+</div>
+
+<!-- ------------------------------------------------------ diagnose sheet -->
+<div class="overlay" id="dxSheet">
+  <div class="sheet" style="max-width:560px">
+    <h2>Call it</h2>
+    <p class="sub">One answer. Plain words are fine &mdash; "liver" counts.</p>
+    <input id="dxInput" class="" placeholder="What is wrong with him?"
+           style="width:100%;font-family:inherit;font-size:20px;font-weight:700;padding:14px 20px;
+                  border-radius:var(--r-pill);border:var(--stroke) solid var(--line);
+                  background:var(--card);color:var(--ink)">
+    <div style="display:flex;gap:10px;margin-top:18px">
+      <button class="btn plum" id="submitDx">That's my answer</button>
+      <button class="btn" id="closeDx">Not yet</button>
+    </div>
+  </div>
+</div>
+
+<!-- -------------------------------------------------------------- reveal -->
+<section id="reveal" class="screen">
+  <div class="pill rose" id="revealTag">Time up</div>
+  <div class="dx" id="revealDx">&mdash;</div>
+  <p class="lead" id="revealNote"></p>
+  <div class="scores" id="revealScores"></div>
+  <div style="display:flex;gap:12px">
+    <button class="btn teal big" id="againBtn">Next patient</button>
+    <button class="btn" id="proofBtn">Show them it couldn't cheat</button>
+  </div>
+</section>
+
+<!-- --------------------------------------------------------- the x-ray -->
+<div class="overlay" id="proofSheet">
+  <div class="sheet">
+    <h2>This is everything the AI is told.</h2>
+    <p class="sub">The real prompt behind the patient. Search it for the answer.</p>
+    <input id="proofSearch" placeholder="try: liver"
+           style="width:100%;font-family:inherit;font-size:18px;font-weight:700;padding:12px 18px;
+                  border-radius:var(--r-pill);border:var(--stroke) solid var(--line);
+                  background:var(--card);color:var(--ink);margin-bottom:12px">
+    <div id="proofResult" class="pill teal" style="margin-bottom:14px">&mdash;</div>
+    <pre id="proofText" style="font-family:var(--mono);font-size:12.5px;line-height:1.6;
+         white-space:pre-wrap;background:var(--card);border:var(--stroke) solid var(--line);
+         border-radius:var(--r-sm);padding:16px;max-height:44vh;overflow:auto;margin:0"></pre>
+    <button class="btn" id="closeProof" style="margin-top:18px">Close</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="/v2/ecg.js"></script>
+<script src="/v2/app.js"></script>
+</body>
+</html>
