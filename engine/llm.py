@@ -48,6 +48,43 @@ FALLBACK_BETA = "server-side-fallback-2026-07-01"
 
 _client = None
 
+# What has been spent this process. Not billing-accurate -- it is the number
+# you need at 2am to answer "is something burning my credit", which the
+# dashboard is too slow to tell you.
+USAGE = {"calls": 0, "input": 0, "output": 0, "cache_read": 0}
+
+# $ per million tokens, input/output. Only the models this app is run on.
+PRICES = {
+    "claude-haiku-4-5": (1.0, 5.0),
+    "claude-sonnet-5":  (2.0, 10.0),
+    "claude-sonnet-4-6": (3.0, 15.0),
+    "claude-opus-5":    (5.0, 25.0),
+}
+
+
+def _record(model, resp):
+    u = getattr(resp, "usage", None)
+    if not u:
+        return
+    USAGE["calls"] += 1
+    USAGE["input"] += getattr(u, "input_tokens", 0) or 0
+    USAGE["output"] += getattr(u, "output_tokens", 0) or 0
+    USAGE["cache_read"] += getattr(u, "cache_read_input_tokens", 0) or 0
+
+
+def usage_report(model=None) -> dict:
+    model = model or MODEL
+    inp, out = PRICES.get(model, (5.0, 25.0))
+    cost = (USAGE["input"] / 1e6) * inp + (USAGE["output"] / 1e6) * out
+    return {
+        "model": model,
+        "calls": USAGE["calls"],
+        "input_tokens": USAGE["input"],
+        "output_tokens": USAGE["output"],
+        "cached_input_tokens": USAGE["cache_read"],
+        "estimated_usd": round(cost, 4),
+    }
+
 
 def available() -> bool:
     """True when a live model can be used. The app is fully playable without."""
@@ -99,9 +136,12 @@ def create(client=None, timeout=None, **kwargs):
             kwargs.pop("output_config", None)
 
     if _supports_fallbacks(model):
-        return api.beta.messages.create(
+        resp = api.beta.messages.create(
             betas=[FALLBACK_BETA], fallbacks="default", **kwargs)
-    return api.beta.messages.create(**kwargs)
+    else:
+        resp = api.beta.messages.create(**kwargs)
+    _record(model, resp)
+    return resp
 
 
 def text_of(response) -> str:
@@ -128,6 +168,7 @@ def json_call(system: str, user: str, schema: dict, *, effort: str = "high",
             resp = stream.get_final_message()
     except anthropic.APIError:
         return None
+    _record(MODEL, resp)
     if resp.stop_reason in ("refusal", "max_tokens"):
         return None
     try:

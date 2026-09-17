@@ -134,6 +134,13 @@ def favicon():
     return Response(FAVICON, media_type="image/svg+xml", headers={"Cache-Control": "public, max-age=86400"})
 
 
+@app.get("/api/usage")
+async def api_usage():
+    """What this process has spent. Open it when the credit looks wrong."""
+    from engine import llm
+    return llm.usage_report()
+
+
 @app.get("/healthz")
 async def healthz():
     return {"ok": True}

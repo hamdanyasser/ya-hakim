@@ -16,6 +16,7 @@ billing without limit.
 from __future__ import annotations
 
 import asyncio
+import os
 import json
 
 from fastapi import APIRouter, Request, WebSocket, WebSocketDisconnect
@@ -43,7 +44,10 @@ _lock = asyncio.Lock()
 # A festival audience shares one venue address, so this paces a room, not a
 # phone; the hourly ceiling below is what bounds the spend.
 _per_address = guard.RateLimit(90, 60)
-_live_hourly = guard.RateLimit(600, 3600)    # live model calls from this page, all callers
+# 600/hour was about 60 cents an hour of credit if anything hammered this
+# page. A demo needs the corpus run live a handful of times, not hundreds.
+_live_hourly = guard.RateLimit(
+    int(os.environ.get("YH_PROVE_LIVE_HOURLY", "150")), 3600)
 _suite_starts = guard.RateLimit(1, 90)       # the corpus is 100 calls; not on a loop
 _resets = guard.RateLimit(10, 60)
 SUITE_TIMEOUT_S = 30.0
