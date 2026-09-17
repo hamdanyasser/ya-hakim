@@ -16,7 +16,25 @@ import os
 import anthropic
 
 # One model for everything by default; override per deployment.
+# On a small budget set YH_MODEL=claude-haiku-4-5: about a fifth the cost, and
+# for a patient who answers in two short sentences the difference barely shows.
 MODEL = os.environ.get("YH_MODEL", "claude-opus-5")
+
+
+def _supports_effort(model: str) -> bool:
+    """output_config.effort is a 400 on Haiku 4.5 and the older models.
+
+    Sending it anyway is how a cheap deployment discovers, live on stage, that
+    every single AI call fails.
+    """
+    m = (model or "").lower()
+    return not ("haiku" in m or "sonnet-4-5" in m or "sonnet-3" in m)
+
+
+def _supports_fallbacks(model: str) -> bool:
+    """Server-side refusal fallbacks exist for the models that can refuse."""
+    m = (model or "").lower()
+    return ("opus-5" in m or "opus-4-8" in m or "fable" in m or "mythos" in m)
 
 # Claude Opus 5 can decline a request on policy grounds. Medical role-play sits
 # close enough to that line that a declined turn must not end an encounter, so
@@ -38,14 +56,26 @@ def client() -> anthropic.Anthropic:
     return _client
 
 
-def create(**kwargs):
-    """messages.create with refusal fallbacks switched on."""
+def create(client=None, timeout=None, **kwargs):
+    """messages.create, with only the options this model actually accepts."""
     kwargs.setdefault("model", MODEL)
-    return client().beta.messages.create(
-        betas=[FALLBACK_BETA],
-        fallbacks="default",
-        **kwargs,
-    )
+    model = kwargs["model"]
+    api = client or globals()["client"]()
+    if timeout is not None:
+        api = api.with_options(timeout=timeout)
+
+    if not _supports_effort(model):
+        cfg = dict(kwargs.get("output_config") or {})
+        cfg.pop("effort", None)
+        if cfg:
+            kwargs["output_config"] = cfg
+        else:
+            kwargs.pop("output_config", None)
+
+    if _supports_fallbacks(model):
+        return api.beta.messages.create(
+            betas=[FALLBACK_BETA], fallbacks="default", **kwargs)
+    return api.beta.messages.create(**kwargs)
 
 
 def text_of(response) -> str:
@@ -56,18 +86,22 @@ def json_call(system: str, user: str, schema: dict, *, effort: str = "high",
               max_tokens: int = 16000, timeout: float = 120.0) -> dict | None:
     """One structured-output call. Returns the parsed object, or None on any
     failure -- every caller has a deterministic path that does not need this."""
+    output_config = {"format": {"type": "json_schema", "schema": schema}}
+    if _supports_effort(MODEL):
+        output_config["effort"] = effort
+
+    extra = {}
+    if _supports_fallbacks(MODEL):
+        extra = {"betas": [FALLBACK_BETA], "fallbacks": "default"}
+
     try:
         resp = client().with_options(timeout=timeout).beta.messages.create(
             model=MODEL,
             max_tokens=max_tokens,
-            betas=[FALLBACK_BETA],
-            fallbacks="default",
             system=system,
             messages=[{"role": "user", "content": user}],
-            output_config={
-                "effort": effort,
-                "format": {"type": "json_schema", "schema": schema},
-            },
+            output_config=output_config,
+            **extra,
         )
     except anthropic.APIError:
         return None

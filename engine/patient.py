@@ -281,11 +281,13 @@ def ask(case, history, question, cracked=False, client=None, mood=None):
 
     for _attempt in range(2):
         try:
-            resp = api.with_options(timeout=20.0).beta.messages.create(
-                model=llm.MODEL,
+            # Through llm.create(), which drops the options a cheap model
+            # rejects -- effort is a 400 on Haiku, and this is the call that
+            # runs on every single question.
+            resp = llm.create(
+                client=api,
+                timeout=20.0,
                 max_tokens=MAX_TOKENS,
-                betas=[llm.FALLBACK_BETA],
-                fallbacks="default",
                 system=[{"type": "text", "text": system,
                          "cache_control": {"type": "ephemeral"}}],
                 messages=messages,
