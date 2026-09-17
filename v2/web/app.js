@@ -10,6 +10,7 @@
   var chosen = null;
   var cases = [];
   var ecg = null;
+  var room = null;
   var raf = null;
   var lastHr = null;
   var poll = null;
@@ -139,6 +140,7 @@
       (v.status === 'critical' ? ' bad' : v.status === 'declining' ? ' warn' : '');
 
     if (ecg) ecg.set(v.vitals.hr, v.status);
+    if (room) { room.setStatus(v.status); room.setRespiratoryRate(v.vitals.rr); }
 
     /* the tell: his pulse jumps while his mouth stays calm */
     if (lastHr !== null && v.vitals.hr - lastHr >= 9 && !v.over) {
@@ -170,9 +172,65 @@
     if (v.over && !flatlined) flatline();
   }
 
+  /* -------------------------------------------------------------- the room */
+  /* Disposable by design: if three.js is missing or anything in the scene
+     throws, the body gets .noroom, the conversation takes the full width and
+     the round plays exactly as before. */
+  function buildRoom() {
+    if (room || typeof Room3D === 'undefined' || !Room3D.available()) {
+      if (!room) document.body.classList.add('noroom');
+      return;
+    }
+    try {
+      room = new Room3D($('room3d'), $('ecg'));
+      if (!room.ok) { room = null; document.body.classList.add('noroom'); return; }
+    } catch (e) {
+      room = null;
+      document.body.classList.add('noroom');
+      if (window.console) console.error('room disabled:', e);
+      return;
+    }
+
+    var canvas = $('room3d');
+    canvas.style.cursor = 'crosshair';
+
+    canvas.addEventListener('mousemove', function (e) {
+      room.pointerAt(e.clientX, e.clientY, canvas.getBoundingClientRect());
+      var hit = room.hovered;
+      $('examTip').textContent = hit ? hit.userData.label : '';
+      $('examTip').classList.toggle('on', !!hit);
+      canvas.style.cursor = hit ? 'pointer' : 'crosshair';
+    });
+    canvas.addEventListener('mouseleave', function () {
+      room.pointerAt(-9999, -9999, canvas.getBoundingClientRect());
+      $('examTip').classList.remove('on');
+    });
+
+    /* Touching him runs the same examination the sheet does. */
+    canvas.addEventListener('click', function (e) {
+      room.pointerAt(e.clientX, e.clientY, canvas.getBoundingClientRect());
+      var hit = room.pickHotspot();
+      if (!hit || !sid) return;
+      var id = hit.userData.examId;
+      fetch(API + '/examine/' + sid, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ exam: id })
+      }).then(function (r) { return r.json(); }).then(function (v) {
+        if (v.reason === 'already') { toast('Already examined that'); return; }
+        if (v.reason === 'over') { toast('The round is over'); return; }
+        room.markExamined(id);
+        render(v);
+      });
+    });
+  }
+
   /* ------------------------------------------------------------ the loop */
+  var lastFrame = 0;
   function frame(now) {
+    var dt = lastFrame ? now - lastFrame : 16;
+    lastFrame = now;
     if (ecg) ecg.frame(now);
+    if (room) room.frame(dt);
     raf = requestAnimationFrame(frame);
   }
 
@@ -195,6 +253,7 @@
     setTimeout(function () {
       flatTone(false);
       $('encounter').classList.add('blank');
+      if (room) room.freeze();          /* nothing moves, camera included */
       if (raf) { cancelAnimationFrame(raf); raf = null; }
       setTimeout(showReveal, 2000);     /* two seconds of nothing */
     }, 1200);
@@ -282,6 +341,7 @@
         ecg.onBeat = beep;
         raf = requestAnimationFrame(frame);
       }
+      buildRoom();
       render(v);
       startPolling();
       $('ask').focus();

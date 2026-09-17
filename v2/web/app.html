@@ -74,7 +74,14 @@
     </div>
   </div>
 
-  <div class="talk" id="talk"></div>
+  <div class="stage">
+    <div class="room" id="roomWrap">
+      <canvas id="room3d"></canvas>
+      <div class="roomtip" id="examTip"></div>
+      <div class="roomhint">Click him to examine</div>
+    </div>
+    <div class="talk" id="talk"></div>
+  </div>
 
   <div class="quick" id="quick"></div>
 
@@ -141,7 +148,10 @@
 
 <div class="toast" id="toast"></div>
 
+<!-- three.js r128, UMD. If it fails the room hides and the game plays on. -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="/v2/ecg.js"></script>
+<script src="/v2/room3d.js"></script>
 <script src="/v2/app.js"></script>
 </body>
 </html>
