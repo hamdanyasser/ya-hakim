@@ -331,10 +331,22 @@
       box.appendChild(d);
     });
     $('card').classList.add('show');
-    $('cardGo').onclick = function () {
+
+    var go = function () {
+      if (!$('card').classList.contains('show')) return;
       $('card').classList.remove('show');
+      document.removeEventListener('keydown', onKey);
+      $('card').removeEventListener('click', go);
       then();
     };
+    var onKey = function (e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); }
+    };
+    /* A card you cannot dismiss stops the whole demo, so anything gets you
+       past it: the button, a click anywhere, enter, or space. */
+    $('cardGo').onclick = go;
+    $('card').addEventListener('click', go);
+    document.addEventListener('keydown', onKey);
   }
 
   /* ------------------------------------------------------------- loop */

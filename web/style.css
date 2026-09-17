@@ -199,7 +199,7 @@ header {
 }
 #feed::-webkit-scrollbar { width: 0; }
 
-.msg { max-width: 30ch; animation: rise .28s ease-out; }
+.msg { max-width: 560px; animation: rise .28s ease-out; }
 .msg .who {
   display: block; font-size: 11px; letter-spacing: 1.7px;
   text-transform: uppercase; font-weight: 800; margin-bottom: 5px;
@@ -375,7 +375,8 @@ body.multi #joinBox, body.multi #boardBox { display: block; }
 #card {
   position: fixed; inset: 0; z-index: 55;
   display: none; flex-direction: column; align-items: center; justify-content: center;
-  gap: 28px; text-align: center; padding: 40px;
+  gap: 22px; text-align: center; padding: 4vh 40px;
+  overflow-y: auto;
   background:
     radial-gradient(800px 460px at 50% 0%, rgba(51,85,232,.14), transparent 64%),
     var(--paper);
@@ -386,12 +387,18 @@ body.multi #joinBox, body.multi #boardBox { display: block; }
   color: var(--ink-3); font-weight: 800;
   background: var(--sunk); padding: 8px 18px; border-radius: 99px;
 }
-#cardLines { display: flex; flex-direction: column; gap: 16px; max-width: 24ch; }
+#cardLines {
+  display: flex; flex-direction: column; gap: 14px;
+  max-width: 880px;                 /* px, not ch: this element is 16px */
+}
 #cardLines div {
-  font-size: 42px; line-height: 1.2; font-weight: 700; letter-spacing: -.03em;
+  font-size: clamp(22px, 3.4vw, 40px);
+  line-height: 1.22; font-weight: 700; letter-spacing: -.03em;
 }
 #cardLines div:last-child { color: var(--bad); }
 #cardGo {
   background: var(--ok); color: #fff; border: 0; font-size: 21px; font-weight: 700;
   padding: 16px 44px; border-radius: 14px; cursor: pointer; box-shadow: var(--lift-2);
+  flex: 0 0 auto;                   /* never squeezed out of the layout */
 }
+#cardHint { font-size: 13px; color: var(--ink-3); letter-spacing: .4px; }
