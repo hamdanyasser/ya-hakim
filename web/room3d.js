@@ -27,6 +27,187 @@
     return typeof global.THREE !== 'undefined';
   }
 
+
+  /* ---- textures, painted in code ----
+     Flat-shaded primitives read as a blockout no matter how well they are lit,
+     because real surfaces have grain. These are drawn to a canvas at load and
+     cost nothing at runtime. Still nothing downloaded. */
+
+  function canvasTex(w, h, draw, repeatX, repeatY) {
+    var c = document.createElement('canvas');
+    c.width = w; c.height = h;
+    draw(c.getContext('2d'), w, h);
+    var t = new THREE.CanvasTexture(c);
+    t.wrapS = t.wrapT = THREE.RepeatWrapping;
+    t.repeat.set(repeatX || 1, repeatY || 1);
+    t.anisotropy = 8;
+    return t;
+  }
+
+  function noise(ctx, w, h, amount, alpha) {
+    var img = ctx.getImageData(0, 0, w, h);
+    var d = img.data;
+    for (var i = 0; i < d.length; i += 4) {
+      var n = (Math.sin(i * 12.9898) * 43758.5453) % 1;
+      n = (n < 0 ? -n : n) * amount - amount / 2;
+      d[i] += n; d[i + 1] += n; d[i + 2] += n;
+      if (alpha !== undefined) d[i + 3] = alpha;
+    }
+    ctx.putImageData(img, 0, 0);
+  }
+
+  /* hospital vinyl: large tiles, soft speckle, visible seams */
+  function floorTexture() {
+    return canvasTex(512, 512, function (c, w, h) {
+      c.fillStyle = '#6E7B88';
+      c.fillRect(0, 0, w, h);
+      noise(c, w, h, 26);
+      c.strokeStyle = 'rgba(28,34,42,0.55)';
+      c.lineWidth = 3;
+      for (var i = 0; i <= 2; i++) {
+        var p = (i * w) / 2;
+        c.beginPath(); c.moveTo(p, 0); c.lineTo(p, h); c.stroke();
+        c.beginPath(); c.moveTo(0, p); c.lineTo(w, p); c.stroke();
+      }
+      c.fillStyle = 'rgba(255,255,255,0.05)';
+      c.fillRect(0, 0, w, 6);
+    }, 8, 8);
+  }
+
+  /* wall: painted block with a dado rail band */
+  function wallTexture() {
+    return canvasTex(512, 512, function (c, w, h) {
+      c.fillStyle = '#8C9AA8';
+      c.fillRect(0, 0, w, h);
+      noise(c, w, h, 16);
+      c.fillStyle = 'rgba(40,48,58,0.20)';
+      c.fillRect(0, h * 0.70, w, 10);
+      c.fillStyle = 'rgba(40,48,58,0.10)';
+      c.fillRect(0, h * 0.70 + 10, w, h * 0.30);
+    }, 4, 2);
+  }
+
+  /* cotton weave for the bedding */
+  function sheetTexture() {
+    return canvasTex(256, 256, function (c, w, h) {
+      c.fillStyle = '#EFEADC';
+      c.fillRect(0, 0, w, h);
+      c.strokeStyle = 'rgba(150,140,120,0.16)';
+      c.lineWidth = 1;
+      for (var i = 0; i < w; i += 4) {
+        c.beginPath(); c.moveTo(i, 0); c.lineTo(i, h); c.stroke();
+        c.beginPath(); c.moveTo(0, i); c.lineTo(w, i); c.stroke();
+      }
+      noise(c, w, h, 10);
+    }, 3, 5);
+  }
+
+
+  /* ---- the patient ----
+     A shape under a sheet is not a person, it is bedding. He is propped on the
+     pillow with his head, shoulders, arms and hands above the blanket, which
+     is what makes the room read as somebody in it.
+
+     Stylised on purpose: simple forms, no facial detail. Primitives that reach
+     for realism land in the uncanny valley, and a clean stylised head does not.
+     The chest is a separate group so breathing moves him rather than the sheet. */
+  function buildPatient(skin, hair) {
+    var g = new THREE.Group();
+
+    var flesh = new THREE.MeshStandardMaterial({
+      color: skin, roughness: 0.72, metalness: 0.0
+    });
+    var hairMat = new THREE.MeshStandardMaterial({
+      color: hair, roughness: 0.92, metalness: 0.0
+    });
+    var gownMat = new THREE.MeshStandardMaterial({
+      color: 0xBFD3DA, roughness: 0.88, metalness: 0.0
+    });
+
+    function part(geo, mat, x, y, z) {
+      var m = new THREE.Mesh(geo, mat);
+      m.position.set(x, y, z);
+      m.castShadow = true;
+      m.receiveShadow = true;
+      g.add(m);
+      return m;
+    }
+
+    /* head, tipped back into the pillow */
+    var head = part(new THREE.SphereGeometry(0.108, 26, 20), flesh, 0, 0.90, -0.80);
+    head.scale.set(0.95, 1.06, 1.12);
+    head.rotation.x = -0.32;
+
+    /* jaw gives the profile a chin instead of a ball */
+    var jaw = part(new THREE.SphereGeometry(0.082, 20, 16), flesh, 0, 0.862, -0.748);
+    jaw.scale.set(0.92, 0.70, 1.02);
+    jaw.rotation.x = -0.30;
+
+    /* hair as a cap, thinning at the front the way a man of 54 wears it */
+    var cap = part(new THREE.SphereGeometry(0.113, 24, 18,
+                   0, Math.PI * 2, 0, Math.PI * 0.62), hairMat, 0, 0.912, -0.815);
+    cap.scale.set(0.98, 1.02, 1.10);
+    cap.rotation.x = -0.10;
+
+    var ear1 = part(new THREE.SphereGeometry(0.026, 12, 10), flesh, -0.102, 0.895, -0.795);
+    ear1.scale.set(0.5, 1, 0.8);
+    var ear2 = part(new THREE.SphereGeometry(0.026, 12, 10), flesh, 0.102, 0.895, -0.795);
+    ear2.scale.set(0.5, 1, 0.8);
+
+    var neck = part(new THREE.CylinderGeometry(0.056, 0.064, 0.10, 14), flesh, 0, 0.836, -0.715);
+    neck.rotation.x = 0.30;
+
+    /* chest and shoulders in their own group so breathing moves the man */
+    var chest = new THREE.Group();
+    var torso = new THREE.Mesh(new THREE.SphereGeometry(0.20, 24, 18), gownMat);
+    torso.scale.set(1.18, 0.62, 1.62);
+    torso.position.set(0, 0.80, -0.44);
+    torso.castShadow = true; torso.receiveShadow = true;
+    chest.add(torso);
+
+    var shoulder1 = new THREE.Mesh(new THREE.SphereGeometry(0.086, 16, 14), gownMat);
+    shoulder1.position.set(-0.205, 0.805, -0.60);
+    shoulder1.castShadow = true;
+    chest.add(shoulder1);
+    var shoulder2 = shoulder1.clone();
+    shoulder2.position.x = 0.205;
+    chest.add(shoulder2);
+    g.add(chest);
+
+    /* arms resting on top of the blanket, slightly out from the body */
+    function arm(side) {
+      var a = new THREE.Group();
+      var upper = new THREE.Mesh(new THREE.CapsuleGeometry
+        ? new THREE.CapsuleGeometry(0.052, 0.20, 6, 12)
+        : new THREE.CylinderGeometry(0.052, 0.052, 0.26, 12), gownMat);
+      upper.position.set(side * 0.235, 0.795, -0.42);
+      upper.rotation.set(0.12, 0, side * 0.16);
+      upper.castShadow = true;
+      a.add(upper);
+
+      var fore = new THREE.Mesh(new THREE.CapsuleGeometry
+        ? new THREE.CapsuleGeometry(0.046, 0.20, 6, 12)
+        : new THREE.CylinderGeometry(0.046, 0.046, 0.26, 12), flesh);
+      fore.position.set(side * 0.255, 0.782, -0.14);
+      fore.rotation.set(0.06, 0, side * 0.10);
+      fore.castShadow = true;
+      a.add(fore);
+
+      var hand = new THREE.Mesh(new THREE.SphereGeometry(0.055, 16, 12), flesh);
+      hand.position.set(side * 0.263, 0.778, 0.03);
+      hand.scale.set(0.82, 0.55, 1.15);
+      hand.castShadow = true;
+      a.add(hand);
+
+      g.add(a);
+      return a;
+    }
+    arm(-1); arm(1);
+
+    g.userData.chest = chest;
+    return g;
+  }
+
   function Room3D(canvas, ecgCanvas) {
     this.ok = false;
     if (!available()) return;
@@ -92,7 +273,10 @@
     /* ---- shell ---- */
     var floor = new THREE.Mesh(
       new THREE.PlaneGeometry(24, 24),
-      new THREE.MeshStandardMaterial({ color: 0x2E3742, roughness: 0.58, metalness: 0.06 })
+      new THREE.MeshStandardMaterial({
+        map: floorTexture(), color: 0x9FB0C0,
+        roughness: 0.42, metalness: 0.04
+      })
     );
     floor.rotation.x = -Math.PI / 2;
     floor.receiveShadow = true;
@@ -100,7 +284,7 @@
 
     var wall = new THREE.Mesh(
       new THREE.PlaneGeometry(24, 9),
-      new THREE.MeshStandardMaterial({ color: 0x3A4654, roughness: 0.92 })
+      new THREE.MeshStandardMaterial({ map: wallTexture(), color: 0xAEBDC9, roughness: 0.95 })
     );
     wall.position.set(0, 4.5, -3.2);
     wall.receiveShadow = true;
@@ -132,7 +316,7 @@
        as a person because of the silhouette and the way the light falls, not
        because of any detail. The chest lobe is what breathes. */
     var segW = 26, segL = 48;
-    var sheetGeo = new THREE.PlaneGeometry(1.02, 2.0, segW, segL);
+    var sheetGeo = new THREE.PlaneGeometry(1.04, 1.34, segW, segL);
     this.baseZ = [];
     var pos = sheetGeo.attributes.position;
     for (i = 0; i < pos.count; i++) {
@@ -141,13 +325,12 @@
       var t = (y + 1) / 2;
       var across = Math.pow(Math.cos(Math.min(1, Math.abs(x) / 0.34) * Math.PI / 2), 0.75);
 
-      var chest = 0.30 * Math.exp(-Math.pow((t - 0.30) / 0.115, 2));
-      var waist = 0.17 * Math.exp(-Math.pow((t - 0.48) / 0.085, 2));
-      var hips  = 0.24 * Math.exp(-Math.pow((t - 0.62) / 0.085, 2));
-      var knees = 0.19 * Math.exp(-Math.pow((t - 0.80) / 0.075, 2));
-      var shins = 0.11 * Math.exp(-Math.pow((t - 0.91) / 0.065, 2));
-      var feet  = 0.13 * Math.exp(-Math.pow((t - 0.985) / 0.030, 2));
-      var h = (chest + waist + hips + knees + shins + feet) * across;
+      var belly = 0.20 * Math.exp(-Math.pow((t - 0.12) / 0.16, 2));
+      var hips  = 0.22 * Math.exp(-Math.pow((t - 0.34) / 0.13, 2));
+      var thigh = 0.20 * Math.exp(-Math.pow((t - 0.55) / 0.13, 2));
+      var knees = 0.17 * Math.exp(-Math.pow((t - 0.76) / 0.085, 2));
+      var feet  = 0.14 * Math.exp(-Math.pow((t - 0.965) / 0.045, 2));
+      var h = (belly + hips + thigh + knees + feet) * across;
 
       this.baseZ.push(h);
       pos.setZ(i, h);
@@ -157,31 +340,25 @@
     var sheet = new THREE.Mesh(
       sheetGeo,
       new THREE.MeshStandardMaterial({
-        color: 0xE9E3D6, roughness: 0.88, metalness: 0,
-        side: THREE.DoubleSide
+        map: sheetTexture(), color: 0xFFFFFF,
+        roughness: 0.92, metalness: 0, side: THREE.DoubleSide
       })
     );
     sheet.rotation.x = -Math.PI / 2;
-    sheet.position.set(0, 0.70, 0.08);
+    sheet.position.set(0, 0.705, 0.42);
     sheet.castShadow = true;
     sheet.receiveShadow = true;
     S.add(sheet);
     this.sheet = sheet;
 
-    /* A suggestion of a head on the pillow. A sphere, no features. */
-    var pillow = box(0.42, 0.10, 0.26, 0xF2ECDF, 0.92);
-    pillow.position.set(0, 0.75, -0.92);
-    pillow.castShadow = true;
-    S.add(pillow);
+    this.patient = buildPatient(0xC79B74, 0x3A3129);
+    S.add(this.patient);
 
-    var headForm = new THREE.Mesh(
-      new THREE.SphereGeometry(0.115, 20, 16),
-      new THREE.MeshStandardMaterial({ color: 0xB08968, roughness: 0.78 })
-    );
-    headForm.position.set(0, 0.86, -0.90);
-    headForm.scale.set(1, 0.92, 1.05);
-    headForm.castShadow = true;
-    S.add(headForm);
+    var pillow = box(0.46, 0.11, 0.28, 0xF4EEE1, 0.92);
+    pillow.position.set(0, 0.742, -0.86);
+    pillow.rotation.x = -0.12;
+    pillow.castShadow = true; pillow.receiveShadow = true;
+    S.add(pillow);
 
     /* ---- IV pole ---- */
     var pole = new THREE.Mesh(
@@ -319,12 +496,12 @@
     this.hotspots = [];
 
     var SPOTS = [
-      { id: 'eyes',       label: 'Eyes',    pos: [0, 0.90, -0.88], r: 0.17 },
-      { id: 'cognition',  label: 'Speak to him', pos: [0.24, 0.96, -0.86], r: 0.13 },
-      { id: 'hands',      label: 'Hands',   pos: [-0.44, 0.80, 0.12], r: 0.17 },
-      { id: 'respiratory',label: 'Chest',   pos: [0, 0.92, -0.32], r: 0.20 },
-      { id: 'abdominal',  label: 'Abdomen', pos: [0, 0.94, 0.14],  r: 0.22 },
-      { id: 'legs',       label: 'Legs',    pos: [0, 0.80, 0.76],  r: 0.22 }
+      { id: 'eyes',       label: 'Eyes',         pos: [0, 0.90, -0.80], r: 0.15 },
+      { id: 'cognition',  label: 'Speak to him', pos: [0.20, 0.99, -0.78], r: 0.12 },
+      { id: 'hands',      label: 'Hands',        pos: [-0.263, 0.78, 0.03], r: 0.13 },
+      { id: 'respiratory',label: 'Chest',        pos: [0, 0.83, -0.44], r: 0.20 },
+      { id: 'abdominal',  label: 'Abdomen',      pos: [0, 0.80, 0.02], r: 0.20 },
+      { id: 'legs',       label: 'Legs',         pos: [0, 0.78, 0.66], r: 0.24 }
     ];
 
     SPOTS.forEach(function (spec) {
@@ -401,12 +578,20 @@
 
       /* breathing: the chest lobe rises and falls at his respiratory rate */
       var breath = Math.sin(this.clock * (this.rr / 60) * Math.PI * 2);
+
+      /* His chest rises, not the blanket. */
+      if (this.patient && this.patient.userData.chest) {
+        var c = this.patient.userData.chest;
+        c.scale.y = 1 + breath * 0.045;
+        c.position.y = breath * 0.012;
+      }
+
       var pos = this.sheet.geometry.attributes.position;
       for (var i = 0; i < pos.count; i++) {
         var y = pos.getY(i);
         var t = (y + 1) / 2;
-        var chest = Math.exp(-Math.pow((t - 0.30) / 0.13, 2));
-        pos.setZ(i, this.baseZ[i] + breath * 0.026 * chest);
+        var belly = Math.exp(-Math.pow((t - 0.12) / 0.20, 2));
+        pos.setZ(i, this.baseZ[i] + breath * 0.016 * belly);
       }
       pos.needsUpdate = true;
       this.sheet.geometry.computeVertexNormals();
