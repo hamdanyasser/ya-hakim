@@ -104,13 +104,77 @@
       tone.stop(t + 0.07); tone = null;
     }
   }
+  /* ------------------------------------------------------------- his voice */
+  /* Three things make a browser voice sound like a person rather than a
+     station announcement: the right voice for the character, a rate and pitch
+     that are not the defaults, and -- most of all -- breathing. A single long
+     utterance is read flat, so his lines are split at punctuation and spoken
+     as separate phrases with a real gap between them. */
+
+  var VOICES = [];
+  var chosenVoice = null;
+
+  function loadVoices() {
+    VOICES = window.speechSynthesis ? speechSynthesis.getVoices() : [];
+    chosenVoice = null;
+  }
+  if (window.speechSynthesis) {
+    loadVoices();
+    speechSynthesis.onvoiceschanged = loadVoices;
+  }
+
+  function pickVoice(sex) {
+    if (chosenVoice) return chosenVoice;
+    if (!VOICES.length) loadVoices();
+    if (!VOICES.length) return null;
+
+    var en = VOICES.filter(function (v) { return /^en/i.test(v.lang); });
+    if (!en.length) en = VOICES;
+
+    function find(re) {
+      for (var i = 0; i < en.length; i++) if (re.test(en[i].name)) return en[i];
+      return null;
+    }
+
+    /* Neural first if the machine has them -- these are a different league.
+       Windows: Settings > Time & language > Speech > Add voices. */
+    var natural = find(/natural|neural|online/i);
+
+    var male   = find(/david|mark|george|ryan|guy|brian|andrew|christopher/i);
+    var female = find(/zira|hazel|aria|jenny|ava|emma|libby|sonia/i);
+
+    chosenVoice = natural || (sex === 'female' ? (female || male) : (male || female)) || en[0];
+    return chosenVoice;
+  }
+
+  /* per character, so they do not all sound like the same man */
+  var VOICE_TUNE = {
+    kamal:   { rate: 0.92, pitch: 0.78 },   // heavy, tired, 54
+    rita:    { rate: 1.04, pitch: 1.04 },   // quick, sharp, 31
+    georges: { rate: 0.86, pitch: 0.84 }    // slow, formal, 62
+  };
+
   function speak(text) {
-    if (!window.speechSynthesis) return;
-    try {
-      var u = new SpeechSynthesisUtterance(text);
-      u.rate = 0.97; u.pitch = 0.86;
-      speechSynthesis.speak(u);
-    } catch (e) {}
+    if (!window.speechSynthesis || muted || !text) return;
+    var tune = VOICE_TUNE[(chosen && chosen.id) || ''] || { rate: 0.94, pitch: 0.85 };
+    var voice = pickVoice((chosen && chosen.sex) || 'male');
+
+    /* Split into phrases and queue them separately. The gaps between
+       utterances are what read as breath. */
+    var parts = String(text).match(/[^.!?,;:]+[.!?,;:]?/g) || [text];
+    parts.forEach(function (part, i) {
+      part = part.trim();
+      if (!part) return;
+      try {
+        var u = new SpeechSynthesisUtterance(part);
+        if (voice) u.voice = voice;
+        /* drift each phrase a touch so the delivery is not metronomic */
+        u.rate  = tune.rate  + (i % 2 ? 0.03 : -0.02);
+        u.pitch = tune.pitch + (i % 3 === 0 ? 0.03 : -0.02);
+        u.volume = 1;
+        speechSynthesis.speak(u);
+      } catch (e) {}
+    });
   }
 
   /* -------------------------------------------------------------- render */
@@ -124,6 +188,7 @@
     $('eName').textContent = v.name;
     $('eMeta').textContent = v.age + ' years old';
     $('avatar').textContent = v.avatar || '🧑';
+    if (chosen && v.sex) chosen.sex = v.sex;
 
     var m = MOOD[v.mood] || MOOD.guarded;
     $('moodPill').textContent = m[0] + ' ' + m[1];
