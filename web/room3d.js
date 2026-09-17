@@ -48,15 +48,15 @@
     /* r128 colour management. outputColorSpace does not exist here. */
     this.renderer.outputEncoding = THREE.sRGBEncoding;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.15;
+    this.renderer.toneMappingExposure = 1.35;
 
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0x090B0F);
-    this.scene.fog = new THREE.Fog(0x090B0F, 3.4, 11);
+    this.scene.background = new THREE.Color(0x141A22);
+    this.scene.fog = new THREE.Fog(0x141A22, 4.2, 13);
 
-    this.camera = new THREE.PerspectiveCamera(34, W / H, 0.1, 100);
-    this.camera.position.set(1.72, 1.16, 2.22);
-    this.camera.lookAt(0, 0.86, 0);
+    this.camera = new THREE.PerspectiveCamera(40, W / H, 0.1, 100);
+    this.camera.position.set(1.12, 1.02, 1.28);
+    this.camera.lookAt(-0.05, 0.80, -0.16);
 
     this.build(ecgCanvas);
     this.ok = true;
@@ -92,7 +92,7 @@
     /* ---- shell ---- */
     var floor = new THREE.Mesh(
       new THREE.PlaneGeometry(24, 24),
-      new THREE.MeshStandardMaterial({ color: 0x1A2028, roughness: 0.62, metalness: 0.08 })
+      new THREE.MeshStandardMaterial({ color: 0x2E3742, roughness: 0.58, metalness: 0.06 })
     );
     floor.rotation.x = -Math.PI / 2;
     floor.receiveShadow = true;
@@ -100,7 +100,7 @@
 
     var wall = new THREE.Mesh(
       new THREE.PlaneGeometry(24, 9),
-      new THREE.MeshStandardMaterial({ color: 0x232B36, roughness: 0.95 })
+      new THREE.MeshStandardMaterial({ color: 0x3A4654, roughness: 0.92 })
     );
     wall.position.set(0, 4.5, -3.2);
     wall.receiveShadow = true;
@@ -246,10 +246,10 @@
        The room read as grey boxes because a flat ambient did most of the work.
        Now a warm key with a visible cone does the shaping, a cool rim peels the
        body off the wall, and the monitor is a practical light in the scene. */
-    S.add(new THREE.HemisphereLight(0x5B6B82, 0x0C0F14, 0.55));
-    S.add(new THREE.AmbientLight(0x2A3340, 0.45));
+    S.add(new THREE.HemisphereLight(0x8AA0BE, 0x2A3140, 1.05));
+    S.add(new THREE.AmbientLight(0x4A5568, 0.85));
 
-    var spot = new THREE.SpotLight(0xFFCE94, 2.6, 9, Math.PI / 7.4, 0.5, 1.6);
+    var spot = new THREE.SpotLight(0xFFD9A8, 3.1, 10, Math.PI / 5.2, 0.55, 1.4);
     spot.position.set(0.30, 2.85, 0.55);
     spot.target.position.set(0, 0.74, 0.05);
     spot.castShadow = true;
@@ -283,7 +283,7 @@
     var cone = new THREE.Mesh(
       new THREE.ConeGeometry(1.05, 2.1, 28, 1, true),
       new THREE.MeshBasicMaterial({
-        color: 0xFFD8A4, transparent: true, opacity: 0.052,
+        color: 0xFFD8A4, transparent: true, opacity: 0.030,
         side: THREE.DoubleSide, depthWrite: false
       })
     );
@@ -291,11 +291,11 @@
     S.add(cone);
 
     /* cool rim, so he is not the same colour as the wall behind him */
-    var rim = new THREE.DirectionalLight(0x7FC4FF, 1.5);
+    var rim = new THREE.DirectionalLight(0x8FD0FF, 1.9);
     rim.position.set(-2.6, 1.7, -1.9);
     S.add(rim);
 
-    var fill = new THREE.PointLight(0x9FB8D8, 0.5, 7, 2);
+    var fill = new THREE.PointLight(0xAFC6E2, 1.1, 8, 2);
     fill.position.set(-1.5, 1.5, 1.8);
     S.add(fill);
 
@@ -418,7 +418,7 @@
         1.85 + Math.sin(a * 0.7) * 0.11,
         3.5 + Math.cos(a) * 0.30
       );
-      this.camera.lookAt(0, 0.86, 0);
+      this.camera.lookAt(-0.05, 0.80, -0.16);
     }
 
     this.updateHover();
