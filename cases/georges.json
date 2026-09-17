@@ -26,10 +26,71 @@
     "what heats the house"
   ],
   "key_keywords": [
-    ["better", "away", "leave", "leaving", "outside", "elsewhere", "improve", "improves", "holiday", "hotel", "daughter", "travel", "abroad", "nadia"],
-    ["wife", "family", "anyone", "else", "household", "others", "someone", "dog", "everyone", "spouse", "children", "marie"],
-    ["when", "morning", "mornings", "wake", "waking", "night", "evening", "worse", "timing", "pattern", "time of day"],
-    ["heating", "heat", "heats", "heated", "boiler", "furnace", "stove", "fire", "fireplace", "radiator", "warm", "vent", "chimney", "flue", "appliance", "cooker", "garage", "gas", "generator", "serviced"]
+    [
+      "better",
+      "away",
+      "leave",
+      "leaving",
+      "outside",
+      "elsewhere",
+      "improve",
+      "improves",
+      "holiday",
+      "hotel",
+      "daughter",
+      "travel",
+      "abroad",
+      "nadia"
+    ],
+    [
+      "wife",
+      "family",
+      "anyone",
+      "else",
+      "household",
+      "others",
+      "someone",
+      "dog",
+      "everyone",
+      "spouse",
+      "children",
+      "marie"
+    ],
+    [
+      "when",
+      "morning",
+      "mornings",
+      "wake",
+      "waking",
+      "night",
+      "evening",
+      "worse",
+      "timing",
+      "pattern",
+      "time of day"
+    ],
+    [
+      "heating",
+      "heat",
+      "heats",
+      "heated",
+      "boiler",
+      "furnace",
+      "stove",
+      "fire",
+      "fireplace",
+      "radiator",
+      "warm",
+      "vent",
+      "chimney",
+      "flue",
+      "appliance",
+      "cooker",
+      "garage",
+      "gas",
+      "generator",
+      "serviced"
+    ]
   ],
   "key_question_reasons": [
     "The headaches vanish for three days a week at his daughter's and return the first morning home. The house is the exposure.",
@@ -37,7 +98,13 @@
     "Worse in the mornings, lifting by lunch: the pattern of an overnight exposure in a closed house.",
     "An old boiler serviced by a man who has stopped servicing things. The source, and the reason it will keep happening."
   ],
-  "crack_keywords": ["nadia", "your daughter", "honest with me", "be honest", "at your daughter's"],
+  "crack_keywords": [
+    "nadia",
+    "your daughter",
+    "honest with me",
+    "be honest",
+    "at your daughter's"
+  ],
   "name": "Georges",
   "age": 62,
   "sex": "male",
@@ -48,11 +115,29 @@
     "triage_note": "Daughter concerned about six weeks of morning headaches, dizziness on standing, and an episode of confusion last week (could not recall his bank card number). Alert and orientated. Observations unremarkable; saturations 99% on air. Daughter reports he is 'not himself'."
   },
   "history": {
-    "past_medical": ["High blood pressure for ten years", "Knees. Both replaced, 2019 and 2021"],
-    "medications": ["Ramipril, one in the morning", "Amlodipine; they added that last year", "Paracetamol for the knees when I need it"],
-    "allergies": ["None"],
-    "social": ["Retired now. I fitted and serviced heating systems for forty years", "I live with my wife, Marie, in the house we bought in 1989", "I stopped smoking when Nadia was born", "A glass of wine with Sunday lunch, that is all", "Three days a week I am at my daughter's, minding the twins"],
-    "family": ["Father had a stroke at seventy-five", "Mother lived to ninety"]
+    "past_medical": [
+      "High blood pressure for ten years",
+      "Knees. Both replaced, 2019 and 2021"
+    ],
+    "medications": [
+      "Ramipril, one in the morning",
+      "Amlodipine; they added that last year",
+      "Paracetamol for the knees when I need it"
+    ],
+    "allergies": [
+      "None"
+    ],
+    "social": [
+      "Retired now. I fitted and serviced heating systems for forty years",
+      "I live with my wife, Marie, in the house we bought in 1989",
+      "I stopped smoking when Nadia was born",
+      "A glass of wine with Sunday lunch, that is all",
+      "Three days a week I am at my daughter's, minding the twins"
+    ],
+    "family": [
+      "Father had a stroke at seventy-five",
+      "Mother lived to ninety"
+    ]
   },
   "opening_line": "My daughter booked this. I told her I'd come, so here I am. Ten minutes.",
   "personality": "Retired, formal, slightly old-fashioned. Calls you doctor and means it. Does not like to complain and treats his own symptoms as an inconvenience to everyone else. Gets vague and repeats himself when tired, and does not notice he is doing it. Lights up if asked about the twins.",
@@ -85,7 +170,8 @@
       "I do not want to make a fuss. There are people here far worse off.",
       "My daughter worries. She always has, since she was small.",
       "It is winter, doctor. Everybody feels like this in winter."
-    ]
+    ],
+    "_feeling": "I do not like to make a fuss, doctor. I have felt better, that is all."
   },
   "exam": {
     "general": "Alert, orientated, a little slowed. Notably pink and well-perfused. No pallor or cyanosis. Afebrile.",
@@ -101,17 +187,52 @@
     "ecg": "Sinus rhythm 88/min. Non-specific T-wave flattening in the lateral leads. No ST elevation.",
     "troponin": "hs-troponin T 21 ng/L (above the 99th percentile; mildly raised).",
     "ck": "CK 240 U/L (mildly raised)",
-    "cbg": {"result": "6.2 mmol/L", "abnormal": false},
-    "fbc": {"result": "Hb 158 g/L, WCC 7.4 x10^9/L, platelets 240 x10^9/L.", "abnormal": false},
-    "ue": {"result": "Na 138, K 4.4, urea 6.8 mmol/L, creatinine 96 micromol/L, eGFR 72.", "abnormal": false},
-    "crp": {"result": "CRP 4 mg/L", "abnormal": false},
-    "ct_head": {"result": "No intracranial haemorrhage, mass or acute infarct. Ventricles normal size.", "abnormal": false},
-    "cxr": {"result": "Clear lung fields. Normal cardiac silhouette.", "abnormal": false},
-    "tft": {"result": "TSH 2.1 mU/L, free T4 14 pmol/L.", "abnormal": false}
+    "cbg": {
+      "result": "6.2 mmol/L",
+      "abnormal": false
+    },
+    "fbc": {
+      "result": "Hb 158 g/L, WCC 7.4 x10^9/L, platelets 240 x10^9/L.",
+      "abnormal": false
+    },
+    "ue": {
+      "result": "Na 138, K 4.4, urea 6.8 mmol/L, creatinine 96 micromol/L, eGFR 72.",
+      "abnormal": false
+    },
+    "crp": {
+      "result": "CRP 4 mg/L",
+      "abnormal": false
+    },
+    "ct_head": {
+      "result": "No intracranial haemorrhage, mass or acute infarct. Ventricles normal size.",
+      "abnormal": false
+    },
+    "cxr": {
+      "result": "Clear lung fields. Normal cardiac silhouette.",
+      "abnormal": false
+    },
+    "tft": {
+      "result": "TSH 2.1 mU/L, free T4 14 pmol/L.",
+      "abnormal": false
+    }
   },
-  "key_exams": ["cognition", "neurological", "general"],
-  "key_investigations": ["abg", "vbg", "ecg", "troponin"],
-  "key_treatments": ["oxygen_high_flow", "iv_access_bloods", "cardiac_monitoring", "senior_review"],
+  "key_exams": [
+    "cognition",
+    "neurological",
+    "general"
+  ],
+  "key_investigations": [
+    "abg",
+    "vbg",
+    "ecg",
+    "troponin"
+  ],
+  "key_treatments": [
+    "oxygen_high_flow",
+    "iv_access_bloods",
+    "cardiac_monitoring",
+    "senior_review"
+  ],
   "harmful_treatments": {
     "oxygen_titrated": "Titrating oxygen to a pulse-oximeter target is the trap in this case. The oximeter cannot tell carboxyhaemoglobin from oxyhaemoglobin and reads a falsely normal 99%. He needs 15 L/min via a non-rebreather regardless of the reading.",
     "benzodiazepine_sedation": "Sedation masks deterioration and treats nothing. The treatment is oxygen."
@@ -125,12 +246,58 @@
     "The house is still dangerous: his wife and the dog are inside. Nobody returns until the appliance is checked; notify the gas emergency service; safeguarding for the household"
   ],
   "management_keywords": [
-    ["suspect", "household", "winter", "away from", "pattern", "exposure"],
-    ["oximet", "co-ox", "carboxy", "cohb", "blood gas", "abg", "vbg"],
-    ["15", "non-rebreather", "high flow", "high-flow", "oxygen", "100%"],
-    ["ecg", "troponin", "cardiac", "myocard", "heart"],
-    ["poisons", "toxbase", "npis", "hyperbaric", "chamber"],
-    ["wife", "dog", "house", "appliance", "boiler", "gas emergency", "safeguard", "not return", "don't return", "do not return", "engineer"]
+    [
+      "suspect",
+      "household",
+      "winter",
+      "away from",
+      "pattern",
+      "exposure"
+    ],
+    [
+      "oximet",
+      "co-ox",
+      "carboxy",
+      "cohb",
+      "blood gas",
+      "abg",
+      "vbg"
+    ],
+    [
+      "15",
+      "non-rebreather",
+      "high flow",
+      "high-flow",
+      "oxygen",
+      "100%"
+    ],
+    [
+      "ecg",
+      "troponin",
+      "cardiac",
+      "myocard",
+      "heart"
+    ],
+    [
+      "poisons",
+      "toxbase",
+      "npis",
+      "hyperbaric",
+      "chamber"
+    ],
+    [
+      "wife",
+      "dog",
+      "house",
+      "appliance",
+      "boiler",
+      "gas emergency",
+      "safeguard",
+      "not return",
+      "don't return",
+      "do not return",
+      "engineer"
+    ]
   ],
   "teaching": {
     "summary": "Six weeks of morning headaches in a retired boiler engineer whose wife has them too and whose dog sleeps all day. Everything improves at his daughter's. The oximeter reads 99% and lies. His COHb is 18%, his troponin is up, and his wife is still in the house.",
@@ -142,10 +309,27 @@
       "Delayed neurological sequelae are common; arrange follow-up and tell them what to watch for."
     ]
   },
-  "guidelines": ["npis-toxbase-co", "ukhsa-co", "rcem-co", "bts-oxygen-2017"],
+  "guidelines": [
+    "npis-toxbase-co",
+    "ukhsa-co",
+    "rcem-co",
+    "bts-oxygen-2017"
+  ],
   "reveal_note": "His wife and the dog are still in the house.",
-  "vitals_start": {"hr": 88, "spo2": 99, "sys": 138, "dia": 88, "rr": 16},
-  "vitals_decline": {"hr": 24, "spo2": -1.2, "sys": -14, "dia": -9, "rr": 4.5},
+  "vitals_start": {
+    "hr": 88,
+    "spo2": 99,
+    "sys": 138,
+    "dia": 88,
+    "rr": 16
+  },
+  "vitals_decline": {
+    "hr": 24,
+    "spo2": -1.2,
+    "sys": -14,
+    "dia": -9,
+    "rr": 4.5
+  },
   "level_card": [
     "Last patient of the shift.",
     "He has a wife at home and a daughter who made him come.",

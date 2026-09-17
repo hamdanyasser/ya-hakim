@@ -25,11 +25,82 @@
     "confusion or drowsiness"
   ],
   "key_keywords": [
-    ["drink", "drinks", "drinking", "drank", "alcohol", "arak", "booze", "bottle", "beer", "wine", "whisky", "whiskey", "spirits", "liquor", "pub", "bar", "units"],
-    ["yellow", "yellowing", "yellowish", "eyes", "skin", "colour", "color", "pale", "tint", "itchy", "itching"],
-    ["belly", "stomach", "tummy", "swell", "swelling", "swollen", "bloated", "bloating", "distended", "gut", "waist", "size", "girth"],
-    ["bruise", "bruises", "bruising", "bruised", "bleed", "bleeds", "bleeding", "blood", "clot", "clotting", "marks", "nosebleed", "gums"],
-    ["confused", "confusion", "muddled", "forgetful", "memory", "concentrate", "concentration", "drowsy", "daytime", "nodding", "personality", "irritable"]
+    [
+      "drink",
+      "drinks",
+      "drinking",
+      "drank",
+      "alcohol",
+      "arak",
+      "booze",
+      "bottle",
+      "beer",
+      "wine",
+      "whisky",
+      "whiskey",
+      "spirits",
+      "liquor",
+      "pub",
+      "bar",
+      "units"
+    ],
+    [
+      "yellow",
+      "yellowing",
+      "yellowish",
+      "eyes",
+      "skin",
+      "colour",
+      "color",
+      "pale",
+      "tint",
+      "itchy",
+      "itching"
+    ],
+    [
+      "belly",
+      "stomach",
+      "tummy",
+      "swell",
+      "swelling",
+      "swollen",
+      "bloated",
+      "bloating",
+      "distended",
+      "gut",
+      "waist",
+      "size",
+      "girth"
+    ],
+    [
+      "bruise",
+      "bruises",
+      "bruising",
+      "bruised",
+      "bleed",
+      "bleeds",
+      "bleeding",
+      "blood",
+      "clot",
+      "clotting",
+      "marks",
+      "nosebleed",
+      "gums"
+    ],
+    [
+      "confused",
+      "confusion",
+      "muddled",
+      "forgetful",
+      "memory",
+      "concentrate",
+      "concentration",
+      "drowsy",
+      "daytime",
+      "nodding",
+      "personality",
+      "irritable"
+    ]
   ],
   "key_question_reasons": [
     "The cause. Fifteen years of heavy drinking is the whole story, and he will not volunteer it.",
@@ -38,7 +109,12 @@
     "Easy bruising means impaired clotting: a failing liver is not making clotting factors.",
     "Confusion and day-night reversal are hepatic encephalopathy, the most dangerous feature tonight."
   ],
-  "crack_keywords": ["wife", "what does she say", "honest with me", "be honest"],
+  "crack_keywords": [
+    "wife",
+    "what does she say",
+    "honest with me",
+    "be honest"
+  ],
   "name": "Kamal",
   "age": 54,
   "sex": "male",
@@ -49,11 +125,26 @@
     "triage_note": "Brought by wife. Increasing abdominal girth and ankle swelling over three weeks, tired all the time. Wife reports he was 'not making sense' for about an hour this evening and has been sleeping in the day. Apyrexial. Nurse notes yellow sclerae. Says he does not need to be here."
   },
   "history": {
-    "past_medical": ["High blood pressure, about five years ago they said", "A hernia repair when I was forty"],
-    "medications": ["Amlodipine, one a day. I take it most days"],
-    "allergies": ["None that I know of"],
-    "social": ["I supervise the loading crews at the port. Thirty years there", "I have arak with dinner. A couple of glasses, like anyone", "I smoked until my forties, then stopped", "I live with my wife. The boys have their own places now"],
-    "family": ["My father died of his heart at seventy", "My mother is still alive and complains about everything"]
+    "past_medical": [
+      "High blood pressure, about five years ago they said",
+      "A hernia repair when I was forty"
+    ],
+    "medications": [
+      "Amlodipine, one a day. I take it most days"
+    ],
+    "allergies": [
+      "None that I know of"
+    ],
+    "social": [
+      "I supervise the loading crews at the port. Thirty years there",
+      "I have arak with dinner. A couple of glasses, like anyone",
+      "I smoked until my forties, then stopped",
+      "I live with my wife. The boys have their own places now"
+    ],
+    "family": [
+      "My father died of his heart at seventy",
+      "My mother is still alive and complains about everything"
+    ]
   },
   "opening_line": "Doctor, it's nothing. My wife made me come.",
   "personality": "Proud. Jokes when uncomfortable. Thinks this is a waste of everyone's time. Slips into Lebanese Arabic when annoyed. Softens if you ask about his sons or his work.",
@@ -87,7 +178,8 @@
       "Is this the part where you tell me it's not lupus?",
       "You people ask a lot of questions for a waste of time.",
       "My wife made me come. Tell her I came. Can I go?"
-    ]
+    ],
+    "_feeling": "I am fine. Tired. Can we hurry, my wife is outside."
   },
   "exam": {
     "general": "Jaundiced sclerae and skin. Drowsy but rousable; orientated to person and place, not to time. Wasted shoulders and arms with a tense, distended abdomen.",
@@ -104,7 +196,10 @@
     "ue": "Na 128 mmol/L, K 3.4 mmol/L, urea 2.1 mmol/L, creatinine 62 micromol/L, eGFR >90.",
     "lft": "Bilirubin 84 micromol/L, ALT 62 IU/L, AST 141 IU/L, ALP 168 IU/L, GGT 412 IU/L, albumin 24 g/L.",
     "coag": "PT 21 s, INR 1.9, APTT 38 s.",
-    "cbg": {"result": "4.1 mmol/L", "abnormal": false},
+    "cbg": {
+      "result": "4.1 mmol/L",
+      "abnormal": false
+    },
     "crp": "CRP 18 mg/L",
     "magnesium": "Mg 0.62 mmol/L",
     "vbg": "pH 7.44, pCO2 4.6 kPa, HCO3 24 mmol/L, lactate 2.4 mmol/L, glucose 4.2 mmol/L, Na 128, K 3.4.",
@@ -114,12 +209,36 @@
     "cxr": "Small right pleural effusion. Heart size normal. No consolidation.",
     "us_abdomen": "Small, coarse, nodular liver with an irregular outline. Splenomegaly, 16 cm. Large-volume ascites. Patent portal vein with reversed (hepatofugal) flow. No biliary dilatation.",
     "ascitic_tap": "Straw-coloured fluid. Neutrophils 120/mm3 (below the 250 threshold). Protein 12 g/L. Serum-ascites albumin gradient 1.6 g/dL (high). Culture pending.",
-    "hepatitis_screen": {"result": "HBsAg negative, anti-HCV negative, HAV IgM negative.", "abnormal": false},
-    "tox_levels": {"result": "Paracetamol not detected. Salicylate not detected.", "abnormal": false}
+    "hepatitis_screen": {
+      "result": "HBsAg negative, anti-HCV negative, HAV IgM negative.",
+      "abnormal": false
+    },
+    "tox_levels": {
+      "result": "Paracetamol not detected. Salicylate not detected.",
+      "abnormal": false
+    }
   },
-  "key_exams": ["abdominal", "hands", "general", "cognition"],
-  "key_investigations": ["lft", "fbc", "coag", "ue", "cbg", "us_abdomen", "ascitic_tap"],
-  "key_treatments": ["iv_thiamine", "iv_access_bloods", "chlordiazepoxide", "senior_review"],
+  "key_exams": [
+    "abdominal",
+    "hands",
+    "general",
+    "cognition"
+  ],
+  "key_investigations": [
+    "lft",
+    "fbc",
+    "coag",
+    "ue",
+    "cbg",
+    "us_abdomen",
+    "ascitic_tap"
+  ],
+  "key_treatments": [
+    "iv_thiamine",
+    "iv_access_bloods",
+    "chlordiazepoxide",
+    "senior_review"
+  ],
   "harmful_treatments": {
     "benzodiazepine_sedation": "Sedating a patient with hepatic encephalopathy deepens the encephalopathy and risks the airway. Withdrawal is managed with a monitored chlordiazepoxide regimen, not sedation for agitation.",
     "nsaid": "NSAIDs precipitate kidney injury and gastrointestinal bleeding in decompensated liver disease. Paracetamol at reduced dose is the analgesic here.",
@@ -135,13 +254,56 @@
     "Senior and gastroenterology review; document the alcohol history and offer a brief intervention"
   ],
   "management_keywords": [
-    ["encephalopathy", "asterixis", "confusion", "precipitant", "flap"],
-    ["ascitic tap", "paracentesis", "sbp", "peritonitis", "tap"],
-    ["thiamine", "pabrinex", "withdrawal", "chlordiazepoxide", "vitamin b"],
-    ["lactulose", "rifaximin", "stools", "bowels"],
-    ["potassium", "magnesium", "sodium", "electrolyte", "saline"],
-    ["culture", "antibiotic", "varices", "endoscopy", "albumin", "infection"],
-    ["senior", "gastro", "hepatology", "brief intervention", "alcohol", "registrar"]
+    [
+      "encephalopathy",
+      "asterixis",
+      "confusion",
+      "precipitant",
+      "flap"
+    ],
+    [
+      "ascitic tap",
+      "paracentesis",
+      "sbp",
+      "peritonitis",
+      "tap"
+    ],
+    [
+      "thiamine",
+      "pabrinex",
+      "withdrawal",
+      "chlordiazepoxide",
+      "vitamin b"
+    ],
+    [
+      "lactulose",
+      "rifaximin",
+      "stools",
+      "bowels"
+    ],
+    [
+      "potassium",
+      "magnesium",
+      "sodium",
+      "electrolyte",
+      "saline"
+    ],
+    [
+      "culture",
+      "antibiotic",
+      "varices",
+      "endoscopy",
+      "albumin",
+      "infection"
+    ],
+    [
+      "senior",
+      "gastro",
+      "hepatology",
+      "brief intervention",
+      "alcohol",
+      "registrar"
+    ]
   ],
   "teaching": {
     "summary": "A proud man with fifteen years of hidden heavy drinking presents with three weeks of ascites and jaundice and tonight's hepatic encephalopathy. He minimises everything; the truth comes only when you press, or ask his wife. The danger tonight is the encephalopathy and what precipitated it, not the swelling.",
@@ -153,9 +315,26 @@
       "Saline for ascites is not kindness. Sodium restriction and spironolactone are."
     ]
   },
-  "guidelines": ["bsg-decompensated-cirrhosis", "nice-cg100", "easl-decompensated-cirrhosis", "nice-cg115"],
-  "vitals_start": {"hr": 96, "spo2": 97, "sys": 104, "dia": 68, "rr": 18},
-  "vitals_decline": {"hr": 20, "spo2": -4.5, "sys": -12, "dia": -8, "rr": 3.2},
+  "guidelines": [
+    "bsg-decompensated-cirrhosis",
+    "nice-cg100",
+    "easl-decompensated-cirrhosis",
+    "nice-cg115"
+  ],
+  "vitals_start": {
+    "hr": 96,
+    "spo2": 97,
+    "sys": 104,
+    "dia": 68,
+    "rr": 18
+  },
+  "vitals_decline": {
+    "hr": 20,
+    "spo2": -4.5,
+    "sys": -12,
+    "dia": -8,
+    "rr": 3.2
+  },
   "level_card": [
     "First patient of the shift.",
     "He does not want to be here. His wife made him come.",

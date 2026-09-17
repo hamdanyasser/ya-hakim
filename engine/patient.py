@@ -387,7 +387,18 @@ HISTORY_INTENTS = [
                       "been in hospital", "hospital before", "long-term", "long term"]),
     ("family", ["family", "parents", "mother", "father", "runs in"]),
     ("social", ["smoke", "smoking", "cigarette", "work", "job", "live with",
-                "who is at home", "at home", "recreational"]),
+                "who is at home", "at home", "recreational", "live alone",
+                "living alone", "on your own", "married", "wife", "husband",
+                "children", "kids", "occupation", "for a living", "retired"]),
+]
+
+PRESENTATION_INTENTS = [
+    ("duration", ["how long", "since when", "when did it start", "when did this start",
+                  "started when", "how many days", "how many weeks", "first notice",
+                  "first started", "going on for", "been like this"]),
+    ("complaint", ["what brings you", "why are you here", "what happened",
+                   "what is the problem", "whats the problem", "why did you come",
+                   "what brought you"]),
 ]
 
 GREETINGS = ["hello", "hi ", "hi,", "good morning", "good afternoon", "my name is",
@@ -415,6 +426,42 @@ class CannedPatient:
             return None
         return self.voice(best)
 
+    def presentation_answer(self, question):
+        """How long, and what brought him in. Both are in the case file and
+        neither was reachable, so the two most natural opening questions in any
+        consultation got a deflection."""
+        low = (question or "").lower()
+        pres = self.case.get("presentation") or {}
+        for key, cues in PRESENTATION_INTENTS:
+            if not any(c in low for c in cues):
+                continue
+            if key == "complaint":
+                # presentation.complaint is written for the chart -- "abdominal
+                # swelling and an episode of confusion". He is not a doctor and
+                # does not read his own notes aloud, so he answers the way he
+                # opened the consultation.
+                return self.voice(self.case.get("opening_line") or "")
+            if pres.get(key):
+                return self.voice(str(pres[key]))
+        return None
+
+    def feeling_answer(self, question):
+        """Asked how he is rather than what is wrong. Answering in character
+        here is most of what makes him feel like a person."""
+        low = (question or "").lower()
+        cues = ["are you scared", "are you frightened", "are you worried", "you ok",
+                "you okay", "are you alright", "how are you feeling", "how do you feel",
+                "are you in pain", "does it hurt", "any pain", "are you comfortable"]
+        if not any(c in low for c in cues):
+            return None
+        hurt = ["pain", "hurt", "sore", "ache"]
+        if any(h in low for h in hurt):
+            for symptom in self.case["symptoms"]:
+                if any(h in symptom.lower() for h in hurt + ["swell", "tender"]):
+                    return self.voice(symptom)
+            return "Not pain exactly. Just wrong."
+        return self.case["canned"].get("_feeling") or "I have been better. Let's get on with it."
+
     def history_answer(self, question):
         low = (question or "").lower()
         history = self.case.get("history") or {}
@@ -428,8 +475,12 @@ class CannedPatient:
             if key == "social":
                 cue_words = [c for c in cues if c in low]
                 picked = [i for i in items
-                          if any(w[:5] in i.lower() for w in cue_words)] or items[:2]
-                return self.voice(" ".join(self.voice(i) for i in picked[:2]))
+                          if any(w[:5] in i.lower() for w in cue_words)]
+                if not picked:
+                    picked = items[:1]
+                # One line, not two. Returning several used to volunteer the
+                # thing he is hiding alongside the thing that was asked.
+                return self.voice(picked[0])
             return self.voice(" ".join(self.voice(i) for i in items[:3]))
         return None
 
@@ -456,6 +507,14 @@ class CannedPatient:
             line = self.case["canned"].get(topic)
             if line:
                 return line
+
+        answer = self.presentation_answer(question)
+        if answer:
+            return answer
+
+        answer = self.feeling_answer(question)
+        if answer:
+            return answer
 
         answer = self.history_answer(question)
         if answer:

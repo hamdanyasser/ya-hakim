@@ -26,11 +26,69 @@
     "abdominal pain or vomiting"
   ],
   "key_keywords": [
-    ["weight", "weigh", "weighed", "lost", "losing", "thinner", "clothes", "kilos", "kilo", "appetite", "eating", "smaller", "diet"],
-    ["thirsty", "thirst", "drinking", "drink", "drinks", "fluids", "dehydrated", "parched", "mouth", "dry"],
-    ["toilet", "bathroom", "urine", "urinating", "peeing", "pee", "wee", "passing", "bladder", "night"],
-    ["vision", "sight", "eyes", "blurry", "blurred", "focus", "seeing", "glasses"],
-    ["vomit", "vomiting", "vomited", "sick", "nausea", "nauseous", "pain", "stomach", "tummy", "belly", "ache", "cramps"]
+    [
+      "weight",
+      "weigh",
+      "weighed",
+      "lost",
+      "losing",
+      "thinner",
+      "clothes",
+      "kilos",
+      "kilo",
+      "appetite",
+      "eating",
+      "smaller",
+      "diet"
+    ],
+    [
+      "thirsty",
+      "thirst",
+      "drinking",
+      "drink",
+      "drinks",
+      "fluids",
+      "dehydrated",
+      "parched",
+      "mouth",
+      "dry"
+    ],
+    [
+      "toilet",
+      "bathroom",
+      "urine",
+      "urinating",
+      "peeing",
+      "pee",
+      "wee",
+      "passing",
+      "bladder",
+      "night"
+    ],
+    [
+      "vision",
+      "sight",
+      "eyes",
+      "blurry",
+      "blurred",
+      "focus",
+      "seeing",
+      "glasses"
+    ],
+    [
+      "vomit",
+      "vomiting",
+      "vomited",
+      "sick",
+      "nausea",
+      "nauseous",
+      "pain",
+      "stomach",
+      "tummy",
+      "belly",
+      "ache",
+      "cramps"
+    ]
   ],
   "key_question_reasons": [
     "Twelve kilos lost without trying, hidden behind 'a new diet', is the classic new type 1 story.",
@@ -39,7 +97,13 @@
     "Blurred vision that comes and goes is osmotic lens swelling from high glucose.",
     "Vomiting and abdominal pain for two days are the ketoacidosis itself, and the reason she is drowsy tonight."
   ],
-  "crack_keywords": ["flatmate", "priya", "honest with me", "be honest", "what is she worried about"],
+  "crack_keywords": [
+    "flatmate",
+    "priya",
+    "honest with me",
+    "be honest",
+    "what is she worried about"
+  ],
   "name": "Rita",
   "age": 31,
   "sex": "female",
@@ -50,11 +114,26 @@
     "triage_note": "Brought by flatmate. Vomiting for two days, unable to keep fluids down, generalised abdominal pain, drowsy but rousable. Flatmate says she has 'not been herself for weeks' and is 'never off the toilet'. Looks dry. Breathing fast and deep."
   },
   "history": {
-    "past_medical": ["Nothing. I've never been in hospital in my life"],
-    "medications": ["The pill", "Ibuprofen for headaches, more than I should probably"],
-    "allergies": ["Penicillin gave me a rash as a kid"],
-    "social": ["I teach year nine physics. Three years now", "I live with my flatmate, Priya, near the school", "I don't smoke. Wine at the weekend, nothing dramatic", "I joined a gym in January"],
-    "family": ["Mum has an underactive thyroid", "Dad's fine. Grandad had something with his stomach late in life"]
+    "past_medical": [
+      "Nothing. I've never been in hospital in my life"
+    ],
+    "medications": [
+      "The pill",
+      "Ibuprofen for headaches, more than I should probably"
+    ],
+    "allergies": [
+      "Penicillin gave me a rash as a kid"
+    ],
+    "social": [
+      "I teach year nine physics. Three years now",
+      "I live with my flatmate, Priya, near the school",
+      "I don't smoke. Wine at the weekend, nothing dramatic",
+      "I joined a gym in January"
+    ],
+    "family": [
+      "Mum has an underactive thyroid",
+      "Dad's fine. Grandad had something with his stomach late in life"
+    ]
   },
   "opening_line": "I only came because my flatmate wouldn't let it go. I'm just run down.",
   "personality": "Sharp, a little defensive. A teacher, used to being the one in charge of a room. Deflects with dry humour. Hates being fussed over and will minimise anything you ask about. Warms up if you are straight with her.",
@@ -87,7 +166,8 @@
       "Can we be quick? I have marking to do.",
       "Everyone's tired in November. This is not news.",
       "My flatmate is a worrier. Don't take her word for anything."
-    ]
+    ],
+    "_feeling": "I am fine. I would be more fine at home marking books."
   },
   "exam": {
     "general": "Drowsy, GCS 14 (E3 V5 M6). Deep, sighing respirations at 28/min. A sweet, acetone smell on the breath. Thin; clothes visibly loose.",
@@ -105,17 +185,45 @@
     "urine_dip": "Glucose 4+, ketones 4+, protein trace. Blood, leucocytes and nitrites negative.",
     "ue": "Na 129 mmol/L, K 5.6 mmol/L, urea 12.4 mmol/L, creatinine 118 micromol/L, eGFR 52.",
     "fbc": "Hb 152 g/L, WCC 14.2 x10^9/L (neutrophils 11.1), platelets 380 x10^9/L.",
-    "crp": {"result": "CRP 6 mg/L", "abnormal": false},
+    "crp": {
+      "result": "CRP 6 mg/L",
+      "abnormal": false
+    },
     "hba1c": "HbA1c 118 mmol/mol",
     "lipase": "Lipase 210 U/L (mildly raised; commonly seen with ketosis, not itself pancreatitis)",
     "ecg": "Sinus tachycardia 118/min. Peaked T waves in V2 to V4.",
-    "urine_hcg": {"result": "Negative", "abnormal": false},
-    "tft": {"result": "TSH 3.9 mU/L, free T4 13 pmol/L.", "abnormal": false},
-    "cxr": {"result": "Clear lung fields. Normal cardiac silhouette.", "abnormal": false}
+    "urine_hcg": {
+      "result": "Negative",
+      "abnormal": false
+    },
+    "tft": {
+      "result": "TSH 3.9 mU/L, free T4 13 pmol/L.",
+      "abnormal": false
+    },
+    "cxr": {
+      "result": "Clear lung fields. Normal cardiac silhouette.",
+      "abnormal": false
+    }
   },
-  "key_exams": ["hydration", "general", "cardiovascular"],
-  "key_investigations": ["cbg", "blood_ketones", "vbg", "ue", "urine_dip"],
-  "key_treatments": ["iv_access_bloods", "iv_fluids", "iv_insulin_frii", "cardiac_monitoring", "senior_review"],
+  "key_exams": [
+    "hydration",
+    "general",
+    "cardiovascular"
+  ],
+  "key_investigations": [
+    "cbg",
+    "blood_ketones",
+    "vbg",
+    "ue",
+    "urine_dip"
+  ],
+  "key_treatments": [
+    "iv_access_bloods",
+    "iv_fluids",
+    "iv_insulin_frii",
+    "cardiac_monitoring",
+    "senior_review"
+  ],
   "harmful_treatments": {
     "nsaid": "An NSAID in a dehydrated patient with acute kidney injury worsens renal function and adds nothing.",
     "benzodiazepine_sedation": "Her deep breathing is compensating for a profound acidosis. Sedation blunts that drive and can precipitate respiratory failure."
@@ -130,13 +238,62 @@
     "Diabetes specialist team on the day of admission; critical care if pH is below 7.0, GCS falls, or potassium is unsafe"
   ],
   "management_keywords": [
-    ["ketone", "acidosis", "bicarbonate", "triad", "ph ", "ph<", "acidotic"],
-    ["insulin", "fixed rate", "fixed-rate", "frii", "0.1"],
-    ["fluid", "saline", "sodium chloride", "resusc", "litre", "bolus"],
-    ["potassium", "k+", "hyperkal", "peaked"],
-    ["hourly", "monitor", "glucose", "gas", "10%", "dextrose"],
-    ["precipitant", "infection", "new diagnosis", "type 1", "missed", "trigger"],
-    ["specialist", "diabetes team", "critical care", "escalat", "senior", "itu", "hdu", "registrar"]
+    [
+      "ketone",
+      "acidosis",
+      "bicarbonate",
+      "triad",
+      "ph ",
+      "ph<",
+      "acidotic"
+    ],
+    [
+      "insulin",
+      "fixed rate",
+      "fixed-rate",
+      "frii",
+      "0.1"
+    ],
+    [
+      "fluid",
+      "saline",
+      "sodium chloride",
+      "resusc",
+      "litre",
+      "bolus"
+    ],
+    [
+      "potassium",
+      "k+",
+      "hyperkal",
+      "peaked"
+    ],
+    [
+      "hourly",
+      "monitor",
+      "glucose",
+      "gas",
+      "10%",
+      "dextrose"
+    ],
+    [
+      "precipitant",
+      "infection",
+      "new diagnosis",
+      "type 1",
+      "missed",
+      "trigger"
+    ],
+    [
+      "specialist",
+      "diabetes team",
+      "critical care",
+      "escalat",
+      "senior",
+      "itu",
+      "hdu",
+      "registrar"
+    ]
   ],
   "teaching": {
     "summary": "A new presentation of type 1 diabetes in a 31-year-old, weeks of osmotic symptoms hidden behind 'a new diet' and 'a brutal term', now in ketoacidosis with Kussmaul breathing and a pH of 7.08. She is not run down; she is hours from a critical care bed.",
@@ -148,9 +305,25 @@
       "Kussmaul breathing is a sign, not a symptom to sedate."
     ]
   },
-  "guidelines": ["jbds-dka", "nice-ng17", "ada-standards"],
-  "vitals_start": {"hr": 104, "spo2": 98, "sys": 100, "dia": 62, "rr": 24},
-  "vitals_decline": {"hr": 18, "spo2": -4.4, "sys": -11, "dia": -7, "rr": 4.2},
+  "guidelines": [
+    "jbds-dka",
+    "nice-ng17",
+    "ada-standards"
+  ],
+  "vitals_start": {
+    "hr": 104,
+    "spo2": 98,
+    "sys": 100,
+    "dia": 62,
+    "rr": 24
+  },
+  "vitals_decline": {
+    "hr": 18,
+    "spo2": -4.4,
+    "sys": -11,
+    "dia": -7,
+    "rr": 4.2
+  },
   "level_card": [
     "Second patient of the shift.",
     "She teaches year nine and has not sat down in four hours.",

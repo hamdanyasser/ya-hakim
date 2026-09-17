@@ -360,3 +360,66 @@ def test_each_key_question_matches_its_own_topic(case_id):
         assert got == kq, (
             case_id + ": asking " + repr(kq) + " selected " + repr(got)
         )
+
+
+# ------------------------------------------- the offline patient's coverage
+
+OFFLINE_MUST_ANSWER = [
+    "how long has this been going on",
+    "what brings you in tonight",
+    "do you smoke",
+    "what medications are you taking",
+    "do you have any allergies",
+    "what do you do for work",
+    "does it run in the family",
+    "how are you feeling",
+    "have you been in hospital before",
+]
+
+
+@pytest.mark.parametrize("case_id", CASE_IDS)
+def test_the_offline_patient_answers_the_obvious_questions(case_id):
+    """Without a key he must still hold a consultation.
+
+    These are the questions anybody asks in the first minute. Each used to fall
+    through to a rotating brush-off, which is what makes an offline demo feel
+    like a lookup table instead of a person.
+    """
+    from engine.patient import CannedPatient
+    from engine.scoring import covers_key_topic
+
+    case = load(case_id)
+    deflections = set(case["canned"]["_deflect"])
+    missed = []
+    for q in OFFLINE_MUST_ANSWER:
+        cp = CannedPatient(case)
+        reply = cp.reply(q, topic=covers_key_topic(case, q))
+        if reply in deflections:
+            missed.append(q)
+    assert not missed, case_id + " deflects: " + repr(missed)
+
+
+@pytest.mark.parametrize("case_id", CASE_IDS)
+def test_the_offline_patient_never_talks_like_a_doctor(case_id):
+    """presentation.complaint is written for the chart. He must not read it."""
+    from engine.patient import CannedPatient, clinical_hit
+    from engine.scoring import covers_key_topic
+
+    case = load(case_id)
+    for q in OFFLINE_MUST_ANSWER + ["what is wrong with you"]:
+        cp = CannedPatient(case)
+        reply = cp.reply(q, topic=covers_key_topic(case, q))
+        assert not clinical_hit(reply), case_id + ": " + q + " -> " + reply
+
+
+@pytest.mark.parametrize("case_id", CASE_IDS)
+def test_asking_about_his_job_does_not_hand_over_the_secret(case_id):
+    """Social history is a list. Returning several entries used to volunteer
+    the thing he is hiding alongside the thing that was asked."""
+    from engine.patient import CannedPatient
+
+    case = load(case_id)
+    cp = CannedPatient(case)
+    reply = cp.reply("what do you do for work", topic=None)
+    assert case["lie"] not in reply
+    assert case["truth"] not in reply
