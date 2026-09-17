@@ -239,3 +239,14 @@ body.multi #joinBox, body.multi #boardBox { display: block; }
   background: var(--ok); color: #06201a; border: 0; font-size: 20px;
   font-weight: 700; padding: 14px 40px; border-radius: 6px; cursor: pointer;
 }
+
+
+/* A refused question has to say so. */
+#notice {
+  position: fixed; left: 50%; bottom: 84px; transform: translateX(-50%) translateY(8px);
+  background: var(--panel); border: 1px solid var(--line); color: var(--warn);
+  font-size: 17px; padding: 10px 20px; border-radius: 6px;
+  opacity: 0; pointer-events: none; transition: opacity .18s, transform .18s;
+  z-index: 30;
+}
+#notice.show { opacity: 1; transform: translateX(-50%) translateY(0); }

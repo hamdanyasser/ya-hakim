@@ -210,6 +210,7 @@ def test_rate_limit_is_enforced_server_side(case):
     from engine.game import ASK_COOLDOWN
 
     room, t, run_to = _room(case)
+    room.add_player("Omar")        # more than one player -> the full cooldown
     run_to(10)
     assert room.ask("Sara", "do you smoke?", now=t["now"]) is not None
     assert room.ask("Sara", "do you smoke again?", now=t["now"]) is None, \
@@ -225,3 +226,31 @@ def test_rate_limit_is_per_player(case):
     assert room.ask("Sara", "do you smoke?", now=t["now"]) is not None
     assert room.ask("Omar", "do you smoke?", now=t["now"]) is not None, \
         "one player's cooldown blocked another player"
+
+
+def test_a_solo_player_is_not_made_to_wait_eight_seconds(case):
+    """The cooldown protects a shared API budget. Alone there is none.
+
+    An 8 second wait for one person at a laptop is the game refusing to be
+    played: a 150 second round would allow about eighteen questions.
+    """
+    from engine.game import ASK_COOLDOWN, SOLO_COOLDOWN
+
+    assert SOLO_COOLDOWN < ASK_COOLDOWN
+    room, t, run_to = _room(case)          # just "Sara"
+    run_to(10)
+    assert room.ask("Sara", "do you smoke?", now=t["now"]) is not None
+    t["now"] += SOLO_COOLDOWN + 0.1
+    assert room.ask("Sara", "and your appetite?", now=t["now"]) is not None,         "a solo player was held to the multiplayer cooldown"
+
+
+def test_cooldown_left_counts_down_rather_than_just_blocking(case):
+    """The UI needs a number to show, not just a refusal."""
+    room, t, run_to = _room(case)
+    room.add_player("Omar")
+    run_to(10)
+    room.ask("Sara", "do you smoke?", now=t["now"])
+    left = room.cooldown_left("Sara", t["now"])
+    assert 0 < left <= 8
+    t["now"] += 4
+    assert room.cooldown_left("Sara", t["now"]) == pytest.approx(left - 4, abs=0.01)

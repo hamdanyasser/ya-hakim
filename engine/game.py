@@ -18,7 +18,8 @@ from engine.vitals import dead_vitals, status_for, vitals_at
 ROUND_SECONDS = 150          # 2.5 minutes
 STABILISE_SECONDS = 45
 MAX_MESSAGES = 60
-ASK_COOLDOWN = 8             # per player, seconds
+ASK_COOLDOWN = 8             # per player, seconds, when several are playing
+SOLO_COOLDOWN = 1.5          # one person at the laptop: double-submit guard only
 
 
 class Room:
@@ -61,14 +62,20 @@ class Room:
             self.last_ask[name] = -1e9
         return self.players[name]
 
-    def on_cooldown(self, name, now):
-        """Enforced here, not on the phone.
+    def cooldown_left(self, name, now):
+        """Seconds until this player may ask again. 0 means go ahead.
 
-        The phone also counts down, but only so it can say why the button went
-        quiet. A player with devtools open must not be able to spam the model
-        and spend the room's API budget.
+        The cooldown exists to stop a roomful of people spending the API budget
+        in thirty seconds. With one person at the laptop there is no budget to
+        race for, so it drops to a double-submit guard -- an 8 second wait for a
+        solo player is just the game refusing to be played.
         """
-        return (now - self.last_ask.get(name, -1e9)) < ASK_COOLDOWN
+        limit = ASK_COOLDOWN if len(self.players) > 1 else SOLO_COOLDOWN
+        left = limit - (now - self.last_ask.get(name, -1e9))
+        return max(0.0, left)
+
+    def on_cooldown(self, name, now):
+        return self.cooldown_left(name, now) > 0
 
     def start(self):
         self.phase = "playing"

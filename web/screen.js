@@ -285,9 +285,26 @@
     });
   }
 
+  function notice(text) {
+    var n = $('notice');
+    n.textContent = text;
+    n.classList.add('show');
+    clearTimeout(notice.t);
+    notice.t = setTimeout(function () { n.classList.remove('show'); }, 2600);
+  }
+
   $('askBtn').onclick = function () {
     var v = $('ask').value.trim();
-    if (v) { send('ask', v); $('ask').value = ''; }
+    if (!v) return;
+    $('ask').value = '';
+    send('ask', v).then(function (r) { return r.json(); }).then(function (d) {
+      /* Never swallow a question. Typing, pressing enter and watching nothing
+         happen is indistinguishable from the game being broken. */
+      if (d && d.reply === null) {
+        if (d.reason === 'cooldown') notice('Give him a second -- ' + d.wait + 's');
+        else if (d.reason === 'not_playing') notice('The round is not running');
+      }
+    }).catch(function () { notice('Lost the server'); });
   };
   $('guessBtn').onclick = function () {
     var v = $('ask').value.trim();

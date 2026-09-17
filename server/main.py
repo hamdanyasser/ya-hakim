@@ -114,7 +114,22 @@ async def api_ask(code: str, payload: dict):
     room, err = _room_or_404(code)
     if err:
         return err
-    reply = room.ask(payload.get("name", "Doctor"), (payload.get("text") or "")[:200])
+
+    name = payload.get("name", "Doctor")
+    text = (payload.get("text") or "")[:200]
+
+    # Say WHY nothing happened. A swallowed question looks like a broken game:
+    # you type, you press enter, and the screen does not move.
+    if room.phase != "playing":
+        return {"reply": None, "reason": "not_playing"}
+    if not text.strip():
+        return {"reply": None, "reason": "empty"}
+    room.add_player(name)
+    left = room.cooldown_left(name, room.clock())
+    if left > 0:
+        return {"reply": None, "reason": "cooldown", "wait": round(left, 1)}
+
+    reply = room.ask(name, text)
     await sockets.broadcast(room.room_code)
     return {"reply": reply}
 
