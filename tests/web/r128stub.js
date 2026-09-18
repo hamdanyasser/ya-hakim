@@ -5,10 +5,28 @@
 function V3(x, y, z) { this.x = x||0; this.y = y||0; this.z = z||0; }
 V3.prototype.set = function (x, y, z) { this.x=x; this.y=y; this.z=z; return this; };
 V3.prototype.copy = function (v) { return this.set(v.x, v.y, v.z); };
+V3.prototype.clone = function () { return new V3(this.x, this.y, this.z); };
+V3.prototype.setScalar = function (s) { return this.set(s, s, s); };
+V3.prototype.add = function (v) { this.x+=v.x; this.y+=v.y; this.z+=v.z; return this; };
+V3.prototype.sub = function (v) { this.x-=v.x; this.y-=v.y; this.z-=v.z; return this; };
+V3.prototype.addVectors = function (a, b) { return this.set(a.x+b.x, a.y+b.y, a.z+b.z); };
+V3.prototype.subVectors = function (a, b) { return this.set(a.x-b.x, a.y-b.y, a.z-b.z); };
+V3.prototype.multiplyScalar = function (s) { this.x*=s; this.y*=s; this.z*=s; return this; };
+V3.prototype.length = function () {
+  return Math.sqrt(this.x*this.x + this.y*this.y + this.z*this.z);
+};
+V3.prototype.normalize = function () {
+  var l = this.length() || 1;
+  return this.multiplyScalar(1/l);
+};
+
+function Quat() { this.x=0; this.y=0; this.z=0; this.w=1; }
+Quat.prototype.setFromUnitVectors = function () { return this; };
 
 function Obj() {
   this.position = new V3(); this.rotation = new V3(); this.scale = new V3(1,1,1);
-  this.children = []; this.userData = {};
+  this.quaternion = new Quat();
+  this.children = []; this.userData = {}; this.visible = true;
 }
 Obj.prototype.add = function (o) { this.children.push(o); return this; };
 Obj.prototype.lookAt = function () {};
@@ -34,6 +52,8 @@ var THREE = {
     return { setFromCamera: function(){}, intersectObjects: function(){ return []; } };
   },
   Vector2: function (x, y) { return { x: x||0, y: y||0 }; },
+  Vector3: V3,
+  Quaternion: Quat,
   PerspectiveCamera: function () { var o = new Obj(); o.aspect = 1; return o; },
 
   /* geometries present in r128 */
@@ -43,6 +63,7 @@ var THREE = {
   CylinderGeometry: function(){ return new Geo('cylinder'); },
   ConeGeometry: function(){ return new Geo('cone'); },
   CircleGeometry: function(){ return new Geo('circle'); },
+  TorusGeometry: function(){ return new Geo('torus'); },
   /* CapsuleGeometry deliberately absent: it arrived in r142 */
 
   MeshStandardMaterial: function(p){ return new Mat(p); },

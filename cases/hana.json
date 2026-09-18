@@ -1,0 +1,264 @@
+{
+  "id": "hana",
+  "title": "The consultant who says it is a panic attack",
+  "specialty": "Respiratory / Acute medicine",
+  "setting": "Emergency department, 14:20",
+  "diagnosis": "Pulmonary embolism",
+  "accepted_answers": [
+    "pulmonary embolism",
+    "embolism",
+    "pulmonary",
+    "clot on the lung",
+    "clot in the lung",
+    "blood clot",
+    "lung clot",
+    "clot on her lung"
+  ],
+  "partial_answers": [
+    "pneumonia",
+    "pleurisy",
+    "chest infection"
+  ],
+  "name": "Hana",
+  "age": 35,
+  "sex": "female",
+  "description": "Management consultant, back three days ago from a fortnight of client work in Singapore. Went straight from the airport to the office and has not stopped since. Her assistant called the ambulance after she went grey during a meeting.",
+  "personality": "Composed, controlled and slightly irritated at the interruption. Answers precisely and briefly. Very keen to establish that this is stress, because stress is manageable and this is not. Will not volunteer anything.",
+  "symptoms": [
+    "it catches me like a stitch when I breathe in deeply",
+    "I cannot get a satisfying breath no matter how hard I try",
+    "my heart has been racing since this morning",
+    "I went grey and had to sit down in a meeting",
+    "my left calf has been aching since the weekend"
+  ],
+  "lie_topic": "how you got back from Singapore",
+  "lie": "It was a short hop and I slept most of it. Nothing out of the ordinary.",
+  "truth": "It was fourteen hours in economy in the middle seat and I did not stand up once. My calf has been tight since I landed.",
+  "cracks_when": "pressed on it a second time, or asked what her assistant noticed",
+  "crack_keywords": [
+    "assistant",
+    "dina",
+    "honest with me",
+    "be honest",
+    "fourteen hours",
+    "really fly"
+  ],
+  "red_herrings": [
+    "insists it is a panic attack because she had one in her twenties",
+    "blames jet lag and four hours of sleep a night"
+  ],
+  "key_questions": [
+    "have you travelled recently",
+    "any pain in your legs",
+    "does it hurt when you breathe in",
+    "are you on any contraception"
+  ],
+  "key_keywords": [
+    [
+      "travelled",
+      "travel",
+      "flight",
+      "flew",
+      "fly",
+      "plane",
+      "trip",
+      "abroad",
+      "journey"
+    ],
+    [
+      "legs",
+      "leg",
+      "calf",
+      "calves",
+      "thigh",
+      "ankle",
+      "swollen"
+    ],
+    [
+      "breathe",
+      "breathing",
+      "breath",
+      "sharp",
+      "catches",
+      "deep",
+      "inspire"
+    ],
+    [
+      "contraception",
+      "contraceptive",
+      "pill",
+      "hormones",
+      "oestrogen",
+      "estrogen",
+      "hrt"
+    ]
+  ],
+  "canned": {
+    "any pain in your legs": "The left one has been tight behind the knee since the weekend. I assumed I had pulled something.",
+    "does it hurt when you breathe in": "It catches. Like a stitch that will not go, right at the bottom on the left.",
+    "are you on any contraception": "Yes, the same one for years. It has never caused me a moment's trouble.",
+    "_greeting": "I have a call at three. I think this is a panic attack, honestly.",
+    "_whats_wrong": "Stress. I have been running on four hours a night for a fortnight.",
+    "_deflect": [
+      "It is stress. I had one of these in my twenties.",
+      "I have a call at three I genuinely cannot move.",
+      "Jet lag does this to me every single time.",
+      "I am fine sitting still. It is only when I move.",
+      "My assistant overreacted. She does that."
+    ],
+    "_feeling": "Like I cannot fill my lungs however hard I go at it."
+  },
+  "exam": {
+    "general": "Composed but tachypnoeic at 26, speaking in slightly clipped sentences. Pale.",
+    "respiratory": "Chest clear to auscultation. No wheeze, no crackles. A pleural rub at the left base. Poor expansion on the left.",
+    "cardiovascular": "Sinus tachycardia 118. BP 112/68. Raised JVP. Loud second heart sound.",
+    "legs": "Left calf 3cm larger than the right, warm, tender along the deep veins. No pitting.",
+    "hands": "Cool, pale. Capillary refill 2 seconds.",
+    "eyes": "Pupils equal. Conjunctivae pale.",
+    "cognition": "Fully oriented, articulate, and unhappy about being here."
+  },
+  "key_exams": [
+    "legs",
+    "respiratory",
+    "cardiovascular"
+  ],
+  "vitals_start": {
+    "hr": 108,
+    "spo2": 95,
+    "sys": 118,
+    "dia": 72,
+    "rr": 24
+  },
+  "vitals_decline": {
+    "hr": 16,
+    "spo2": -4.5,
+    "sys": -12,
+    "dia": -7,
+    "rr": 4
+  },
+  "level_card": [
+    "Thirty-five, composed, and certain this is a panic attack.",
+    "She flew back from Singapore three days ago.",
+    "Ask about the flight. Then ask about her left calf."
+  ],
+  "reveal_note": "A short hop she slept through was fourteen hours in a middle seat she never got out of.",
+  "opening_line": "I have a call at three. I think this is a panic attack, honestly.",
+  "presentation": {
+    "complaint": "Sharp chest pain and breathlessness",
+    "duration": "It started this morning in a meeting",
+    "triage_note": "Ambulance from office. Tachycardic, tachypnoeic, chest clear. Left calf swollen. Recent long-haul travel."
+  },
+  "history": {
+    "past_medical": [
+      "Nothing. I am never ill"
+    ],
+    "medications": [
+      "The combined pill. I have taken it for years"
+    ],
+    "allergies": [
+      "None"
+    ],
+    "social": [
+      "I am a management consultant",
+      "I travel for work more or less constantly",
+      "I do not smoke",
+      "I run, when there is time, which there is not"
+    ],
+    "family": [
+      "My mother had trouble with her leg after an operation",
+      "Otherwise nothing"
+    ]
+  },
+  "key_investigations": [
+    "ctpa",
+    "ecg",
+    "abg",
+    "d_dimer",
+    "fbc",
+    "coag",
+    "us_doppler_leg"
+  ],
+  "key_treatments": [
+    "oxygen_titrated",
+    "iv_access_bloods",
+    "lmwh_treatment",
+    "cardiac_monitoring",
+    "senior_review"
+  ],
+  "harmful_treatments": {
+    "benzodiazepine_sedation": "Treating this as anxiety is the error the case is built around. Sedation buries the one sign that is keeping her alive.",
+    "nsaid": "It does nothing for the cause and complicates the anticoagulation she is about to need."
+  },
+  "management_points": [
+    "Score her formally (Wells, PERC) rather than accepting the label she arrived with",
+    "A raised respiratory rate with a clear chest is the finding that matters",
+    "Anticoagulate on clinical suspicion while waiting for imaging, if bleeding risk allows",
+    "CTPA to confirm, with a leg ultrasound if imaging is delayed or contraindicated",
+    "Look for right heart strain: on the ECG, on the echo, and in the raised JVP",
+    "Measure both calves: a 3cm difference is a sign, not a coincidence",
+    "Take the risk-factor history properly: the long-haul flight and the oestrogen together"
+  ],
+  "management_keywords": [
+    [
+      "wells",
+      "perc",
+      "score",
+      "probability",
+      "risk"
+    ],
+    [
+      "respiratory rate",
+      "tachypnoea",
+      "tachypnea",
+      "clear chest",
+      "rate"
+    ],
+    [
+      "anticoagul",
+      "lmwh",
+      "heparin",
+      "doac",
+      "treatment dose",
+      "empiric"
+    ],
+    [
+      "ctpa",
+      "imaging",
+      "doppler",
+      "ultrasound",
+      "leg scan"
+    ],
+    [
+      "right heart",
+      "strain",
+      "s1q3t3",
+      "echo",
+      "jvp"
+    ],
+    [
+      "calf",
+      "measure",
+      "circumference",
+      "3cm",
+      "leg"
+    ],
+    [
+      "flight",
+      "travel",
+      "oestrogen",
+      "estrogen",
+      "pill",
+      "risk factor"
+    ]
+  ],
+  "teaching": {
+    "summary": "A 35-year-old three days off a fourteen-hour flight, on the combined pill, with pleuritic pain, a tachycardia and a swollen left calf, presenting it all as a panic attack. The label arrived before the history did.",
+    "pearls": [
+      "Anxiety is a diagnosis of exclusion in anyone who is tachypnoeic with a clear chest.",
+      "Measure both calves. It takes ten seconds and it is often the answer.",
+      "'A short hop I slept through' is worth asking about twice.",
+      "A normal chest examination is a reason to worry, not to relax.",
+      "The combined pill plus immobility is the commonest risk pair you will meet."
+    ]
+  }
+}

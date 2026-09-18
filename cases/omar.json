@@ -1,0 +1,267 @@
+{
+  "id": "omar",
+  "title": "The driver with the bad back",
+  "specialty": "Gastroenterology / Acute medicine",
+  "setting": "Emergency department, 19:30",
+  "diagnosis": "Bleeding stomach ulcer",
+  "accepted_answers": [
+    "ulcer",
+    "stomach ulcer",
+    "bleeding ulcer",
+    "peptic ulcer",
+    "gi bleed",
+    "upper gi bleed",
+    "stomach bleed",
+    "gastric ulcer"
+  ],
+  "partial_answers": [
+    "gastritis",
+    "varices",
+    "reflux",
+    "anaemia",
+    "anemia"
+  ],
+  "name": "Omar",
+  "age": 52,
+  "sex": "male",
+  "description": "Long-distance lorry driver, twenty-eight years on the same routes. Lives on service station food and sleeps in the cab four nights a week. His wife noticed he had gone grey in the face and drove him here herself.",
+  "personality": "Gruff and self-reliant. Does not like being looked at. Answers in as few words as he can manage and resents the chair. Softens considerably if you treat him as a working man rather than a patient.",
+  "symptoms": [
+    "I have a gnawing burn right here under my ribs",
+    "it eases for an hour if I eat something",
+    "I have gone light-headed standing up out of the cab",
+    "I am worn out in a way sleep does not fix",
+    "I have gone off my food entirely this last week"
+  ],
+  "lie_topic": "the tablets you take for your back",
+  "lie": "I take the odd one for my back. Nothing regular, a couple a week at most.",
+  "truth": "I have been taking eight or nine a day for months. I buy them by the box at the services. It is the only way I can sit in that seat for ten hours.",
+  "cracks_when": "pressed on it a second time, or asked what his wife would say about the boxes",
+  "crack_keywords": [
+    "wife",
+    "amal",
+    "honest with me",
+    "be honest",
+    "how many really",
+    "boxes"
+  ],
+  "red_herrings": [
+    "blames it on service station food and bad coffee",
+    "says his back is the only thing really wrong with him"
+  ],
+  "key_questions": [
+    "what painkillers have you been taking",
+    "have you noticed anything odd in the toilet",
+    "have you vomited anything",
+    "do you drink alcohol"
+  ],
+  "key_keywords": [
+    [
+      "painkillers",
+      "painkiller",
+      "ibuprofen",
+      "tablets",
+      "pills",
+      "anti",
+      "inflammatories",
+      "aspirin"
+    ],
+    [
+      "toilet",
+      "motions",
+      "black",
+      "dark",
+      "tarry",
+      "stools",
+      "bowels"
+    ],
+    [
+      "vomited",
+      "vomit",
+      "sick",
+      "threw",
+      "throwing",
+      "coffee",
+      "grounds"
+    ],
+    [
+      "alcohol",
+      "drink",
+      "drinking",
+      "beer",
+      "spirits",
+      "arak",
+      "units"
+    ]
+  ],
+  "canned": {
+    "have you noticed anything odd in the toilet": "It has been black as tar for a few days. I put it down to the iron in those tablets.",
+    "have you vomited anything": "Once, yesterday, in the lay-by. It looked like old coffee grounds.",
+    "do you drink alcohol": "A few beers at the weekend when I am home. Nothing in the week, I am driving.",
+    "_greeting": "My wife made me come. I have got a load to get to Leeds.",
+    "_whats_wrong": "My back, mostly. The rest is service station food.",
+    "_deflect": [
+      "It is what I eat. You try living off those places.",
+      "My back is the problem. Always has been.",
+      "How long is this going to take? I have got a load booked.",
+      "I have had worse and worked through it.",
+      "My wife worries. That is her job, not yours."
+    ],
+    "_feeling": "A burn, right under the ribs. Eating shifts it for an hour."
+  },
+  "exam": {
+    "general": "Grey, clammy and sitting very still. Looks older than fifty-two today.",
+    "abdominal": "Soft, with tenderness high in the middle. No guarding, no rebound. No organ enlargement. Rectal examination shows black tarry stool.",
+    "cardiovascular": "Tachycardic 112. BP 108/62 lying, 86/50 sitting up. Peripheries cool.",
+    "hands": "Pale palmar creases. Capillary refill 3 seconds. No clubbing.",
+    "eyes": "Conjunctival pallor, marked. Sclerae clear.",
+    "cognition": "Oriented but slow and irritable.",
+    "legs": "No swelling. Pale."
+  },
+  "key_exams": [
+    "abdominal",
+    "cardiovascular",
+    "eyes"
+  ],
+  "vitals_start": {
+    "hr": 102,
+    "spo2": 97,
+    "sys": 122,
+    "dia": 72,
+    "rr": 19
+  },
+  "vitals_decline": {
+    "hr": 19,
+    "spo2": -4.3,
+    "sys": -13,
+    "dia": -8,
+    "rr": 3
+  },
+  "level_card": [
+    "Fifty-two, grey in the face, and worried about a load booked for Leeds.",
+    "He has a burn under his ribs that eating settles.",
+    "Ask what he buys at the services, and how many."
+  ],
+  "reveal_note": "A couple a week was eight or nine a day, bought by the box, for months.",
+  "opening_line": "My wife made me come. I have got a load to get to Leeds.",
+  "presentation": {
+    "complaint": "Burning pain under the ribs and light-headedness",
+    "duration": "The burn has been months. The dizziness is this week",
+    "triage_note": "Brought by wife. Grey, clammy, marked postural drop. Reports black motions for several days."
+  },
+  "history": {
+    "past_medical": [
+      "My back. Twenty years of it",
+      "Nothing else worth troubling you with"
+    ],
+    "medications": [
+      "Tablets for my back",
+      "That is it"
+    ],
+    "allergies": [
+      "None"
+    ],
+    "social": [
+      "I drive lorries, long distance, twenty-eight years",
+      "I sleep in the cab four nights a week",
+      "I smoked until I was forty",
+      "A few beers at the weekend when I am home"
+    ],
+    "family": [
+      "My father died of his heart at sixty",
+      "My mother is still going strong"
+    ]
+  },
+  "key_investigations": [
+    "fbc",
+    "ue",
+    "coag",
+    "group_save",
+    "lft",
+    "ecg",
+    "vbg"
+  ],
+  "key_treatments": [
+    "iv_access_bloods",
+    "iv_fluids",
+    "blood_transfusion",
+    "iv_ppi",
+    "senior_review",
+    "specialist_referral"
+  ],
+  "harmful_treatments": {
+    "nsaid": "The tablets are the cause. Another one is the single worst thing you could give him.",
+    "aspirin_loading": "He is actively bleeding. Loading him with an antiplatelet makes it worse."
+  },
+  "management_points": [
+    "Two large-bore cannulae, bloods including a cross-match, and fluid or blood for shock",
+    "Calculate a risk score (Blatchford on admission) rather than eyeballing him",
+    "Stop the culprit: the NSAIDs are the cause, not a detail of the history",
+    "Proton pump inhibitor and urgent endoscopy, within 24 hours and sooner if unstable",
+    "Transfuse to a restrictive target, around 70-80 g/L, unless he is exsanguinating",
+    "A postural drop of that size is a large loss already; do not be reassured by a lying pressure",
+    "Check coagulation and reverse anticoagulation if present"
+  ],
+  "management_keywords": [
+    [
+      "cannula",
+      "access",
+      "cross-match",
+      "crossmatch",
+      "large bore",
+      "large-bore"
+    ],
+    [
+      "blatchford",
+      "rockall",
+      "score",
+      "risk"
+    ],
+    [
+      "nsaid",
+      "ibuprofen",
+      "stop",
+      "culprit",
+      "anti-inflammat"
+    ],
+    [
+      "ppi",
+      "proton",
+      "omeprazole",
+      "pantoprazole",
+      "endoscop",
+      "ogd"
+    ],
+    [
+      "transfus",
+      "restrictive",
+      "70",
+      "80",
+      "haemoglobin",
+      "hemoglobin"
+    ],
+    [
+      "postural",
+      "lying",
+      "standing",
+      "shock",
+      "drop"
+    ],
+    [
+      "coag",
+      "inr",
+      "reverse",
+      "anticoagul"
+    ]
+  ],
+  "teaching": {
+    "summary": "A 52-year-old driver taking eight or nine ibuprofen a day for his back, now with melaena, coffee-ground vomit and a 22-point postural drop. He described it as a couple a week.",
+    "pearls": [
+      "Ask how many, not whether. 'The odd one' is never the odd one.",
+      "A postural drop is the cheapest measure of blood loss you have.",
+      "Black tarry stool is a diagnosis, not a curiosity.",
+      "Restrictive transfusion saves lives; over-transfusion does not.",
+      "The patient who wants to leave for work is often the sickest in the department."
+    ]
+  }
+}

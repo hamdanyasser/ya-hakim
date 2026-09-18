@@ -287,6 +287,16 @@ def ask(case, history, question, cracked=False, client=None, mood=None):
     The caller substitutes a fallback line. A bad model reply must never reach a
     learner and must never crash an encounter.
     """
+    # With no key configured the SDK raises TypeError while it is still
+    # building the request -- before any HTTP call, so it is not an APIError
+    # and the handler below never saw it. Every v1 call site happens to check
+    # llm.available() first, which is why this stayed hidden; the first caller
+    # that did not turned every question into a 500 and the patient answered
+    # nothing at all. An unconfigured key is the documented offline path, not
+    # an error, so it returns None here like any other dead end.
+    if client is None and not llm.available():
+        return None
+
     system = build_persona(case, cracked=cracked, mood=mood)
     messages = list(history) + [{"role": "user", "content": question}]
     bad = forbidden_pattern(case)
@@ -307,7 +317,10 @@ def ask(case, history, question, cracked=False, client=None, mood=None):
                 messages=messages,
                 output_config={"effort": "low"},
             )
-        except anthropic.APIError:
+        except (anthropic.AnthropicError, TypeError, ValueError):
+            # The contract above is absolute: this must never crash an
+            # encounter. A misconfigured client is a fallback, not a stack
+            # trace in front of a room full of people.
             return None
 
         if getattr(resp, "stop_reason", None) == "refusal":

@@ -25,69 +25,86 @@
 </section>
 
 <!-- ----------------------------------------------------------- case pick -->
-<section id="pick" class="screen">
-  <div class="pill teal">Choose your patient</div>
-  <h1 class="title" style="font-size:clamp(32px,5vw,58px);color:var(--teal)">Who's next?</h1>
+<section id="pick" class="screen wide">
+  <button class="backbtn" id="pickBack" title="Back" aria-label="Back"><span>&#8634;</span></button>
+
+  <!-- the ladder: rank, level, and how far into it you are -->
+  <div class="ladder card">
+    <div class="rankbadge" id="rankBadge">1</div>
+    <div class="ladder-body">
+      <div class="ladder-top">
+        <span class="rankname" id="rankName">Medical student</span>
+        <span class="xpline"><span class="num" id="xpInto">0</span> / <span class="num" id="xpNeed">200</span> XP</span>
+      </div>
+      <div class="bar"><div class="fill" id="xpFill"></div></div>
+      <div class="ladder-sub" id="ladderSub">No cases yet. Pick a patient.</div>
+    </div>
+    <button class="btn" id="toStats" style="font-size:15px;padding:10px 18px">📊 My record</button>
+  </div>
+
+  <h1 class="title" style="font-size:clamp(28px,4.2vw,50px);color:var(--teal);margin-top:4px">Who's next?</h1>
   <div class="cases" id="caseList"></div>
 </section>
 
 <!-- --------------------------------------------------------------- brief -->
 <section id="brief" class="screen">
+  <button class="backbtn" id="briefBack" title="Someone else" aria-label="Back"><span>&#8634;</span></button>
   <div class="pill clay" id="briefTag">Patient</div>
   <h1 class="title" style="font-size:clamp(30px,4.4vw,52px);color:var(--clay)" id="briefName">&mdash;</h1>
   <p class="lead" id="briefText"></p>
   <div class="card" style="padding:18px 24px;max-width:640px">
     <p class="lead" style="font-size:18px;margin:0" id="briefHint"></p>
   </div>
+  <div class="brief-meta" id="briefMeta"></div>
   <button class="btn saffron big" id="toEncounter">Go in</button>
 </section>
 
 <!-- ----------------------------------------------------------- encounter -->
 <div id="encounter">
+  <!-- Mirrored to match the stage below it: what you DO is on the left over
+       the conversation, who he IS is on the right over the room. -->
   <div class="topbar">
-    <div class="who-big">
-      <div class="avatar" id="avatar">🧔</div>
-      <div>
-        <div class="name" id="eName">&mdash;</div>
-        <div class="meta" id="eMeta"></div>
-      </div>
-      <div class="pill" id="moodPill" style="margin-left:8px">Guarded</div>
+    <div class="topactions">
+      <div class="clock num" id="clock">4:00</div>
+      <button class="btn" id="btnExamine">🩺 Examine</button>
+      <button class="btn plum" id="btnDiagnose">Diagnose</button>
+      <button class="btn ghost" id="btnGiveUp">I give up</button>
     </div>
-    <div style="display:flex;gap:10px;align-items:center">
-      <button class="btn" id="btnExamine" style="font-size:16px;padding:11px 20px">🩺 Examine</button>
-      <button class="btn plum" id="btnDiagnose" style="font-size:16px;padding:11px 20px">Diagnose</button>
-      <div class="clock num" id="clock">2:30</div>
-    </div>
-  </div>
 
-  <div class="monitor">
-    <div class="trace"><canvas id="ecg"></canvas></div>
-    <div class="vitals">
-      <div class="vital hr" id="cHr"><div class="k">Heart rate</div>
-        <div class="v num" id="vHr">&mdash;<small>bpm</small></div><div class="tellflag">he's lying</div></div>
-      <div class="vital spo2"><div class="k">Oxygen</div>
-        <div class="v num" id="vSpo2">&mdash;<small>%</small></div></div>
-      <div class="vital bp"><div class="k">Blood pressure</div>
-        <div class="v num" id="vBp">&mdash;<small>mmHg</small></div></div>
-      <div class="vital rr"><div class="k">Breathing</div>
-        <div class="v num" id="vRr">&mdash;<small>/min</small></div></div>
+    <div class="topwho">
+      <!-- The vitals live on the monitor in the room now. These two are the
+           glance you get without turning your head, and the HR one is what
+           flashes when his pulse gives him away. -->
+      <div class="mini">
+        <div class="pips" id="pips" title="Threads of his history you have pulled"></div>
+        <div class="chip-v hr" id="cHr"><b class="num" id="vHr">&mdash;</b><span>HR</span></div>
+        <div class="chip-v sp" id="cSpo2"><b class="num" id="vSpo2">&mdash;</b><span>SpO&#8322;</span></div>
+      </div>
+      <div class="pill" id="moodPill">Guarded</div>
+      <div class="who-big">
+        <div class="whotext">
+          <div class="name" id="eName">&mdash;</div>
+          <div class="meta" id="eMeta"></div>
+        </div>
+        <div class="avatar" id="avatar">🧔</div>
+      </div>
     </div>
   </div>
 
   <div class="stage">
+    <div class="side">
+      <div class="talk" id="talk"></div>
+      <div class="quick" id="quick"></div>
+      <div class="askbar">
+        <input id="ask" placeholder="Ask him anything&hellip;" autocomplete="off">
+        <button class="btn teal" id="btnAsk">Ask</button>
+      </div>
+    </div>
     <div class="room" id="roomWrap">
       <canvas id="room3d"></canvas>
       <div class="roomtip" id="examTip"></div>
-      <div class="roomhint">Click him to examine</div>
+      <div class="roomhint">Click him to examine &middot; his monitor is on the arm</div>
     </div>
-    <div class="talk" id="talk"></div>
-  </div>
-
-  <div class="quick" id="quick"></div>
-
-  <div class="askbar">
-    <input id="ask" placeholder="Ask him anything, then press enter" autocomplete="off">
-    <button class="btn teal" id="btnAsk">Ask</button>
   </div>
 </div>
 
@@ -105,11 +122,11 @@
 <div class="overlay" id="dxSheet">
   <div class="sheet" style="max-width:560px">
     <h2>Call it</h2>
-    <p class="sub">One answer. Plain words are fine &mdash; "liver" counts.</p>
-    <input id="dxInput" class="" placeholder="What is wrong with him?"
-           style="width:100%;font-family:inherit;font-size:20px;font-weight:700;padding:14px 20px;
-                  border-radius:var(--r-pill);border:var(--stroke) solid var(--line);
-                  background:var(--card);color:var(--ink)">
+    <p class="sub">Plain words are fine &mdash; "liver" counts. A wrong call costs you a
+       try and some marks, but the round carries on.</p>
+    <div class="tries" id="dxTries"></div>
+    <input id="dxInput" class="field" placeholder="What is wrong with him?">
+    <div id="dxMiss" class="miss" style="display:none"></div>
     <div style="display:flex;gap:10px;margin-top:18px">
       <button class="btn plum" id="submitDx">That's my answer</button>
       <button class="btn" id="closeDx">Not yet</button>
@@ -117,14 +134,90 @@
   </div>
 </div>
 
+<!-- ------------------------------------------------------ generate sheet -->
+<div class="overlay" id="genSheet">
+  <div class="sheet" style="max-width:640px">
+    <h2>Write me a new patient</h2>
+    <p class="sub">The model drafts a whole case &mdash; history, vitals, the lie, the
+       answer &mdash; and it is checked against the same rules the written three pass
+       before you are allowed to play it.</p>
+
+    <div id="genForm">
+      <label class="lbl" for="genBrief">What kind of patient?</label>
+      <input id="genBrief" class="field" maxlength="300"
+             placeholder="a young man who has been vomiting for two days">
+
+      <label class="lbl" for="genSpec" style="margin-top:14px">Specialty</label>
+      <input id="genSpec" class="field" maxlength="60" placeholder="acute medicine">
+
+      <label class="lbl" style="margin-top:14px">How hard?</label>
+      <div class="segs" id="genDiff">
+        <button class="seg" data-v="easy">Intern</button>
+        <button class="seg on" data-v="standard">Resident</button>
+        <button class="seg" data-v="hard">Attending</button>
+      </div>
+
+      <div style="display:flex;gap:10px;margin-top:20px">
+        <button class="btn teal" id="genGo">Write the case</button>
+        <button class="btn" id="closeGen">Cancel</button>
+      </div>
+    </div>
+
+    <div id="genBusy" style="display:none">
+      <div class="bar big"><div class="fill stripe" id="genFill"></div></div>
+      <p class="lead" style="font-size:17px;margin:14px 0 0" id="genMsg">Writing the case&hellip;</p>
+      <p class="sub" style="margin-top:6px" id="genElapsed">0s</p>
+      <button class="btn" id="genHide" style="margin-top:12px">Play something else while it writes</button>
+    </div>
+
+    <div id="genErr" style="display:none">
+      <div class="pill rose" style="margin-bottom:12px">Didn't work</div>
+      <p class="lead" style="font-size:17px;margin:0" id="genErrMsg"></p>
+      <button class="btn" id="genRetry" style="margin-top:16px">Back</button>
+    </div>
+  </div>
+</div>
+
+<!-- --------------------------------------------------------- stats sheet -->
+<div class="overlay" id="statsSheet">
+  <div class="sheet">
+    <h2>Your record</h2>
+    <p class="sub">Every case you have finished this browser, newest first.</p>
+    <div class="statrow" id="statTotals"></div>
+    <div class="history" id="historyList"></div>
+    <div style="display:flex;gap:10px;margin-top:20px">
+      <button class="btn" id="closeStats">Close</button>
+      <button class="btn" id="wipeStats" style="font-size:15px;padding:11px 20px">Clear my record</button>
+    </div>
+  </div>
+</div>
+
 <!-- -------------------------------------------------------------- reveal -->
-<section id="reveal" class="screen">
+<section id="reveal" class="screen wide">
+  <button class="backbtn" id="revealBack" title="Back to the patients" aria-label="Back"><span>&#8634;</span></button>
   <div class="pill rose" id="revealTag">Time up</div>
   <div class="dx" id="revealDx">&mdash;</div>
   <p class="lead" id="revealNote"></p>
-  <div class="scores" id="revealScores"></div>
-  <div style="display:flex;gap:12px">
+
+  <div class="resultgrid">
+    <div class="card accuracy">
+      <div class="acc-num num" id="accNum">0<small>%</small></div>
+      <div class="acc-lbl">accuracy</div>
+      <div class="bar"><div class="fill" id="accFill"></div></div>
+      <div class="acc-xp" id="accXp">+0 XP</div>
+    </div>
+    <div class="scores" id="revealScores"></div>
+  </div>
+
+  <div class="levelup card" id="levelUp" style="display:none">
+    <span class="rankbadge sm" id="luBadge">2</span>
+    <div><b id="luText">Level up</b><div class="sub" id="luSub"></div></div>
+  </div>
+
+  <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center">
     <button class="btn teal big" id="againBtn">Next patient</button>
+    <button class="btn saffron" id="replayBtn">&#8635; Replay him</button>
+    <button class="btn" id="statsBtn">My record</button>
     <button class="btn" id="proofBtn">Show them it couldn't cheat</button>
   </div>
 </section>
@@ -134,14 +227,9 @@
   <div class="sheet">
     <h2>This is everything the AI is told.</h2>
     <p class="sub">The real prompt behind the patient. Search it for the answer.</p>
-    <input id="proofSearch" placeholder="try: liver"
-           style="width:100%;font-family:inherit;font-size:18px;font-weight:700;padding:12px 18px;
-                  border-radius:var(--r-pill);border:var(--stroke) solid var(--line);
-                  background:var(--card);color:var(--ink);margin-bottom:12px">
+    <input id="proofSearch" class="field" placeholder="try: liver" style="margin-bottom:12px">
     <div id="proofResult" class="pill teal" style="margin-bottom:14px">&mdash;</div>
-    <pre id="proofText" style="font-family:var(--mono);font-size:12.5px;line-height:1.6;
-         white-space:pre-wrap;background:var(--card);border:var(--stroke) solid var(--line);
-         border-radius:var(--r-sm);padding:16px;max-height:44vh;overflow:auto;margin:0"></pre>
+    <pre id="proofText"></pre>
     <button class="btn" id="closeProof" style="margin-top:18px">Close</button>
   </div>
 </div>
@@ -150,7 +238,7 @@
 
 <!-- three.js r128, UMD. If it fails the room hides and the game plays on. -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="/v2/ecg.js"></script>
+<script src="/v2/monitor.js"></script>
 <script src="/v2/room3d.js"></script>
 <script src="/v2/app.js"></script>
 </body>

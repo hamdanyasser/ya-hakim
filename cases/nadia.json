@@ -1,0 +1,256 @@
+{
+  "id": "nadia",
+  "title": "The student who says she is just unfit",
+  "specialty": "Respiratory / Acute medicine",
+  "setting": "Emergency department, 22:15",
+  "diagnosis": "Severe asthma attack",
+  "accepted_answers": [
+    "asthma",
+    "asthma attack",
+    "severe asthma",
+    "bad chest"
+  ],
+  "partial_answers": [
+    "bronchospasm",
+    "wheeze",
+    "chest infection",
+    "copd"
+  ],
+  "name": "Nadia",
+  "age": 26,
+  "sex": "female",
+  "description": "Second-year architecture student, shares a damp flat above a bakery with two others. Walked here from the bus stop and had to stop twice on the way. Her housemate sent her in after hearing her through the wall all night.",
+  "personality": "Bright and quick, and embarrassed to be taking up a bed. Answers in short bursts because longer sentences cost her. Plays everything down. Opens up if you are patient and do not rush her.",
+  "symptoms": [
+    "I cannot get a full breath in",
+    "my chest feels like a belt being pulled tight",
+    "I have been up every night this week sitting on the edge of the bed",
+    "talking in long sentences is hard",
+    "I am coughing and nothing comes up"
+  ],
+  "lie_topic": "your brown inhaler",
+  "lie": "I take my puffers exactly the way I am supposed to.",
+  "truth": "I ran out of the brown one in the spring and never went back for more. I only use the blue one, and lately it barely touches it.",
+  "cracks_when": "pressed on it a second time, or asked what her housemate has noticed",
+  "crack_keywords": [
+    "housemate",
+    "leila",
+    "honest with me",
+    "be honest",
+    "truthfully",
+    "really taking"
+  ],
+  "red_herrings": [
+    "blames it on being unfit and not going to the gym",
+    "says the flat is damp and everyone there has a cough"
+  ],
+  "key_questions": [
+    "have you been using your inhalers",
+    "how long have you been like this",
+    "have you been up at night with it",
+    "have you ever been in hospital for your chest before"
+  ],
+  "key_keywords": [
+    [
+      "inhaler",
+      "inhalers",
+      "puffer",
+      "puffers",
+      "preventer",
+      "brown",
+      "blue",
+      "spray"
+    ],
+    [
+      "long",
+      "days",
+      "weeks",
+      "started",
+      "since",
+      "worse",
+      "gradually"
+    ],
+    [
+      "night",
+      "nights",
+      "sleep",
+      "sleeping",
+      "woken",
+      "waking",
+      "lying"
+    ],
+    [
+      "hospital",
+      "admitted",
+      "before",
+      "ambulance",
+      "itu",
+      "icu",
+      "steroids"
+    ]
+  ],
+  "canned": {
+    "how long have you been like this": "It has been creeping up for weeks. Tonight is the worst it has been.",
+    "have you been up at night with it": "Every night this week. I end up sitting on the edge of the bed until it eases.",
+    "have you ever been in hospital for your chest before": "Once, when I was fifteen. They kept me in a couple of days. It was not a big deal.",
+    "_greeting": "Sorry. My housemate made me come.",
+    "_whats_wrong": "I do not know. I am just unfit, I think.",
+    "_deflect": [
+      "I am unfit, that is all it is.",
+      "The flat is damp. Everyone there is coughing.",
+      "Can I sit up a bit? It is easier sitting up.",
+      "I have got a deadline. I really cannot be here long.",
+      "It always settles on its own eventually."
+    ],
+    "_feeling": "Tight. Like something is sitting on me."
+  },
+  "exam": {
+    "general": "Sitting forward, using accessory muscles. Speaking in short phrases only. Respiratory rate 30. Exhausted-looking.",
+    "respiratory": "Widespread polyphonic wheeze with a prolonged expiratory phase. Poor air entry at both bases. Chest hyperinflated.",
+    "cardiovascular": "Tachycardic 118, regular. BP 126/74. Peripheries warm.",
+    "hands": "Fine tremor. No clubbing. Nicotine staining absent.",
+    "eyes": "Pupils equal and reactive. No injection.",
+    "cognition": "Alert and oriented, but tiring and increasingly short in her answers.",
+    "legs": "No swelling, no calf tenderness."
+  },
+  "key_exams": [
+    "respiratory",
+    "general",
+    "cardiovascular"
+  ],
+  "vitals_start": {
+    "hr": 104,
+    "spo2": 95,
+    "sys": 128,
+    "dia": 78,
+    "rr": 24
+  },
+  "vitals_decline": {
+    "hr": 17,
+    "spo2": -4.4,
+    "sys": -6,
+    "dia": -4,
+    "rr": 3
+  },
+  "level_card": [
+    "Twenty-six, breathless, and certain she is only unfit.",
+    "She has had a chest like this since she was a child.",
+    "Something she stopped doing months ago is why tonight is different."
+  ],
+  "reveal_note": "The blue inhaler was never the one keeping her out of hospital. The brown one was, and she stopped it in the spring.",
+  "opening_line": "Sorry. My housemate made me come.",
+  "presentation": {
+    "complaint": "Breathlessness and chest tightness",
+    "duration": "It has been creeping up for weeks. Tonight is the worst it has been",
+    "triage_note": "Brought in by housemate. Audible wheeze, speaking in short phrases, using accessory muscles. Says she is 'just unfit'."
+  },
+  "history": {
+    "past_medical": [
+      "I had trouble with my breathing as a child",
+      "They said I grew out of most of it"
+    ],
+    "medications": [
+      "A blue puffer when I need it",
+      "The pill"
+    ],
+    "allergies": [
+      "None that I know of"
+    ],
+    "social": [
+      "I study architecture, second year",
+      "I share a damp flat above a bakery",
+      "I do not smoke, never have",
+      "I do not really drink"
+    ],
+    "family": [
+      "My mum had the same trouble as a child",
+      "My dad gets hay fever"
+    ]
+  },
+  "key_investigations": [
+    "peak_flow",
+    "abg",
+    "cxr",
+    "fbc",
+    "ue"
+  ],
+  "key_treatments": [
+    "oxygen_titrated",
+    "nebulised_salbutamol",
+    "iv_hydrocortisone",
+    "cardiac_monitoring",
+    "senior_review"
+  ],
+  "harmful_treatments": {
+    "benzodiazepine_sedation": "She is tiring and her drive to breathe is all that is holding the gas up. Sedation removes it.",
+    "oxygen_high_flow": "Target saturations, do not flood her. Uncontrolled oxygen hides deterioration on the monitor."
+  },
+  "management_points": [
+    "Recognise life-threatening features: silent chest, exhaustion, a normal or rising CO2, saturations below 92%",
+    "Back-to-back nebulised salbutamol with ipratropium, oxygen driven, targeting 94-98%",
+    "Systemic steroid early, within the first hour, for every acute attack",
+    "Arterial or venous gas: a CO2 that is not low in an acute attack is an emergency",
+    "Peak flow against her predicted, before and after treatment",
+    "Ask what she has actually been taking: a preventer stopped months ago is why this attack is different",
+    "Critical care review if she is tiring, silent, or the CO2 is climbing"
+  ],
+  "management_keywords": [
+    [
+      "life-threatening",
+      "silent",
+      "exhaust",
+      "co2",
+      "92"
+    ],
+    [
+      "salbutamol",
+      "nebulis",
+      "nebuliz",
+      "ipratropium",
+      "back to back",
+      "back-to-back"
+    ],
+    [
+      "steroid",
+      "prednisolone",
+      "hydrocortisone"
+    ],
+    [
+      "gas",
+      "abg",
+      "vbg",
+      "carbon dioxide",
+      "co2"
+    ],
+    [
+      "peak flow",
+      "peak-flow",
+      "pefr",
+      "predicted"
+    ],
+    [
+      "preventer",
+      "inhaler",
+      "adherence",
+      "compliance",
+      "brown"
+    ],
+    [
+      "critical care",
+      "itu",
+      "icu",
+      "senior",
+      "anaesthe"
+    ]
+  ],
+  "teaching": {
+    "summary": "A 26-year-old with a lifelong wheeze who stopped her preventer in the spring, now in a severe attack she is describing as being unfit. Night waking every night for a week is the warning nobody read.",
+    "pearls": [
+      "A normal CO2 in an acute attack is not reassurance, it is exhaustion.",
+      "Night symptoms are the single most useful question in asthma control.",
+      "The blue inhaler treats the attack; the brown one prevents the admission.",
+      "Speaking in short phrases is an objective sign, and it is free.",
+      "Steroids in the first hour change the admission, not just the day."
+    ]
+  }
+}

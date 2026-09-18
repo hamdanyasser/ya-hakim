@@ -137,15 +137,23 @@ CATALOG IDS
 
 
 def draft(brief: str, specialty: str = "", difficulty: str = "standard",
-          language: str = "English") -> dict | None:
-    """Ask the model for a case. Returns a normalised case dict or None."""
+          language: str = "English", *, effort: str = "xhigh",
+          max_tokens: int = 32000, timeout: float = 300.0) -> dict | None:
+    """Ask the model for a case. Returns a normalised case dict or None.
+
+    The effort and budget are arguments rather than constants because the
+    instructor's editor and a player waiting on a loading bar want different
+    trades. The defaults are the editor's: slowest and best. v2 turns them
+    down, because nobody watches a spinner for five minutes.
+    """
     if not llm.available():
         return None
     user = ("Write one case.\nBrief: " + (brief or "an adult presenting to the emergency department") +
             "\nSpecialty: " + (specialty or "acute medicine") +
             "\nDifficulty: " + difficulty +
             "\nLanguage the patient speaks: " + language)
-    raw = llm.json_call(AUTHOR_SYSTEM, user, CASE_SCHEMA, effort="xhigh", max_tokens=32000, timeout=300.0)
+    raw = llm.json_call(AUTHOR_SYSTEM, user, CASE_SCHEMA, effort=effort,
+                        max_tokens=max_tokens, timeout=timeout)
     if not raw:
         return None
     return normalise(raw)

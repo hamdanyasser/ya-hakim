@@ -1,0 +1,263 @@
+{
+  "id": "farida",
+  "title": "The grandmother who does not like to make a fuss",
+  "specialty": "General surgery",
+  "setting": "Emergency department, 11:05",
+  "diagnosis": "Bowel obstruction",
+  "accepted_answers": [
+    "bowel obstruction",
+    "obstruction",
+    "blocked bowel",
+    "blockage",
+    "obstructed",
+    "ileus"
+  ],
+  "partial_answers": [
+    "constipation",
+    "hernia",
+    "adhesions",
+    "tumour",
+    "tumor"
+  ],
+  "name": "Farida",
+  "age": 74,
+  "sex": "female",
+  "description": "Widowed eleven years, lives alone in a first-floor flat and cooks for her son's family every Friday. Has not missed a Friday in nine years. Her daughter-in-law brought her in after she could not finish making the rice.",
+  "personality": "Gracious, chatty and completely unwilling to be a burden. Will talk at length about her grandchildren to avoid answering about herself. Apologises for the trouble roughly every second sentence.",
+  "symptoms": [
+    "my middle has swollen up like a drum",
+    "it grips me in waves and then lets go",
+    "I have been sick three times since last night and it was dark and bitter",
+    "I cannot pass any wind at all",
+    "I have no appetite whatsoever, which is not like me"
+  ],
+  "lie_topic": "when you last went to the toilet",
+  "lie": "I went this morning, same as always. Everything is perfectly normal that way.",
+  "truth": "It has been eight days. Nothing at all, not even wind. I was too ashamed to say it in front of my son's wife.",
+  "cracks_when": "pressed on it a second time, or asked gently when she is alone",
+  "crack_keywords": [
+    "honest with me",
+    "be honest",
+    "just between us",
+    "eight days",
+    "really been"
+  ],
+  "red_herrings": [
+    "blames it on rich food at a family wedding last week",
+    "says she has always had a delicate digestion"
+  ],
+  "key_questions": [
+    "when did you last open your bowels",
+    "have you been sick",
+    "is your belly swollen",
+    "have you had surgery before"
+  ],
+  "key_keywords": [
+    [
+      "open",
+      "opened",
+      "bowels",
+      "toilet",
+      "motion",
+      "motions",
+      "wind",
+      "constipated"
+    ],
+    [
+      "sick",
+      "vomit",
+      "vomited",
+      "vomiting",
+      "threw",
+      "throwing",
+      "nausea"
+    ],
+    [
+      "belly",
+      "swollen",
+      "bloated",
+      "distended",
+      "tummy",
+      "middle",
+      "size"
+    ],
+    [
+      "surgery",
+      "operation",
+      "operations",
+      "scar",
+      "scars",
+      "appendix",
+      "hysterectomy"
+    ]
+  ],
+  "canned": {
+    "have you been sick": "Three times since last night. It was dark, and it tasted terrible.",
+    "is your belly swollen": "Look at me. I cannot do up my skirt and I have worn it for years.",
+    "have you had surgery before": "They took something out when I was forty. There is a scar, if you want to see it.",
+    "_greeting": "I am so sorry to trouble you. My daughter-in-law insisted.",
+    "_whats_wrong": "Something I ate, I expect. I have a delicate digestion.",
+    "_deflect": [
+      "It was the wedding. Far too rich, all of it.",
+      "Have I shown you my grandchildren? Four of them now.",
+      "I do not want to take a bed from someone who needs it.",
+      "I have always been delicate that way. It passes.",
+      "My daughter-in-law does fuss. She means well."
+    ],
+    "_feeling": "It grips me, then it lets go, then it grips me again."
+  },
+  "exam": {
+    "general": "Dry and uncomfortable, drawing her knees up in waves. Looks her age and then some today.",
+    "abdominal": "Grossly distended and tympanic. Diffuse tenderness without peritonism. High-pitched tinkling bowel sounds. A tender irreducible lump in the right groin.",
+    "hydration": "Dry mucous membranes, reduced turgor, capillary refill 3 seconds.",
+    "cardiovascular": "Tachycardic 108. BP 112/64 with a postural drop.",
+    "cognition": "Fully oriented and entirely charming.",
+    "eyes": "Sunken. Sclerae clear.",
+    "hands": "Cool, dry, tenting skin.",
+    "legs": "No swelling. A tender lump in the right groin on standing."
+  },
+  "key_exams": [
+    "abdominal",
+    "hydration",
+    "general"
+  ],
+  "vitals_start": {
+    "hr": 100,
+    "spo2": 96,
+    "sys": 124,
+    "dia": 74,
+    "rr": 20
+  },
+  "vitals_decline": {
+    "hr": 18,
+    "spo2": -4.2,
+    "sys": -10,
+    "dia": -6,
+    "rr": 3
+  },
+  "level_card": [
+    "Seventy-four, apologetic, and swollen up like a drum.",
+    "She is sure it was the wedding food.",
+    "Ask her the question she does not want to answer in front of her family."
+  ],
+  "reveal_note": "Eight days, not one morning. The lump in her groin had been there for years and chose this week to matter.",
+  "opening_line": "I am so sorry to trouble you. My daughter-in-law insisted.",
+  "presentation": {
+    "complaint": "Swelling, colicky pain and vomiting",
+    "duration": "Three days of it now, and worse since last night",
+    "triage_note": "Brought by daughter-in-law. Distended, vomiting dark fluid, drawing knees up in waves."
+  },
+  "history": {
+    "past_medical": [
+      "Blood pressure, they watch it",
+      "They took something out when I was forty"
+    ],
+    "medications": [
+      "A little white tablet for my blood pressure",
+      "Something for my knees when they ache"
+    ],
+    "allergies": [
+      "None at all"
+    ],
+    "social": [
+      "I live alone since my husband died, eleven years now",
+      "I cook for my son's family every Friday",
+      "I have never smoked",
+      "I do not drink"
+    ],
+    "family": [
+      "My mother lived to ninety-one",
+      "My father had trouble with his chest"
+    ]
+  },
+  "key_investigations": [
+    "axr",
+    "ct_abdomen",
+    "ue",
+    "fbc",
+    "vbg",
+    "group_save",
+    "crp"
+  ],
+  "key_treatments": [
+    "nil_by_mouth",
+    "iv_access_bloods",
+    "iv_fluids",
+    "antiemetic",
+    "urinary_catheter",
+    "surgical_referral"
+  ],
+  "harmful_treatments": {
+    "nsaid": "She is dry and her kidneys are already struggling. An NSAID is the wrong drug in the wrong patient."
+  },
+  "management_points": [
+    "Nil by mouth, a nasogastric tube to decompress, and fluid replacement: drip and suck",
+    "Examine both groins in every obstruction; an incarcerated hernia is the commonest cause you can see",
+    "Fluid resuscitation and electrolyte correction, with a catheter to measure the response",
+    "CT of the abdomen to find the level and the cause, and to look for compromised bowel",
+    "Surgical referral early: a tender irreducible lump does not wait for the morning list",
+    "Look for the red flags of strangulation: constant pain replacing colic, fever, rising lactate",
+    "Group and save, and cross-match if theatre is likely"
+  ],
+  "management_keywords": [
+    [
+      "nil by mouth",
+      "nasogastric",
+      "ng tube",
+      "drip and suck",
+      "decompress"
+    ],
+    [
+      "groin",
+      "hernia",
+      "incarcerat",
+      "irreducible",
+      "femoral",
+      "inguinal"
+    ],
+    [
+      "fluid",
+      "catheter",
+      "electrolyte",
+      "potassium",
+      "resusc"
+    ],
+    [
+      "ct",
+      "imaging",
+      "scan",
+      "level",
+      "transition"
+    ],
+    [
+      "surgical",
+      "surgeon",
+      "referral",
+      "theatre"
+    ],
+    [
+      "strangulat",
+      "ischaem",
+      "ischem",
+      "lactate",
+      "constant",
+      "fever"
+    ],
+    [
+      "group and save",
+      "cross-match",
+      "crossmatch",
+      "transfus"
+    ]
+  ],
+  "teaching": {
+    "summary": "A 74-year-old with eight days of nothing, a distended tympanic abdomen and a tender irreducible lump in the right groin. She hid the eight days out of embarrassment in front of her family.",
+    "pearls": [
+      "Examine the groins. Every time. The diagnosis is often visible.",
+      "Colic that becomes constant is bowel that has stopped being viable.",
+      "Ask the bowel question with the relatives out of the room.",
+      "Vomiting that is dark and bitter is a distal obstruction until proven otherwise.",
+      "Old scars mean adhesions, but a new lump beats an old scar."
+    ]
+  }
+}

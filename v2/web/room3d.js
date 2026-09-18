@@ -1,38 +1,45 @@
-/* The room behind the monitor.
+/* The room.
  *
- * Every piece of geometry is a primitive built here. No models, no textures, no
- * downloaded assets. The only image in the scene is the ECG canvas that already
- * exists for the 2D panel, handed to a CanvasTexture -- the waveform is not
- * rebuilt in 3D.
+ * The monitor used to be a strip of DOM above this canvas, and the room was
+ * whatever space was left underneath. That is backwards: the room IS the game
+ * now, and the only place his vitals exist is the screen on the arm at the
+ * head of the bed, which you read by looking at it.
+ *
+ * Every piece of geometry is a primitive built here. No models, no textures,
+ * no downloaded assets -- the surfaces are canvases painted in code at load.
+ * The only image in the scene is the monitor face, handed in as a canvas by
+ * monitor.js and wrapped in a CanvasTexture.
  *
  * Pinned to three.js r128, which is the legacy API: THREE is a global from the
  * UMD build, lights are in pre-r155 intensity units, and colour management is
  * the old outputEncoding path. Using a modern API here gives a black screen.
  *
  * This whole layer is disposable. Room3D.available() is false if three.js did
- * not load, and ?flat=1 disables it outright, in which case screen.js simply
- * never calls in here and the flat projector view is what ships.
+ * not load, in which case app.js adds .noroom and the round plays on with the
+ * conversation at full width.
  */
 (function (global) {
   'use strict';
 
-  /* Where the camera sits. One definition, used by the constructor and by the
-     drift, because having the value in two places is how it ended up pinned
-     two metres away while three separate edits moved the other copy. */
-  var CAM = [1.26, 1.52, 1.30];
-  var LOOK = [-0.04, 0.80, -0.30];
+  /* The shot. One definition, used by the constructor and by the drift --
+     having the value in two places is how it ended up pinned two metres away
+     while three separate edits moved the other copy.
+
+     Framed from the foot of the bed, off to his left, so that the face and the
+     monitor are both in shot and neither is in the centre. */
+  var CAM = [1.50, 1.62, 1.47];
+  var LOOK = [0.40, 1.02, -0.74];
 
   var STATUS_COLOUR = {
-    stable:    0x5DCAA5,
-    declining: 0xEF9F27,
-    critical:  0xE24B4A,
-    flatline:  0x888780
+    stable:    0x4FE39B,
+    declining: 0xFFA62E,
+    critical:  0xFF4257,
+    flatline:  0x7E91A4
   };
 
   function available() {
     return typeof global.THREE !== 'undefined';
   }
-
 
   /* ---- textures, painted in code ----
      Flat-shaded primitives read as a blockout no matter how well they are lit,
@@ -50,177 +57,380 @@
     return t;
   }
 
-  function noise(ctx, w, h, amount, alpha) {
-    var img = ctx.getImageData(0, 0, w, h);
-    var d = img.data;
-    for (var i = 0; i < d.length; i += 4) {
-      var n = (Math.sin(i * 12.9898) * 43758.5453) % 1;
+  function noise(ctx, w, h, amount) {
+    var img, d, i, n;
+    try {
+      img = ctx.getImageData(0, 0, w, h);
+    } catch (e) {
+      return;                       /* headless stub, or a tainted canvas */
+    }
+    d = img.data;
+    for (i = 0; i < d.length; i += 4) {
+      n = (Math.sin(i * 12.9898) * 43758.5453) % 1;
       n = (n < 0 ? -n : n) * amount - amount / 2;
       d[i] += n; d[i + 1] += n; d[i + 2] += n;
-      if (alpha !== undefined) d[i + 3] = alpha;
     }
     ctx.putImageData(img, 0, 0);
   }
 
-  /* hospital vinyl: large tiles, soft speckle, visible seams */
+  /* hospital vinyl: big sheet goods, soft speckle, welded seams */
   function floorTexture() {
     return canvasTex(512, 512, function (c, w, h) {
-      c.fillStyle = '#9A8C7A';
+      c.fillStyle = '#8E9AA0';
       c.fillRect(0, 0, w, h);
-      noise(c, w, h, 26);
-      c.strokeStyle = 'rgba(28,34,42,0.55)';
-      c.lineWidth = 3;
-      for (var i = 0; i <= 2; i++) {
-        var p = (i * w) / 2;
-        c.beginPath(); c.moveTo(p, 0); c.lineTo(p, h); c.stroke();
-        c.beginPath(); c.moveTo(0, p); c.lineTo(w, p); c.stroke();
-      }
-      c.fillStyle = 'rgba(255,255,255,0.05)';
-      c.fillRect(0, 0, w, 6);
-    }, 8, 8);
+      noise(c, w, h, 30);
+      c.strokeStyle = 'rgba(30,38,46,0.34)';
+      c.lineWidth = 2;
+      c.beginPath(); c.moveTo(0, 0); c.lineTo(0, h); c.stroke();
+      c.beginPath(); c.moveTo(0, 0); c.lineTo(w, 0); c.stroke();
+    }, 7, 7);
   }
 
-  /* wall: painted block with a dado rail band */
+  /* wall: wipe-clean paint over a vinyl dado, with a bump rail */
   function wallTexture() {
     return canvasTex(512, 512, function (c, w, h) {
-      c.fillStyle = '#B7A691';
+      c.fillStyle = '#C9CFC8';
       c.fillRect(0, 0, w, h);
-      noise(c, w, h, 16);
-      c.fillStyle = 'rgba(40,48,58,0.20)';
-      c.fillRect(0, h * 0.70, w, 10);
-      c.fillStyle = 'rgba(40,48,58,0.10)';
-      c.fillRect(0, h * 0.70 + 10, w, h * 0.30);
-    }, 4, 2);
+      noise(c, w, h, 12);
+      c.fillStyle = '#8FA3A8';                     /* dado below the rail */
+      c.fillRect(0, h * 0.62, w, h * 0.38);
+      c.fillStyle = '#54636B';                     /* the rail itself */
+      c.fillRect(0, h * 0.60, w, h * 0.026);
+      c.fillStyle = 'rgba(255,255,255,0.07)';
+      c.fillRect(0, h * 0.60, w, 3);
+    }, 3, 1);
+  }
+
+  /* The blanket gets its OWN texture, darker than the sheets.
+     Everything on this bed used to be a pale grey-blue lit by a strong exam
+     light, so the blanket, the mattress, the backrest and the pillow all blew
+     out to the same white and the draping was invisible -- the bed read as a
+     flat board with a man on it. A cellular blanket is a different colour from
+     the linen in real life too. */
+  function blanketTexture() {
+    return canvasTex(256, 256, function (c, w, h) {
+      c.fillStyle = '#6E8E92';
+      c.fillRect(0, 0, w, h);
+      /* the open cellular weave */
+      c.strokeStyle = 'rgba(38,56,60,0.34)';
+      c.lineWidth = 2;
+      for (var i = 0; i < w; i += 12) {
+        c.beginPath(); c.moveTo(i, 0); c.lineTo(i, h); c.stroke();
+        c.beginPath(); c.moveTo(0, i); c.lineTo(w, i); c.stroke();
+      }
+      c.strokeStyle = 'rgba(255,255,255,0.10)';
+      c.lineWidth = 1;
+      for (var j = 6; j < w; j += 12) {
+        c.beginPath(); c.moveTo(j, 0); c.lineTo(j, h); c.stroke();
+        c.beginPath(); c.moveTo(0, j); c.lineTo(w, j); c.stroke();
+      }
+      noise(c, w, h, 14);
+    }, 3, 4);
   }
 
   /* cotton weave for the bedding */
   function sheetTexture() {
     return canvasTex(256, 256, function (c, w, h) {
-      c.fillStyle = '#F2EADA';
+      c.fillStyle = '#EEF1F2';
       c.fillRect(0, 0, w, h);
-      c.strokeStyle = 'rgba(150,140,120,0.16)';
+      c.strokeStyle = 'rgba(140,152,160,0.18)';
       c.lineWidth = 1;
       for (var i = 0; i < w; i += 4) {
         c.beginPath(); c.moveTo(i, 0); c.lineTo(i, h); c.stroke();
         c.beginPath(); c.moveTo(0, i); c.lineTo(w, i); c.stroke();
       }
-      noise(c, w, h, 10);
-    }, 3, 5);
+      noise(c, w, h, 9);
+    }, 3, 4);
   }
 
+  /* the privacy curtain: heavy vertical folds, mesh panel at the top */
+  function curtainTexture() {
+    return canvasTex(256, 512, function (c, w, h) {
+      c.fillStyle = '#7FA9A2';
+      c.fillRect(0, 0, w, h);
+      for (var x = 0; x < w; x += 16) {
+        var g = c.createLinearGradient(x, 0, x + 16, 0);
+        g.addColorStop(0, 'rgba(0,0,0,0.26)');
+        g.addColorStop(0.5, 'rgba(255,255,255,0.13)');
+        g.addColorStop(1, 'rgba(0,0,0,0.26)');
+        c.fillStyle = g;
+        c.fillRect(x, 0, 16, h);
+      }
+      c.fillStyle = 'rgba(230,238,236,0.45)';      /* the mesh top */
+      c.fillRect(0, 0, w, h * 0.12);
+      noise(c, w, h, 10);
+    }, 1, 1);
+  }
 
-  /* ---- the patient ----
-     A shape under a sheet is not a person, it is bedding. He is propped on the
-     pillow with his head, shoulders, arms and hands above the blanket, which
-     is what makes the room read as somebody in it.
+  /* suspended ceiling: mineral tile in a T-bar grid */
+  function ceilingTexture() {
+    return canvasTex(256, 256, function (c, w, h) {
+      c.fillStyle = '#E4E6E2';
+      c.fillRect(0, 0, w, h);
+      noise(c, w, h, 16);
+      c.strokeStyle = 'rgba(120,128,132,0.55)';
+      c.lineWidth = 4;
+      c.strokeRect(0, 0, w, h);
+    }, 8, 8);
+  }
 
-     Stylised on purpose: simple forms, no facial detail. Primitives that reach
-     for realism land in the uncanny valley, and a clean stylised head does not.
-     The chest is a separate group so breathing moves him rather than the sheet. */
-  /* r128 has no CapsuleGeometry -- it landed in r142 -- so a rounded limb is a
-     cylinder with a cap on each end. Checked with typeof, because `new X ? a : b`
-     evaluates the construction and throws before the ternary can pick. */
-  function limb(radius, length) {
+  /* what is outside at night: a dark city, a few windows still warm */
+  function nightTexture() {
+    return canvasTex(256, 256, function (c, w, h) {
+      var g = c.createLinearGradient(0, 0, 0, h);
+      g.addColorStop(0, '#16233A');
+      g.addColorStop(0.62, '#243B52');
+      g.addColorStop(1, '#0E1622');
+      c.fillStyle = g;
+      c.fillRect(0, 0, w, h);
+      c.fillStyle = '#0A0F18';
+      c.fillRect(0, h * 0.63, w, h * 0.37);        /* the block opposite */
+      c.fillStyle = 'rgba(255,214,150,0.85)';
+      for (var i = 0; i < 26; i++) {
+        var x = (i * 71) % (w - 12) + 4;
+        var y = h * 0.66 + ((i * 37) % Math.floor(h * 0.3));
+        if ((i * 13) % 3 === 0) c.fillRect(x, y, 5, 7);
+      }
+    }, 1, 1);
+  }
+
+  /* ---- limbs ----
+     r128 has no CapsuleGeometry -- it landed in r142 -- so a rounded limb is a
+     cylinder with a ball at each joint. Checked with typeof, because
+     `new X ? a : b` evaluates the construction and throws before the ternary
+     can pick. */
+  function limbGeo(radius, length) {
     if (typeof THREE.CapsuleGeometry === 'function') {
-      return new THREE.CapsuleGeometry(radius, length - radius * 2, 6, 12);
+      return new THREE.CapsuleGeometry(radius, Math.max(0.01, length - radius * 2), 6, 12);
     }
     return new THREE.CylinderGeometry(radius, radius, length, 14);
   }
 
-  function buildPatient(skin, hair) {
+  /* A limb between two points in space. Placing bones by their endpoints
+     rather than by a position and two Euler angles is the difference between
+     an arm that lies on the blanket and an arm that points at the ceiling. */
+  function bone(a, b, r, mat) {
+    var va = new THREE.Vector3(a[0], a[1], a[2]);
+    var vb = new THREE.Vector3(b[0], b[1], b[2]);
+    var dir = new THREE.Vector3().subVectors(vb, va);
+    var len = dir.length();
+    var m = new THREE.Mesh(limbGeo(r, len), mat);
+    m.position.copy(va).add(vb).multiplyScalar(0.5);
+    m.quaternion.setFromUnitVectors(
+      new THREE.Vector3(0, 1, 0), dir.clone().normalize()
+    );
+    m.castShadow = true;
+    return m;
+  }
+
+  function ball(r, mat, x, y, z, sx, sy, sz) {
+    var m = new THREE.Mesh(new THREE.SphereGeometry(r, 20, 16), mat);
+    m.position.set(x, y, z);
+    if (sx !== undefined) m.scale.set(sx, sy, sz);
+    m.castShadow = true;
+    return m;
+  }
+
+  /* ---- the patient ----
+     He is propped against a raised backrest at about thirty degrees, which is
+     how anyone awake enough to be answering questions is actually sat, and his
+     head, shoulders, arms and hands are above the blanket.
+
+     He has a face, and it points up the bed at you. The previous build gave him
+     a bare sphere with a hair cap on it, and from the only camera angle the
+     game ever uses you saw the back of his head -- which read exactly like a
+     man lying face down in his pillow.
+
+     Stylised on purpose: clean forms, no pores, no wrinkles. Primitives that
+     reach for realism land in the uncanny valley; a clean stylised head does
+     not. */
+
+  /* The line of his body, hips to crown, all on one incline.
+     NECK_BASE to NECK_TOP is a neck, not a torso: these used to be 28cm
+     apart, which drew a bare flesh-coloured column from his chin to his
+     waist. With the gown hidden under the blanket behind it, the only
+     reasonable reading of the result was that he had no clothes on. */
+  var HIP       = [0, 0.84, -0.18];
+  var NECK_BASE = [0, 1.05, -0.70];
+  var NECK_TOP  = [0, 1.13, -0.80];
+  var HEAD      = [0, 1.23, -0.88];
+
+  /* Where the blanket stops: pulled up to mid-chest, so all you see of him
+     above it is the top of his chest, his shoulders and his head. */
+  var BLANKET_EDGE_Z = -0.62;
+
+  function buildPatient() {
     var g = new THREE.Group();
 
-    var flesh = new THREE.MeshStandardMaterial({
-      color: skin, roughness: 0.72, metalness: 0.0
-    });
-    var hairMat = new THREE.MeshStandardMaterial({
-      color: hair, roughness: 0.92, metalness: 0.0
-    });
-    var gownMat = new THREE.MeshStandardMaterial({
-      color: 0x7FA8B8, roughness: 0.88, metalness: 0.0
-    });
+    var flesh = new THREE.MeshStandardMaterial({ color: 0x8E5A34, roughness: 0.62, metalness: 0 });
+    var hairMat = new THREE.MeshStandardMaterial({ color: 0x2C2320, roughness: 0.92, metalness: 0 });
+    var gownMat = new THREE.MeshStandardMaterial({ color: 0x4C7A8E, roughness: 0.88, metalness: 0 });
+    var white = new THREE.MeshStandardMaterial({ color: 0xF6F3EC, roughness: 0.5 });
+    var iris  = new THREE.MeshStandardMaterial({ color: 0x3B2A1E, roughness: 0.35 });
+    var dark  = new THREE.MeshStandardMaterial({ color: 0x2A1B14, roughness: 0.8 });
 
-    function part(geo, mat, x, y, z) {
-      var m = new THREE.Mesh(geo, mat);
-      m.position.set(x, y, z);
-      m.castShadow = true;
-      m.receiveShadow = true;
-      g.add(m);
-      return m;
-    }
+    g.userData.mats = { flesh: flesh, hair: hairMat, gown: gownMat };
 
-    /* head, tipped back into the pillow */
-    var head = part(new THREE.SphereGeometry(0.108, 26, 20), flesh, 0, 0.90, -0.80);
-    head.scale.set(0.95, 1.06, 1.12);
-    head.rotation.x = -0.32;
-
-    /* jaw gives the profile a chin instead of a ball */
-    var jaw = part(new THREE.SphereGeometry(0.082, 20, 16), flesh, 0, 0.862, -0.748);
-    jaw.scale.set(0.92, 0.70, 1.02);
-    jaw.rotation.x = -0.30;
-
-    /* hair as a cap, thinning at the front the way a man of 54 wears it */
-    var cap = part(new THREE.SphereGeometry(0.113, 24, 18,
-                   0, Math.PI * 2, 0, Math.PI * 0.58), hairMat, 0, 0.906, -0.806);
-    cap.scale.set(1.0, 0.95, 1.10);
-    cap.rotation.x = -0.36;
-
-    var ear1 = part(new THREE.SphereGeometry(0.026, 12, 10), flesh, -0.102, 0.895, -0.795);
-    ear1.scale.set(0.5, 1, 0.8);
-    var ear2 = part(new THREE.SphereGeometry(0.026, 12, 10), flesh, 0.102, 0.895, -0.795);
-    ear2.scale.set(0.5, 1, 0.8);
-
-    var neck = part(new THREE.CylinderGeometry(0.058, 0.066, 0.13, 14), flesh, 0, 0.828, -0.700);
-    neck.rotation.x = Math.PI / 2 - 0.22;
-
-    /* chest and shoulders in their own group so breathing moves the man */
+    /* --- torso, in its own group so breathing moves the man, not the bed --- */
     var chest = new THREE.Group();
-    var torso = new THREE.Mesh(new THREE.SphereGeometry(0.20, 24, 18), gownMat);
-    torso.scale.set(1.12, 0.52, 1.55);
-    torso.position.set(0, 0.778, -0.42);
-    torso.castShadow = true; torso.receiveShadow = true;
-    chest.add(torso);
 
-    var shoulder1 = new THREE.Mesh(new THREE.SphereGeometry(0.086, 16, 14), gownMat);
-    shoulder1.position.set(-0.185, 0.792, -0.585);
-    shoulder1.castShadow = true;
-    chest.add(shoulder1);
-    var shoulder2 = shoulder1.clone();
-    shoulder2.position.x = 0.205;
-    chest.add(shoulder2);
+    /* The gown: the part of him the blanket does NOT cover, so it has to be
+       unmistakably clothing. It sits high and forward of the blanket edge. */
+    /* A man lying on his back is a broad, shallow shape: his chest stands
+       maybe seven centimetres off the mattress. These spheres were 27cm deep
+       and stacked, which domed his front into a bump and made him look
+       pregnant. Local Z is the depth axis here, because the mesh is tipped
+       back along the backrest, so Z is the number that has to stay small. */
+    /* The torso has to END before the blanket does.
+       It is an ellipsoid tipped back along the backrest, so it reaches further
+       down the bed than its numbers suggest: at the old length its foot end
+       came out past the blanket edge and mounded up there, which is the belly
+       that kept looking wrong. It now stops short of BLANKET_EDGE_Z and the
+       blanket takes over. There is no separate waist sphere any more -- it sat
+       entirely under the blanket and did nothing but risk poking through. */
+    /* ONE trunk, not a torso plus an upper chest plus two shoulder balls.
+       Built as separate lumps they never quite met, so from the bedside he
+       read as a pile of parts rather than a body -- and the overlaps mounded
+       up at the seams. A single wide, flat ellipsoid carries the shoulders in
+       its own width, and the arms and neck are sunk deep enough into it that
+       there is no join to see. */
+    /* A cylinder from the waist to the shoulders, laid along the backrest.
+       An ellipsoid tapers at both ends, so its shoulders were always narrower
+       than its middle; a cylinder keeps one width the whole way up and reads
+       as a chest under a blanket rather than as an egg. */
+    var trunk = bone([0, 0.84, -0.30], [0, 1.05, -0.76], 0.198, gownMat);
+    trunk.receiveShadow = true;
+    chest.add(trunk);
+    /* the shoulder caps, same radius, so the top is round not cut off */
+    chest.add(ball(0.198, gownMat, 0, 1.05, -0.76, 1.0, 0.72, 0.80));
+
+    /* The neckline, sunk into the trunk so it is a collar and not a ring
+       floating in front of him. A torus here read as a hoop. */
+    var collarMat = new THREE.MeshStandardMaterial({ color: 0x33606F, roughness: 0.9 });
+    var collar = ball(0.086, collarMat, 0, 1.085, -0.780, 1.02, 0.40, 0.58);
+    chest.add(collar);
+
     g.add(chest);
 
-    /* arms resting on top of the blanket, slightly out from the body */
-    function arm(side) {
-      var a = new THREE.Group();
-      var upper = new THREE.Mesh(limb(0.052, 0.30), gownMat);
-      upper.position.set(side * 0.225, 0.800, -0.40);
-      upper.rotation.set(Math.PI / 2, 0, side * 0.10);   /* lie along the bed */
-      upper.castShadow = true;
-      a.add(upper);
+    g.add(bone([0, 1.06, -0.74], NECK_TOP, 0.054, flesh));   /* a neck, not a trunk */
 
-      var fore = new THREE.Mesh(limb(0.046, 0.30), flesh);
-      fore.position.set(side * 0.242, 0.792, -0.10);
-      fore.rotation.set(Math.PI / 2, 0, side * -0.05);
-      fore.castShadow = true;
-      a.add(fore);
+    /* --- the head ---
+       Built facing local +Z, then turned as a unit: tipped back onto the
+       pillow and turned a little toward you, because he is talking to you. */
+    var head = new THREE.Group();
+    head.position.set(HEAD[0], HEAD[1], HEAD[2]);
+    head.rotation.set(-0.46, 0.24, 0);
 
-      var hand = new THREE.Mesh(new THREE.SphereGeometry(0.056, 16, 12), flesh);
-      hand.position.set(side * 0.236, 0.796, 0.09);
-      hand.scale.set(0.78, 0.52, 1.10);
-      hand.castShadow = true;
-      a.add(hand);
+    var skull = ball(0.108, flesh, 0, 0, 0, 0.96, 1.05, 1.06);
+    head.add(skull);
 
-      g.add(a);
-      return a;
-    }
-    arm(-1); arm(1);
+    var jaw = ball(0.086, flesh, 0, -0.045, 0.030, 0.94, 0.74, 0.96);
+    head.add(jaw);
+
+    var chin = ball(0.040, flesh, 0, -0.072, 0.058, 1.0, 0.72, 0.9);
+    head.add(chin);
+
+    /* brow, nose, mouth: the three shapes that make a sphere into a face */
+    var brow = new THREE.Mesh(new THREE.BoxGeometry(0.128, 0.020, 0.030), flesh);
+    brow.position.set(0, 0.034, 0.090);
+    head.add(brow);
+
+    var nose = new THREE.Mesh(new THREE.ConeGeometry(0.026, 0.072, 12), flesh);
+    nose.position.set(0, -0.005, 0.104);
+    nose.rotation.x = Math.PI / 2;          /* point it out of the face */
+    head.add(nose);
+
+    var mouth = new THREE.Mesh(new THREE.BoxGeometry(0.048, 0.010, 0.014), dark);
+    mouth.position.set(0, -0.052, 0.093);
+    head.add(mouth);
+
+    /* open eyes. He is awake and being interviewed -- closed eyes read as a
+       corpse, which is the wrong information to give the player for free. */
+    [-1, 1].forEach(function (s) {
+      var socket = ball(0.024, white, s * 0.040, 0.012, 0.089, 1, 0.78, 0.6);
+      head.add(socket);
+      var pupil = ball(0.011, iris, s * 0.040, 0.010, 0.104, 1, 1, 0.5);
+      head.add(pupil);
+      var lid = new THREE.Mesh(new THREE.BoxGeometry(0.038, 0.009, 0.020), flesh);
+      lid.position.set(s * 0.040, 0.026, 0.092);
+      head.add(lid);
+      var ear = ball(0.026, flesh, s * 0.104, -0.006, -0.012, 0.42, 1.0, 0.76);
+      head.add(ear);
+    });
+
+    /* Hair: a cap over the crown and the BACK only.
+       A full hemisphere centred on the skull covers the forehead, and from the
+       one camera angle this game has that turned his whole head into a dark
+       blob with no face in it -- the exact complaint this rebuild started
+       from. So it is pushed back and tilted off the brow. */
+    var cap = new THREE.Mesh(
+      new THREE.SphereGeometry(0.110, 24, 18, 0, Math.PI * 2, 0, Math.PI * 0.50),
+      hairMat
+    );
+    cap.position.set(0, 0.010, -0.030);
+    cap.rotation.x = 0.62;
+    cap.scale.set(1.02, 0.90, 1.04);
+    cap.castShadow = true;
+    head.add(cap);
+
+    /* the beard, hidden unless the case wants it: on the jaw, and nowhere
+       near the eyes */
+    var beard = new THREE.Mesh(new THREE.SphereGeometry(0.086, 18, 14), hairMat);
+    beard.scale.set(0.96, 0.62, 0.74);
+    beard.position.set(0, -0.062, 0.030);
+    beard.visible = false;
+    head.add(beard);
+
+    /* Long hair.
+       This was one sphere tucked behind the skull, which from the only camera
+       angle the game has was almost entirely buried inside the head -- so
+       "she has long hair" was invisible and every patient looked identical.
+       The camera sees the face and the TOP of the head, so the hair has to be
+       on the sides and the crown to read at all. */
+    var longHair = new THREE.Group();
+    /* Someone lying on their back has their hair fanned out on the pillow
+       AROUND the head, not hanging beside the face. Hanging side locks read
+       from this camera as a pair of floppy ears, which is exactly what they
+       looked like. One wide, flat fan behind the head instead. */
+    longHair.add(ball(0.150, hairMat, 0, -0.030, -0.130, 1.22, 0.52, 0.95));
+    var crown = new THREE.Mesh(
+      new THREE.SphereGeometry(0.118, 22, 16, 0, Math.PI * 2, 0, Math.PI * 0.58),
+      hairMat
+    );
+    crown.position.set(0, 0.008, -0.026);
+    crown.rotation.x = 0.55;
+    crown.scale.set(1.06, 1.0, 1.08);
+    longHair.add(crown);
+    longHair.visible = false;
+    head.add(longHair);
+
+    g.add(head);
+    g.userData.head = head;
+    g.userData.beard = beard;
+    g.userData.longHair = longHair;
+    g.userData.cap = cap;
+
+    /* --- arms, resting on top of the blanket --- */
+    /* Arms rest ON the blanket, so they have to clear its surface: the lobes
+       are tall now, and at the old height his hands were buried in it. The
+       upper arm is gown, because a hospital gown has sleeves. */
+    /* Arms lie ALONG him, close in, following the slope of the blanket they
+       rest on. Splayed out wide at the shoulder they read as a doll's. The
+       shoulder end is sunk well inside the trunk so there is no join. */
+    [-1, 1].forEach(function (s) {
+      var shoulder = [s * 0.185, 1.020, -0.760];
+      var elbow    = [s * 0.245, 0.935, -0.400];
+      var wrist    = [s * 0.240, 0.975, -0.080];
+      g.add(bone(shoulder, elbow, 0.055, gownMat));
+      g.add(bone(elbow, wrist, 0.045, flesh));
+      g.add(ball(0.049, flesh, s * 0.238, 0.978, -0.020, 0.78, 0.58, 1.05));
+    });
 
     g.userData.chest = chest;
     return g;
   }
 
-  function Room3D(canvas, ecgCanvas) {
+  function Room3D(canvas, screenCanvas) {
     this.ok = false;
     if (!available()) return;
 
@@ -241,21 +451,25 @@
     /* r128 colour management. outputColorSpace does not exist here. */
     this.renderer.outputEncoding = THREE.sRGBEncoding;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.08;
+    this.renderer.toneMappingExposure = 0.94;
 
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0x201C1A);
-    this.scene.fog = new THREE.Fog(0x201C1A, 4.5, 14);
+    this.scene.background = new THREE.Color(0x0B1016);
+    this.scene.fog = new THREE.Fog(0x0B1016, 4.2, 13);
 
-    this.camera = new THREE.PerspectiveCamera(40, W / H, 0.1, 100);
+    /* 47 rather than 41: the room panel is nearly square, so the horizontal
+       field is much narrower than the number suggests, and at 41 the monitor's
+       column of numbers fell off the right-hand edge. */
+    this.camera = new THREE.PerspectiveCamera(47, W / H, 0.1, 100);
     this.camera.position.set(CAM[0], CAM[1], CAM[2]);
     this.camera.lookAt(LOOK[0], LOOK[1], LOOK[2]);
 
-    this.build(ecgCanvas);
+    this.build(screenCanvas);
     this.ok = true;
 
     var self = this;
-    global.addEventListener('resize', function () { self.resize(canvas); });
+    this._onResize = function () { self.resize(canvas); };
+    global.addEventListener('resize', this._onResize);
   }
 
   Room3D.prototype.resize = function (canvas) {
@@ -267,184 +481,348 @@
     this.camera.updateProjectionMatrix();
   };
 
-  /* Metres throughout. */
-  Room3D.prototype.build = function (ecgCanvas) {
+  /* Metres throughout. The head of the bed is at -Z, the foot at +Z. */
+  Room3D.prototype.build = function (screenCanvas) {
     var S = this.scene;
+    var i;
 
-    function box(w, h, d, colour, rough) {
+    function box(w, h, d, colour, rough, metal) {
       return new THREE.Mesh(
         new THREE.BoxGeometry(w, h, d),
         new THREE.MeshStandardMaterial({
           color: colour,
           roughness: rough === undefined ? 0.85 : rough,
-          metalness: 0.05
+          metalness: metal === undefined ? 0.05 : metal
         })
       );
     }
+    function place(m, x, y, z, cast, receive) {
+      m.position.set(x, y, z);
+      m.castShadow = cast !== false;
+      m.receiveShadow = receive !== false;
+      S.add(m);
+      return m;
+    }
+    var steel = new THREE.MeshStandardMaterial({ color: 0xA9B2BC, roughness: 0.3, metalness: 0.75 });
 
-    /* ---- shell ---- */
+    /* ---- shell: floor, three walls, ceiling ---- */
     var floor = new THREE.Mesh(
-      new THREE.PlaneGeometry(24, 24),
-      new THREE.MeshStandardMaterial({
-        map: floorTexture(), color: 0xB9AC9A,
-        roughness: 0.42, metalness: 0.04
-      })
+      new THREE.PlaneGeometry(16, 16),
+      new THREE.MeshStandardMaterial({ map: floorTexture(), color: 0x6A757C, roughness: 0.34, metalness: 0.06 })
     );
     floor.rotation.x = -Math.PI / 2;
     floor.receiveShadow = true;
     S.add(floor);
 
-    var wall = new THREE.Mesh(
-      new THREE.PlaneGeometry(24, 9),
-      new THREE.MeshStandardMaterial({ map: wallTexture(), color: 0xCBBCA6, roughness: 0.95 })
+    var wallMat = new THREE.MeshStandardMaterial({ map: wallTexture(), color: 0x939E9E, roughness: 0.95 });
+
+    var headWall = new THREE.Mesh(new THREE.PlaneGeometry(9, 3.1), wallMat);
+    place(headWall, 0, 1.55, -2.05, false, true);
+
+    var leftWall = new THREE.Mesh(new THREE.PlaneGeometry(7, 3.1), wallMat);
+    leftWall.rotation.y = Math.PI / 2;
+    place(leftWall, -2.6, 1.55, 1.0, false, true);
+
+    var rightWall = new THREE.Mesh(new THREE.PlaneGeometry(7, 3.1), wallMat);
+    rightWall.rotation.y = -Math.PI / 2;
+    place(rightWall, 2.9, 1.55, 1.0, false, true);
+
+    var ceiling = new THREE.Mesh(
+      new THREE.PlaneGeometry(9, 7),
+      new THREE.MeshStandardMaterial({ map: ceilingTexture(), color: 0xD6DAD6, roughness: 1 })
     );
-    wall.position.set(0, 4.5, -3.2);
-    wall.receiveShadow = true;
-    S.add(wall);
+    ceiling.rotation.x = Math.PI / 2;
+    place(ceiling, 0, 3.1, 0.6, false, false);
 
-    /* ---- bed ---- */
-    var frame = box(1.15, 0.16, 2.25, 0x4A5560, 0.5);
-    frame.position.set(0, 0.62, 0);
-    frame.castShadow = true; frame.receiveShadow = true;
-    S.add(frame);
+    /* skirting, so the floor and wall do not just abut */
+    place(box(9, 0.09, 0.03, 0x5C6970, 0.6), 0, 0.045, -2.03, false, true);
 
-    var i, leg;
+    /* ---- the headwall service panel: the strip every ward bed has ---- */
+    var panel = box(2.1, 0.30, 0.07, 0xEDEFEA, 0.6);
+    place(panel, 0, 1.36, -2.0);
     for (i = 0; i < 4; i++) {
-      leg = box(0.07, 0.56, 0.07, 0x20242b, 0.6);
-      leg.position.set(
-        (i % 2 ? 1 : -1) * 0.48, 0.28, (i < 2 ? 1 : -1) * 0.98
-      );
-      leg.castShadow = true;
-      S.add(leg);
+      var outlet = box(0.09, 0.11, 0.03, i < 2 ? 0x3C7F5E : 0xFFFFFF, 0.5);
+      place(outlet, -0.62 + i * 0.30, 1.36, -1.955, false, false);
+    }
+    for (i = 0; i < 3; i++) {
+      place(box(0.11, 0.11, 0.02, 0xD8D3C4, 0.6), 0.42 + i * 0.17, 1.36, -1.955, false, false);
+    }
+    /* the little strip light under the panel, always on */
+    var strip = new THREE.Mesh(
+      new THREE.BoxGeometry(1.9, 0.03, 0.05),
+      new THREE.MeshBasicMaterial({ color: 0xFFE9C4 })
+    );
+    place(strip, 0, 1.19, -1.98, false, false);
+
+    /* ---- window on the far wall, with blinds and a night outside ---- */
+    var glass = new THREE.Mesh(
+      new THREE.PlaneGeometry(1.5, 1.05),
+      new THREE.MeshBasicMaterial({ map: nightTexture() })
+    );
+    place(glass, -1.55, 1.68, -2.02, false, false);
+    place(box(1.62, 0.06, 0.07, 0xE8EAE5, 0.7), -1.55, 2.23, -2.0, false, false);
+    place(box(1.62, 0.06, 0.07, 0xE8EAE5, 0.7), -1.55, 1.13, -2.0, false, false);
+    place(box(0.06, 1.17, 0.07, 0xE8EAE5, 0.7), -2.33, 1.68, -2.0, false, false);
+    place(box(0.06, 1.17, 0.07, 0xE8EAE5, 0.7), -0.77, 1.68, -2.0, false, false);
+    for (i = 0; i < 7; i++) {          /* venetian slats, tilted half open */
+      var slat = box(1.48, 0.035, 0.035, 0xDDE2DE, 0.8);
+      slat.rotation.x = 0.55;
+      place(slat, -1.55, 2.14 - i * 0.075, -1.985, false, false);
     }
 
-    var head = box(1.15, 0.5, 0.07, 0x4A5560, 0.5);
-    head.position.set(0, 0.92, -1.12);
-    head.castShadow = true;
-    S.add(head);
+    /* ---- privacy curtain on a ceiling rail, pulled back ---- */
+    place(box(0.035, 0.035, 3.2, 0xB9C0C6, 0.4, 0.5), -1.95, 2.72, -0.35, false, false);
+    var curtain = new THREE.Mesh(
+      new THREE.PlaneGeometry(1.5, 2.0, 12, 1),
+      new THREE.MeshStandardMaterial({
+        map: curtainTexture(), color: 0xBFD6D0,
+        roughness: 0.95, side: THREE.DoubleSide
+      })
+    );
+    /* ripple the panel so it hangs in folds rather than as a flat board */
+    var cpos = curtain.geometry.attributes.position;
+    for (i = 0; i < cpos.count; i++) {
+      cpos.setZ(i, Math.sin(cpos.getX(i) * 9.0) * 0.055);
+    }
+    curtain.geometry.computeVertexNormals();
+    curtain.rotation.y = Math.PI / 2;
+    place(curtain, -1.95, 1.70, 0.30, true, true);
 
-    /* ---- the form under the sheet ----
-       No face, no character model. A plane draped over a few sine lobes reads
-       as a person because of the silhouette and the way the light falls, not
-       because of any detail. The chest lobe is what breathes. */
-    var segW = 26, segL = 48;
-    var sheetGeo = new THREE.PlaneGeometry(1.04, 1.34, segW, segL);
-    this.baseZ = [];
+    /* ---- the door, on the far side ---- */
+    place(box(0.95, 2.08, 0.06, 0xD9D2C2, 0.8), 2.86, 1.04, -0.10, false, true);
+    place(box(1.06, 2.16, 0.03, 0x8C949A, 0.7), 2.88, 1.08, -0.10, false, false);
+    place(box(0.05, 0.05, 0.14, 0xC6CDD4, 0.3, 0.8), 2.82, 1.02, 0.26, false, false);
+
+    /* ---- the bed ---- */
+    place(box(1.06, 0.15, 2.10, 0x5A6772, 0.55), 0, 0.615, -0.05);
+    for (i = 0; i < 4; i++) {
+      place(box(0.07, 0.52, 0.07, 0x262B32, 0.6),
+            (i % 2 ? 1 : -1) * 0.44, 0.27, (i < 2 ? 1 : -1) * 0.88, true, false);
+      var castor = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.055, 0.045, 12), steel);
+      castor.rotation.z = Math.PI / 2;
+      place(castor, (i % 2 ? 1 : -1) * 0.44, 0.05, (i < 2 ? 1 : -1) * 0.88, true, false);
+    }
+
+    /* the flat part of the mattress, and the raised backrest he leans on */
+    var mattressMat = new THREE.MeshStandardMaterial({
+      map: sheetTexture(), color: 0xA3AFB6, roughness: 0.92
+    });
+    var mattress = new THREE.Mesh(new THREE.BoxGeometry(1.02, 0.14, 1.36), mattressMat);
+    place(mattress, 0, 0.70, 0.32);
+
+    var backrest = new THREE.Mesh(new THREE.BoxGeometry(1.02, 0.14, 0.80), mattressMat);
+    backrest.rotation.x = 0.50;
+    place(backrest, 0, 0.88, -0.68);
+
+    /* headboard and footboard */
+    place(box(1.12, 0.46, 0.06, 0x6E7A85, 0.55), 0, 1.02, -1.14);
+    place(box(1.12, 0.34, 0.06, 0x6E7A85, 0.55), 0, 0.88, 1.04);
+
+    /* Side rails. The far one is up, because he is a fall risk; the near one
+       is down, because that is what you do before you walk up to a patient --
+       and because up it drew a bright metal bar straight across his chest
+       from the only camera angle this game has. */
+    function rail(s, y) {
+      place(box(0.035, 0.035, 0.94, 0x94A0A8, 0.35, 0.6), s * 0.53, y, -0.22, true, false);
+      place(box(0.035, 0.035, 0.94, 0x94A0A8, 0.35, 0.6), s * 0.53, y - 0.16, -0.22, true, false);
+      for (var k = 0; k < 4; k++) {
+        place(box(0.025, 0.17, 0.025, 0x94A0A8, 0.35, 0.6),
+              s * 0.53, y - 0.08, -0.62 + k * 0.26, true, false);
+      }
+    }
+    rail(-1, 0.99);
+    rail(1, 0.60);
+
+    /* ---- the blanket, draped over him from the chest down ----
+       A plane over a few sine lobes reads as a body because of the silhouette
+       and the way the light falls, not because of any detail. */
+    /* BLANKET_LEN is the plane's length along the body, and `bodyT` is the
+       only correct way to turn a vertex into "how far down him are we".
+       Two bugs lived here, both inherited from v1 and both invisible until
+       the drape was strong enough to see:
+
+       1. The plane is rotated -90 degrees about X, which maps local +Y to
+          world -Z. -Y is therefore the FOOT of the bed, not the head -- so
+          every lobe was mirrored and his belly was rendering past his ankles.
+       2. getY returns real local units, here -0.76..+0.76, not -1..+1. The
+          old `(y + 1) / 2` squashed the whole body into t = 0.12..0.88 and
+          slid it down the bed. */
+    var BLANKET_LEN = 1.62;
+    function bodyT(y) { return 0.5 - y / BLANKET_LEN; }   /* 0 chest .. 1 feet */
+    /* Its centre follows from where the top edge has to land, rather than
+       being a number picked to look right and then fought with. */
+    var BLANKET_Z = BLANKET_EDGE_Z + BLANKET_LEN / 2;
+
+    var segW = 24, segL = 44;
+    var sheetGeo = new THREE.PlaneGeometry(1.02, BLANKET_LEN, segW, segL);
     var pos = sheetGeo.attributes.position;
     for (i = 0; i < pos.count; i++) {
       var x = pos.getX(i);
-      var y = pos.getY(i);          /* along the body, -1 head .. +1 feet */
-      var t = (y + 1) / 2;
-      var across = Math.pow(Math.cos(Math.min(1, Math.abs(x) / 0.34) * Math.PI / 2), 0.75);
+      var t = bodyT(pos.getY(i));
+      var across = Math.pow(Math.cos(Math.min(1, Math.abs(x) / 0.40) * Math.PI / 2), 0.7);
 
-      var belly = 0.20 * Math.exp(-Math.pow((t - 0.12) / 0.16, 2));
-      var hips  = 0.22 * Math.exp(-Math.pow((t - 0.34) / 0.13, 2));
-      var thigh = 0.20 * Math.exp(-Math.pow((t - 0.55) / 0.13, 2));
-      var knees = 0.17 * Math.exp(-Math.pow((t - 0.76) / 0.085, 2));
-      var feet  = 0.14 * Math.exp(-Math.pow((t - 0.965) / 0.045, 2));
-      var h = (belly + hips + thigh + knees + feet) * across;
+      /* Below the chest he IS the blanket -- there is no leg geometry, because
+         a limb under a draped plane clips through it. So the lobes have to do
+         the whole job, and the previous amplitudes were too shy to read as a
+         person: from the camera he was a flat sheet with a torso on it. The
+         knees are the tell-tale, so they are the tallest thing here. */
+      var gut   = 0.20 * Math.exp(-Math.pow((t - 0.08) / 0.15, 2));
+      var hips  = 0.25 * Math.exp(-Math.pow((t - 0.30) / 0.13, 2));
+      var thigh = 0.23 * Math.exp(-Math.pow((t - 0.52) / 0.13, 2));
+      var knees = 0.27 * Math.exp(-Math.pow((t - 0.74) / 0.085, 2));
+      var shin  = 0.14 * Math.exp(-Math.pow((t - 0.88) / 0.07, 2));
+      var feet  = 0.18 * Math.exp(-Math.pow((t - 0.975) / 0.04, 2));
 
-      this.baseZ.push(h);
-      pos.setZ(i, h);
+      /* the gap between his legs, so it is two of them and not one mound */
+      var split = 1 - 0.22 * Math.exp(-Math.pow(x / 0.075, 2)) * Math.min(1, Math.max(0, (t - 0.42) / 0.12));
+
+      pos.setZ(i, (gut + hips + thigh + knees + shin + feet) * across * split);
     }
     sheetGeo.computeVertexNormals();
 
     var sheet = new THREE.Mesh(
       sheetGeo,
       new THREE.MeshStandardMaterial({
-        map: sheetTexture(), color: 0xDCD2BE,
-        roughness: 0.92, metalness: 0, side: THREE.DoubleSide
+        map: blanketTexture(), color: 0xFFFFFF,   /* let the texture set it */
+        roughness: 0.97, metalness: 0, side: THREE.DoubleSide
       })
     );
     sheet.rotation.x = -Math.PI / 2;
-    sheet.position.set(0, 0.705, 0.42);
-    sheet.castShadow = true;
-    sheet.receiveShadow = true;
-    S.add(sheet);
+    place(sheet, 0, 0.775, BLANKET_Z);
     this.sheet = sheet;
 
-    this.patient = buildPatient(0xA97449, 0x2B2420);
+    /* The turned-back top sheet: a white cuff along the blanket's edge. It is
+       what makes the blanket look folded over him rather than laid on him. */
+    var cuff = new THREE.Mesh(
+      new THREE.BoxGeometry(1.03, 0.055, 0.20),
+      new THREE.MeshStandardMaterial({ map: sheetTexture(), color: 0xF0F3F4, roughness: 0.93 })
+    );
+    cuff.rotation.x = -0.20;
+    place(cuff, 0, 0.905, BLANKET_EDGE_Z + 0.03);
+
+    this.patient = buildPatient();
     S.add(this.patient);
 
-    var pillow = box(0.46, 0.11, 0.28, 0xE3DBC9, 0.92);
-    pillow.position.set(0, 0.742, -0.86);
-    pillow.rotation.x = -0.12;
-    pillow.castShadow = true; pillow.receiveShadow = true;
-    S.add(pillow);
+    var pillow = box(0.52, 0.12, 0.34, 0xF4F6F4, 0.95);
+    pillow.rotation.x = 0.44;
+    place(pillow, 0, 1.08, -0.92);
 
-    /* ---- IV pole ---- */
-    var pole = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.018, 0.018, 1.9, 10),
-      new THREE.MeshStandardMaterial({ color: 0x9aa2ad, roughness: 0.35, metalness: 0.7 })
-    );
-    pole.position.set(-0.95, 0.95, -0.55);
-    pole.castShadow = true;
-    S.add(pole);
-
+    /* ---- IV pole, bag, and a line that actually reaches his arm ---- */
+    var pole = new THREE.Mesh(new THREE.CylinderGeometry(0.017, 0.017, 1.95, 10), steel);
+    place(pole, -0.92, 0.97, -0.62, true, false);
     var poleBase = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.17, 0.19, 0.03, 14),
-      new THREE.MeshStandardMaterial({ color: 0x3a4049, roughness: 0.6 })
+      new THREE.CylinderGeometry(0.19, 0.20, 0.03, 16),
+      new THREE.MeshStandardMaterial({ color: 0x3C444D, roughness: 0.6 })
     );
-    poleBase.position.set(-0.95, 0.015, -0.55);
-    S.add(poleBase);
+    place(poleBase, -0.92, 0.015, -0.62, false, true);
+    place(box(0.03, 0.03, 0.24, 0xB9C0C6, 0.4, 0.6), -0.92, 1.88, -0.62, false, false);
 
-    var bag = box(0.15, 0.26, 0.05, 0xbfd8cf, 0.4);
-    bag.position.set(-0.88, 1.66, -0.55);
-    bag.castShadow = true;
-    S.add(bag);
+    var bagMat = new THREE.MeshStandardMaterial({
+      color: 0xD8ECE4, roughness: 0.25, metalness: 0,
+      transparent: true, opacity: 0.88
+    });
+    var bag = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.28, 0.05), bagMat);
+    place(bag, -0.92, 1.70, -0.55);
+    place(box(0.05, 0.09, 0.035, 0xEFF6F2, 0.3), -0.92, 1.52, -0.55, false, false);
 
-    /* ---- monitor on a stand ---- */
-    var standPole = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.022, 0.022, 1.15, 10),
-      new THREE.MeshStandardMaterial({ color: 0x8e959f, roughness: 0.4, metalness: 0.6 })
-    );
-    standPole.position.set(1.0, 0.575, -0.7);
-    standPole.castShadow = true;
-    S.add(standPole);
+    var line = bone([-0.92, 1.48, -0.55], [-0.240, 0.978, -0.020], 0.007,
+                    new THREE.MeshStandardMaterial({ color: 0xE6EEF0, roughness: 0.4 }));
+    S.add(line);
 
-    var standBase = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.19, 0.21, 0.03, 14),
-      new THREE.MeshStandardMaterial({ color: 0x3a4049, roughness: 0.6 })
-    );
-    standBase.position.set(1.0, 0.015, -0.7);
-    S.add(standBase);
+    /* ---- bedside cabinet, jug, cup ---- */
+    place(box(0.44, 0.62, 0.42, 0xC9BFA8, 0.8), -0.95, 0.31, 0.42);
+    place(box(0.40, 0.03, 0.38, 0xB3A78E, 0.7), -0.95, 0.615, 0.42, false, false);
+    place(box(0.40, 0.02, 0.36, 0x8E8570, 0.7), -0.95, 0.44, 0.44, false, false);
+    var jug = new THREE.Mesh(new THREE.CylinderGeometry(0.058, 0.05, 0.16, 14),
+                             new THREE.MeshStandardMaterial({ color: 0xE9E4D6, roughness: 0.4 }));
+    place(jug, -1.02, 0.70, 0.40);
+    var cup = new THREE.Mesh(new THREE.CylinderGeometry(0.032, 0.026, 0.075, 12),
+                             new THREE.MeshStandardMaterial({ color: 0xF2EFE6, roughness: 0.5 }));
+    place(cup, -0.86, 0.66, 0.50);
 
-    var shell = box(0.66, 0.46, 0.09, 0x23272e, 0.65);
-    shell.position.set(1.0, 1.34, -0.7);
-    shell.rotation.y = -0.42;
-    shell.castShadow = true;
-    S.add(shell);
+    /* ---- overbed table, swung right out of the way ----
+       It used to sit at (1.05, _, 0.62), which is between this camera and the
+       bed: a white slab across the bottom third of every frame. */
+    place(box(0.60, 0.025, 0.35, 0xA8977A, 0.6), -1.28, 0.86, 1.12);
+    place(box(0.05, 0.56, 0.05, 0x7C858E, 0.4, 0.6), -1.28, 0.58, 1.12, true, false);
+    place(box(0.32, 0.02, 0.28, 0x3A424A, 0.6), -1.28, 0.29, 1.12, false, true);
 
-    /* The screen IS the 2D ECG canvas. Not a second waveform. */
-    this.ecgTexture = new THREE.CanvasTexture(ecgCanvas);
-    this.ecgTexture.minFilter = THREE.LinearFilter;
-    this.ecgTexture.magFilter = THREE.LinearFilter;
-    this.ecgTexture.generateMipmaps = false;
+    /* ---- the monitor, on an arm off the headwall ----
+       Swung out over his left so it is square to the camera and close enough
+       to read. This is the only place the vitals exist now. */
+    place(box(0.07, 0.07, 0.30, 0xAEB6BE, 0.35, 0.7), 1.22, 1.62, -1.90, true, false);
+    var arm = bone([1.22, 1.62, -1.78], [1.10, 1.54, -0.76], 0.028, steel);
+    S.add(arm);
+
+    var shell = box(0.74, 0.50, 0.10, 0x232A33, 0.55);
+    shell.rotation.y = 0.20;
+    place(shell, 1.08, 1.50, -0.66);
+
+    /* The screen IS the monitor canvas. Not a second waveform. */
+    this.screenTexture = new THREE.CanvasTexture(screenCanvas);
+    this.screenTexture.minFilter = THREE.LinearFilter;
+    this.screenTexture.magFilter = THREE.LinearFilter;
+    this.screenTexture.generateMipmaps = false;
 
     var screen = new THREE.Mesh(
-      new THREE.PlaneGeometry(0.58, 0.38),
-      new THREE.MeshBasicMaterial({ map: this.ecgTexture, toneMapped: false })
+      new THREE.PlaneGeometry(0.665, 0.415),
+      new THREE.MeshBasicMaterial({ map: this.screenTexture, toneMapped: false })
     );
     /* A child of the shell at local +Z. Parenting handles the rotation, so the
        screen cannot end up buried inside its own housing. */
-    screen.position.set(0, 0, 0.047);
+    screen.position.set(0, 0.015, 0.052);
     shell.add(screen);
     this.screen = screen;
 
+    /* a couple of hardware buttons under the glass */
+    for (i = 0; i < 4; i++) {
+      var btn = new THREE.Mesh(
+        new THREE.BoxGeometry(0.035, 0.016, 0.012),
+        new THREE.MeshStandardMaterial({ color: 0x4A535E, roughness: 0.6 })
+      );
+      btn.position.set(-0.22 + i * 0.095, -0.225, 0.052);
+      shell.add(btn);
+    }
+
+    /* ---- a wall clock, and a sanitiser dispenser: cheap, and they read ---- */
+    var clockFace = new THREE.Mesh(
+      new THREE.CircleGeometry(0.13, 24),
+      new THREE.MeshStandardMaterial({ color: 0xF4F2EA, roughness: 0.6 })
+    );
+    place(clockFace, -0.55, 2.28, -1.99, false, false);
+    place(box(0.012, 0.085, 0.012, 0x2A3038, 0.7), -0.55, 2.32, -1.975, false, false);
+    place(box(0.06, 0.012, 0.012, 0x2A3038, 0.7), -0.52, 2.28, -1.975, false, false);
+    place(box(0.13, 0.20, 0.08, 0xE8EAE5, 0.7), 2.10, 1.42, -1.98, false, false);
+
     /* ---- lighting ----
-       Warm-dominant, the way a ward at night actually looks: a sodium-ish key,
-       several small warm practicals rather than one big lamp, and a single
-       cool directional so the shadows are not muddy brown. Moderate ambient --
-       enough that nothing falls to pure black, not so much that shadows die.
-       Our own palette: amber and clay against a teal-leaning cool side. */
+       A ward at night: the overhead panels are dimmed, the headwall strip is
+       on, the monitor lights its own corner, and a little cold comes in the
+       window. Enough ambient that nothing falls to pure black, not so much
+       that the shadows die. */
 
-    S.add(new THREE.HemisphereLight(0xF3E6D0, 0x6B6055, 0.62));
-    S.add(new THREE.AmbientLight(0xFFF3E2, 0.34));
+    S.add(new THREE.HemisphereLight(0x9FB6C8, 0x3A3835, 0.26));
+    S.add(new THREE.AmbientLight(0xE8E6DE, 0.13));
 
-    /* the overhead exam light: the key */
-    var spot = new THREE.SpotLight(0xFFD9A0, 2.4, 9, Math.PI / 6.2, 0.5, 1.5);
-    spot.position.set(0.30, 2.85, 0.42);
-    spot.target.position.set(0, 0.76, -0.10);
+    /* two recessed ceiling panels, dimmed for the night */
+    [-0.9, 1.0].forEach(function (z) {
+      var panelGeo = new THREE.Mesh(
+        new THREE.BoxGeometry(1.15, 0.04, 0.58),
+        new THREE.MeshBasicMaterial({ color: 0xCFC4AC })
+      );
+      panelGeo.position.set(-0.1, 3.06, z);
+      S.add(panelGeo);
+      var pl = new THREE.PointLight(0xFFF0D8, 0.20, 7.0, 2);
+      pl.position.set(-0.1, 2.95, z);
+      S.add(pl);
+    });
+
+    /* the key: the exam light over the bed. Carrying most of the exposure on
+       one warm source is what gives the room a lit side and a dark side --
+       the previous build spread the same total across eight lights and got a
+       flat white box with no shadows in it. */
+    var spot = new THREE.SpotLight(0xFFD9A4, 2.4, 9, Math.PI / 6.0, 0.55, 1.4);
+    spot.position.set(0.45, 2.80, -0.30);
+    spot.target.position.set(0, 0.92, -0.62);
     spot.castShadow = true;
     spot.shadow.mapSize.width = 2048;
     spot.shadow.mapSize.height = 2048;
@@ -456,82 +834,73 @@
     S.add(spot.target);
 
     var housing = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.19, 0.30, 0.16, 20, 1, true),
-      new THREE.MeshStandardMaterial({ color: 0x3A3630, roughness: 0.55,
-                                       side: THREE.DoubleSide })
+      new THREE.CylinderGeometry(0.17, 0.27, 0.15, 20, 1, true),
+      new THREE.MeshStandardMaterial({ color: 0x3E444C, roughness: 0.55, side: THREE.DoubleSide })
     );
-    housing.position.set(0.30, 2.85, 0.42);
-    S.add(housing);
-
-    var bulb = new THREE.Mesh(
-      new THREE.CircleGeometry(0.19, 20),
-      new THREE.MeshBasicMaterial({ color: 0xFFEAC6 })
-    );
+    place(housing, 0.45, 2.80, -0.30, false, false);
+    var bulb = new THREE.Mesh(new THREE.CircleGeometry(0.17, 20),
+                              new THREE.MeshBasicMaterial({ color: 0xFFF1D6 }));
     bulb.rotation.x = -Math.PI / 2;
-    bulb.position.set(0.30, 2.77, 0.42);
-    S.add(bulb);
+    place(bulb, 0.45, 2.72, -0.30, false, false);
 
     var cone = new THREE.Mesh(
-      new THREE.ConeGeometry(1.00, 2.1, 28, 1, true),
+      new THREE.ConeGeometry(0.92, 2.0, 26, 1, true),
       new THREE.MeshBasicMaterial({
-        color: 0xFFD9A4, transparent: true, opacity: 0.034,
+        color: 0xFFE3B8, transparent: true, opacity: 0.030,
         side: THREE.DoubleSide, depthWrite: false
       })
     );
-    cone.position.set(0.30, 1.78, 0.42);
-    S.add(cone);
+    place(cone, 0.45, 1.78, -0.30, false, false);
 
-    /* one cool directional, so the shade side is not brown */
-    var rim = new THREE.DirectionalLight(0xBFD6EA, 0.46);
-    rim.position.set(-3.0, 2.4, -2.2);
-    S.add(rim);
+    /* the headwall strip washes the wall behind him */
+    var wash = new THREE.PointLight(0xFFD2A0, 0.42, 3.4, 2);
+    wash.position.set(0, 1.24, -1.80);
+    S.add(wash);
 
-    /* the small warm practicals that make a room feel inhabited */
-    var wallLamp = new THREE.PointLight(0xFFC98A, 0.55, 4.2, 2);
-    wallLamp.position.set(-1.35, 1.72, -1.30);
-    S.add(wallLamp);
+    /* cold from the window, so the shade side is not all brown */
+    var moon = new THREE.DirectionalLight(0x8FAAD0, 0.20);
+    moon.position.set(-3.4, 2.6, -2.6);
+    S.add(moon);
 
-    var corridor = new THREE.PointLight(0xFFE0B0, 0.40, 6.0, 2);
-    corridor.position.set(2.30, 1.95, 1.60);
+    /* the corridor, through the door */
+    var corridor = new THREE.PointLight(0xFFE6BE, 0.18, 5.0, 2);
+    corridor.position.set(2.55, 1.9, 0.30);
     S.add(corridor);
 
-    var underBed = new THREE.PointLight(0xFFBE86, 0.26, 2.4, 2);
-    underBed.position.set(0, 0.30, 0.10);
-    S.add(underBed);
-
     /* the monitor lights its own corner, and the colour tracks his status */
-    this.monitorLight = new THREE.PointLight(STATUS_COLOUR.stable, 1.5, 3.2, 2);
-    this.monitorLight.position.set(0.78, 1.34, -0.44);
+    this.monitorLight = new THREE.PointLight(STATUS_COLOUR.stable, 1.2, 2.6, 2);
+    this.monitorLight.position.set(0.94, 1.48, -0.44);
     S.add(this.monitorLight);
 
     this.addHotspots();
   };
 
   /* ---- the inspection layer ----
-     Contraband Police, but a bedside: you do not pick an examination from a
-     menu, you look at the man and touch the part of him you want to check.
-     Each hotspot carries the id of an examination the engine already knows
-     how to answer, so this is a new way into an existing system rather than a
-     second system. */
+     You do not pick an examination from a menu, you look at the man and touch
+     the part of him you want to check. Each hotspot carries the id of an
+     examination the engine already knows how to answer, so this is a new way
+     into an existing system rather than a second system. */
   Room3D.prototype.addHotspots = function () {
     var S = this.scene;
     var self = this;
     this.hotspots = [];
 
+    /* These sit on the body, so they move when the body does. Left behind at
+       the old heights they pointed at the inside of the mattress. */
     var SPOTS = [
-      { id: 'eyes',       label: 'Eyes',         pos: [0, 0.90, -0.80], r: 0.15 },
-      { id: 'cognition',  label: 'Speak to him', pos: [0.20, 0.99, -0.78], r: 0.12 },
-      { id: 'hands',      label: 'Hands',        pos: [-0.263, 0.78, 0.03], r: 0.13 },
-      { id: 'respiratory',label: 'Chest',        pos: [0, 0.83, -0.44], r: 0.20 },
-      { id: 'abdominal',  label: 'Abdomen',      pos: [0, 0.80, 0.02], r: 0.20 },
-      { id: 'legs',       label: 'Legs',         pos: [0, 0.78, 0.66], r: 0.24 }
+      { id: 'eyes',        label: 'Look at his eyes',    pos: [0.02, 1.24, -0.82], r: 0.13 },
+      { id: 'cognition',   label: 'Speak to him',        pos: [0.21, 1.32, -0.90], r: 0.12 },
+      { id: 'hands',       label: 'His hands',           pos: [-0.243, 0.975, -0.05], r: 0.14 },
+      { id: 'respiratory', label: 'Listen to his chest', pos: [0, 1.04, -0.70], r: 0.18 },
+      { id: 'abdominal',   label: 'Feel his abdomen',    pos: [0, 1.00, -0.18], r: 0.20 },
+      { id: 'legs',        label: 'His legs',            pos: [0, 1.02, 0.52], r: 0.24 }
     ];
 
     SPOTS.forEach(function (spec) {
       var mesh = new THREE.Mesh(
         new THREE.SphereGeometry(spec.r, 18, 14),
         new THREE.MeshBasicMaterial({
-          color: 0x7FC4FF, transparent: true, opacity: 0.0,
+          color: 0x8FD8FF, transparent: true, opacity: 0.0,
           depthWrite: false, depthTest: false
         })
       );
@@ -565,9 +934,9 @@
     if (!this.hotspots) return null;
     var hit = this.pickHotspot();
     if (hit !== this.hovered) {
-      if (this.hovered) this.hovered.material.opacity = 0.0;
+      if (this.hovered) this.hovered.material.opacity = this.hovered.userData.done ? 0.10 : 0.0;
       this.hovered = hit;
-      if (hit) hit.material.opacity = 0.30;
+      if (hit) hit.material.opacity = hit.userData.done ? 0.14 : 0.30;
     }
     return hit;
   };
@@ -578,11 +947,53 @@
     });
   };
 
+  /* A new patient in the same bed: forget what was examined on the last one. */
+  Room3D.prototype.resetExams = function () {
+    (this.hotspots || []).forEach(function (h) {
+      h.userData.done = false;
+      h.material.opacity = 0;
+    });
+    this.hovered = null;
+  };
+
+  /* Each case is a different person: five bodies, not one body in five
+     colours. `build` is girth and `frame` is shoulder width; height is left
+     alone because the chest group sits at the origin, so scaling Y would sink
+     him into the mattress rather than making him shorter. */
+  Room3D.prototype.setPatientLook = function (look) {
+    if (!this.ok || !this.patient || !look) return;
+    var u = this.patient.userData;
+    if (!u || !u.mats) return;
+
+    if (look.skin) u.mats.flesh.color.setHex(look.skin);
+    if (look.hair) u.mats.hair.color.setHex(look.hair);
+    if (look.gown) u.mats.gown.color.setHex(look.gown);
+    if (u.beard) u.beard.visible = !!look.beard;
+    if (u.longHair) u.longHair.visible = !!look.longHair;
+    if (u.cap) {
+      /* the short cap is the man's hair: off when she has long hair, and
+         shrunk back off the forehead when he is going bald */
+      u.cap.visible = !look.longHair;
+      var thin = look.thin ? 0.80 : 1.0;
+      u.cap.scale.set(1.02 * thin, 0.90 * thin, 1.04 * thin);
+    }
+
+    /* Both fold into X, and nothing else.
+       The chest group is unrotated and sits at the origin, so its Z runs along
+       the BED, not through his chest -- scaling it by "build" made him longer
+       rather than broader. Y is no use either: its children sit at y ~ 1.0, so
+       scaling Y lifts him off the mattress. Width is the one axis that is both
+       safe and visible, so build and frame multiply together into it. */
+    var width = (look.frame || 1) * (look.build || 1);
+    if (u.chest) u.chest.scale.set(width, 1, 1);
+    if (u.head) u.head.scale.setScalar(look.head || 1);
+  };
+
   Room3D.prototype.setStatus = function (status) {
     if (!this.ok) return;
     var colour = STATUS_COLOUR[status] || STATUS_COLOUR.stable;
     this.monitorLight.color.setHex(colour);
-    this.monitorLight.intensity = (status === 'flatline') ? 0.45 : 2.2;
+    this.monitorLight.intensity = (status === 'flatline') ? 0.35 : 1.3;
   };
 
   Room3D.prototype.setRespiratoryRate = function (rr) {
@@ -599,49 +1010,40 @@
     if (!this.frozen) {
       this.clock += Math.min(0.05, dtMs / 1000);
 
-      /* breathing: the chest lobe rises and falls at his respiratory rate */
-      var breath = Math.sin(this.clock * (this.rr / 60) * Math.PI * 2);
+      /* Nothing on the bed moves: not the blanket, not his chest. The only
+         thing alive in the frame is the trace on the monitor, which is where
+         you are supposed to be looking anyway.
 
-      /* His chest rises, not the blanket. */
-      if (this.patient && this.patient.userData.chest) {
-        var c = this.patient.userData.chest;
-        c.scale.y = 1 + breath * 0.045;
-        c.position.y = breath * 0.012;
-      }
+         The blanket does not move. It is laid over him once at build time and
+         left alone -- animating its vertices meant re-uploading the geometry
+         and recomputing every normal on it each frame, and the wobble read as
+         the bedding crawling rather than as him breathing. His chest above it
+         still rises, which is the part you are meant to notice.
 
-      var pos = this.sheet.geometry.attributes.position;
-      for (var i = 0; i < pos.count; i++) {
-        var y = pos.getY(i);
-        var t = (y + 1) / 2;
-        var belly = Math.exp(-Math.pow((t - 0.12) / 0.20, 2));
-        pos.setZ(i, this.baseZ[i] + breath * 0.016 * belly);
-      }
-      pos.needsUpdate = true;
-      this.sheet.geometry.computeVertexNormals();
-
-      /* Camera drifts on a slow sine path. Never under player control.
+         Camera drifts on a slow sine path. Never under player control.
          These numbers are the ones that matter: the constructor's position is
          overwritten on the very first frame, so setting it there and not here
          moves the camera for exactly one frame and then snaps it back. */
-      var a = this.clock * 0.055;
+      var a = this.clock * 0.05;
       this.camera.position.set(
-        CAM[0] + Math.sin(a) * 0.09,
-        CAM[1] + Math.sin(a * 0.7) * 0.035,
-        CAM[2] + Math.cos(a) * 0.06
+        CAM[0] + Math.sin(a) * 0.075,
+        CAM[1] + Math.sin(a * 0.7) * 0.030,
+        CAM[2] + Math.cos(a) * 0.050
       );
       this.camera.lookAt(LOOK[0], LOOK[1], LOOK[2]);
     }
 
     this.updateHover();
 
-    /* The ECG canvas was already redrawn this frame by the 2D panel; this just
-       tells the GPU to re-upload it. One 1024-ish texture per frame is cheap. */
-    this.ecgTexture.needsUpdate = true;
+    /* The monitor canvas was already redrawn this frame by monitor.js; this
+       just tells the GPU to re-upload it. One texture per frame is cheap. */
+    this.screenTexture.needsUpdate = true;
     this.renderer.render(this.scene, this.camera);
   };
 
   Room3D.prototype.dispose = function () {
     if (!this.ok) return;
+    if (this._onResize) global.removeEventListener('resize', this._onResize);
     this.renderer.dispose();
     this.ok = false;
   };

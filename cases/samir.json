@@ -1,0 +1,257 @@
+{
+  "id": "samir",
+  "title": "The fresher who will not miss his exam",
+  "specialty": "Infectious diseases / Acute medicine",
+  "setting": "Emergency department, 03:40",
+  "diagnosis": "Meningococcal sepsis",
+  "accepted_answers": [
+    "meningococcal",
+    "meningitis",
+    "sepsis",
+    "septicaemia",
+    "septicemia",
+    "blood poisoning",
+    "meningococcus"
+  ],
+  "partial_answers": [
+    "viral illness",
+    "encephalitis",
+    "tonsillitis"
+  ],
+  "name": "Samir",
+  "age": 19,
+  "sex": "male",
+  "description": "First-year engineering student, six weeks into halls. Was at a music festival at the weekend and has an exam on Thursday he has already resat once. His flatmate carried him down three flights of stairs to the taxi.",
+  "personality": "Polite, apologetic, and frightened underneath it. Keeps apologising for wasting your time. Very focused on getting out in time for his exam. Will answer straight if you ask him straight.",
+  "symptoms": [
+    "my head is splitting and nothing touches it",
+    "the strip light in here is unbearable",
+    "I cannot get warm, my hands and feet are freezing",
+    "everything aches, my legs most of all",
+    "I have been sick twice in the taxi"
+  ],
+  "lie_topic": "the marks on your legs",
+  "lie": "It is just a heat rash from the festival. It has been there for days.",
+  "truth": "The marks came up this evening and there are more of them than there were an hour ago. I did not want to say because I am terrified of what it means.",
+  "cracks_when": "pressed on it a second time, or asked what his flatmate noticed",
+  "crack_keywords": [
+    "flatmate",
+    "tariq",
+    "honest with me",
+    "be honest",
+    "spreading",
+    "more of them"
+  ],
+  "red_herrings": [
+    "blames it all on the festival and four nights of no sleep",
+    "everyone in halls has had a bug this month"
+  ],
+  "key_questions": [
+    "have you noticed any rash",
+    "does the light hurt your eyes",
+    "is your neck stiff",
+    "when did this start"
+  ],
+  "key_keywords": [
+    [
+      "rash",
+      "spots",
+      "marks",
+      "blotches",
+      "purple",
+      "bruises",
+      "skin"
+    ],
+    [
+      "light",
+      "lights",
+      "bright",
+      "dark",
+      "curtains",
+      "eyes"
+    ],
+    [
+      "neck",
+      "stiff",
+      "stiffness",
+      "chin",
+      "bend",
+      "sore"
+    ],
+    [
+      "when",
+      "start",
+      "started",
+      "long",
+      "since",
+      "yesterday",
+      "began"
+    ]
+  ],
+  "canned": {
+    "does the light hurt your eyes": "Can you turn it off? It goes right through me.",
+    "is your neck stiff": "I cannot get my chin anywhere near my chest. It has seized up.",
+    "when did this start": "Yesterday afternoon I felt off. By midnight I could not stand up.",
+    "_greeting": "Sorry to be here at this hour. I think I just need fluids.",
+    "_whats_wrong": "A bad bug, I assume. Everyone in halls has had one.",
+    "_deflect": [
+      "It is the festival catching up with me.",
+      "I have an exam Thursday. I cannot be in here.",
+      "Half of halls has had this. I will be fine by morning.",
+      "Sorry, can you say that again? I cannot think straight.",
+      "My flatmate panics about everything."
+    ],
+    "_feeling": "Cold. Really cold, and my head is splitting."
+  },
+  "exam": {
+    "general": "Drowsy but rousable. Cold, mottled peripheries with a capillary refill of 4 seconds. Looks unwell at the end of the bed.",
+    "skin": "Non-blanching purpuric spots over both shins and the left flank, several larger than 2mm. More visible now than on arrival.",
+    "neurological": "Photophobia and marked neck stiffness. Kernig's positive. No focal deficit. GCS 14.",
+    "cognition": "Oriented to person and place but not to time. Slow to answer.",
+    "cardiovascular": "Tachycardic 124, thready. BP 102/58 and falling. Cold to the knees.",
+    "eyes": "Pupils equal and reactive. Marked photophobia on examination.",
+    "hands": "Cold, mottled, capillary refill 4 seconds.",
+    "legs": "Purpuric spots over both shins. Severe myalgia on passive movement."
+  },
+  "key_exams": [
+    "skin",
+    "neurological",
+    "general"
+  ],
+  "vitals_start": {
+    "hr": 110,
+    "spo2": 96,
+    "sys": 118,
+    "dia": 70,
+    "rr": 24
+  },
+  "vitals_decline": {
+    "hr": 16,
+    "spo2": -4.6,
+    "sys": -11,
+    "dia": -7,
+    "rr": 4
+  },
+  "level_card": [
+    "Nineteen, three in the morning, and desperate to be gone by Thursday.",
+    "He has a headache, a stiff neck and cold hands.",
+    "Look at his legs. Then look again a minute later."
+  ],
+  "reveal_note": "The marks were not a heat rash, and there were more of them every time anyone looked.",
+  "opening_line": "Sorry to be here at this hour. I think I just need fluids.",
+  "presentation": {
+    "complaint": "Headache, fever and vomiting",
+    "duration": "Yesterday afternoon I felt off. By midnight I could not stand up",
+    "triage_note": "Carried in by flatmate. Febrile, photophobic, neck stiffness, cold peripheries. Marks noted on shins."
+  },
+  "history": {
+    "past_medical": [
+      "Nothing. I have never been properly ill"
+    ],
+    "medications": [
+      "Nothing regular",
+      "I took paracetamol earlier, it did nothing"
+    ],
+    "allergies": [
+      "None"
+    ],
+    "social": [
+      "First year engineering, I live in halls",
+      "I was at a festival at the weekend",
+      "I do not smoke",
+      "I drink a bit at weekends like everyone"
+    ],
+    "family": [
+      "My parents are both well",
+      "My sister has eczema"
+    ]
+  },
+  "key_investigations": [
+    "blood_cultures",
+    "fbc",
+    "crp",
+    "vbg",
+    "coag",
+    "ue",
+    "lumbar_puncture"
+  ],
+  "key_treatments": [
+    "iv_access_bloods",
+    "iv_antibiotics",
+    "iv_fluids",
+    "oxygen_titrated",
+    "senior_review"
+  ],
+  "harmful_treatments": {
+    "nsaid": "He is shutting down his kidneys already. An NSAID here makes that worse and treats nothing that matters.",
+    "benzodiazepine_sedation": "Drowsiness here is the illness, not agitation. Sedating him removes your only neurological observation."
+  },
+  "management_points": [
+    "Antibiotics first, within the hour, and before any imaging or lumbar puncture",
+    "Blood cultures before antibiotics only if it costs no delay at all",
+    "Fluid resuscitation for shock, reassessing after each bolus",
+    "A non-blanching rash with fever is sepsis until proven otherwise; test it with a glass",
+    "Lumbar puncture only once he is stable and coagulation is known, never before antibiotics",
+    "Critical care review early: cold peripheries and a falling pressure in a teenager decompensate late and fast",
+    "Notify public health and arrange contact prophylaxis for his household"
+  ],
+  "management_keywords": [
+    [
+      "antibiotic",
+      "ceftriaxone",
+      "cefotaxime",
+      "within the hour",
+      "first hour"
+    ],
+    [
+      "culture",
+      "blood culture",
+      "before antibiotic"
+    ],
+    [
+      "fluid",
+      "bolus",
+      "resusc",
+      "saline",
+      "crystalloid"
+    ],
+    [
+      "rash",
+      "non-blanching",
+      "nonblanching",
+      "glass",
+      "purpur",
+      "petechia"
+    ],
+    [
+      "lumbar",
+      "lp",
+      "puncture",
+      "coag",
+      "stable"
+    ],
+    [
+      "critical care",
+      "itu",
+      "icu",
+      "senior",
+      "escalat"
+    ],
+    [
+      "public health",
+      "notif",
+      "prophylaxis",
+      "contact"
+    ]
+  ],
+  "teaching": {
+    "summary": "A 19-year-old with headache, photophobia, neck stiffness and a spreading non-blanching rash, who is trying to be discharged in time for an exam. Cold peripheries and a four-second refill say he is already shocked.",
+    "pearls": [
+      "Antibiotics before imaging, before the lumbar puncture, before anything.",
+      "A rash that is spreading while you watch it is the whole diagnosis.",
+      "Teenagers compensate beautifully and then fall off a cliff.",
+      "Cold hands and a normal blood pressure is shock, not reassurance.",
+      "Ask the friend who brought them in what has changed in the last hour."
+    ]
+  }
+}

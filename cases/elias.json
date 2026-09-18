@@ -1,0 +1,261 @@
+{
+  "id": "elias",
+  "title": "The watchmaker who went back to sleep",
+  "specialty": "Neurology / Acute medicine",
+  "setting": "Emergency department, 09:50",
+  "diagnosis": "Stroke",
+  "accepted_answers": [
+    "stroke",
+    "cva",
+    "clot in the brain",
+    "bleed in the brain",
+    "mini stroke",
+    "tia"
+  ],
+  "partial_answers": [
+    "seizure",
+    "migraine",
+    "bells palsy",
+    "low sugar"
+  ],
+  "name": "Elias",
+  "age": 68,
+  "sex": "male",
+  "description": "Retired watchmaker, forty years at a bench in the old souk. Lives with his wife above the shop his nephew runs now. He still repairs movements for regulars who will not go anywhere else.",
+  "personality": "Precise, formal and proud of his hands. Hates fuss and hates being late. Minimises everything, but is exact about detail once he decides to tell you. Old-fashioned courtesy throughout.",
+  "symptoms": [
+    "my right hand will not do what I tell it",
+    "my words come out in the wrong order sometimes",
+    "the right side of my mouth feels heavy",
+    "I could not hold my tea this morning",
+    "I have no pain anywhere, which is what confuses me"
+  ],
+  "lie_topic": "what time this began",
+  "lie": "It only came on this morning, just before we left the house.",
+  "truth": "I woke at four with my hand dead and I went back to sleep hoping it would pass. My wife found me like this at nine.",
+  "cracks_when": "pressed on it a second time, or asked what his wife saw when she woke",
+  "crack_keywords": [
+    "wife",
+    "mariam",
+    "honest with me",
+    "be honest",
+    "four",
+    "what time really"
+  ],
+  "red_herrings": [
+    "blames it on sleeping awkwardly on the arm",
+    "says his glasses are the wrong prescription and always have been"
+  ],
+  "key_questions": [
+    "when exactly did this start",
+    "can you lift both arms",
+    "has your speech been affected",
+    "has your face drooped"
+  ],
+  "key_keywords": [
+    [
+      "when",
+      "exactly",
+      "start",
+      "started",
+      "time",
+      "clock",
+      "woke",
+      "began"
+    ],
+    [
+      "arms",
+      "arm",
+      "lift",
+      "raise",
+      "weak",
+      "weakness",
+      "grip",
+      "hand"
+    ],
+    [
+      "speech",
+      "speak",
+      "speaking",
+      "words",
+      "slurred",
+      "talking",
+      "sentences"
+    ],
+    [
+      "face",
+      "mouth",
+      "droop",
+      "drooped",
+      "drooping",
+      "smile",
+      "lopsided"
+    ]
+  ],
+  "canned": {
+    "can you lift both arms": "The left one, yes. The right one will not come up. It has no strength in it at all.",
+    "has your speech been affected": "My wife says I put the words in the wrong order. I cannot hear it myself.",
+    "has your face drooped": "She says it pulls to one side when I speak. I cannot feel anything different.",
+    "_greeting": "Good morning. I am sure this is nothing, but my wife insisted.",
+    "_whats_wrong": "I slept on the arm badly. That is all it will be.",
+    "_deflect": [
+      "I slept on it. It will come back.",
+      "I have a customer collecting at eleven. Will this take long?",
+      "I am sixty-eight. Things stop working. That is the arrangement.",
+      "My glasses have been wrong for years. Nobody listens.",
+      "My wife worries more than the situation calls for."
+    ],
+    "_feeling": "Nothing hurts. That is what I do not understand."
+  },
+  "exam": {
+    "general": "Alert, well-kempt, sitting slightly listing to the right.",
+    "neurological": "Dense right arm weakness (MRC 1/5) and mild right leg weakness (4/5). Right facial droop sparing the forehead. Expressive dysphasia. Right-sided sensory inattention.",
+    "cognition": "Oriented but word-finding is laboured. Follows commands well.",
+    "cardiovascular": "Irregularly irregular at 96. BP 178/98. No murmur.",
+    "eyes": "Right homonymous field loss to confrontation. Pupils equal.",
+    "hands": "Right grip absent. Left grip strong. Fine tremor absent.",
+    "legs": "Right leg 4/5. Left normal. No swelling."
+  },
+  "key_exams": [
+    "neurological",
+    "cognition",
+    "cardiovascular"
+  ],
+  "vitals_start": {
+    "hr": 96,
+    "spo2": 96,
+    "sys": 178,
+    "dia": 98,
+    "rr": 18
+  },
+  "vitals_decline": {
+    "hr": 20,
+    "spo2": -4.4,
+    "sys": -4,
+    "dia": -3,
+    "rr": 3
+  },
+  "level_card": [
+    "Sixty-eight, courteous, and certain he slept on his arm.",
+    "His right hand will not do what he tells it.",
+    "The single most important thing he can tell you is a time."
+  ],
+  "reveal_note": "Not this morning. Four o'clock, and he went back to sleep hoping it would pass.",
+  "opening_line": "Good morning. I am sure this is nothing, but my wife insisted.",
+  "presentation": {
+    "complaint": "Weakness of the right arm and disordered speech",
+    "duration": "My wife noticed at nine this morning",
+    "triage_note": "Brought by wife. Dense right arm weakness, expressive dysphasia, right facial droop. Irregular pulse."
+  },
+  "history": {
+    "past_medical": [
+      "Blood pressure, for years",
+      "They told me once my pulse was not regular"
+    ],
+    "medications": [
+      "Something for the blood pressure",
+      "There was another one, I stopped it, it bruised me"
+    ],
+    "allergies": [
+      "None"
+    ],
+    "social": [
+      "I was a watchmaker. Forty years at the bench",
+      "I live above the shop with my wife",
+      "I gave up smoking in 1994",
+      "A glass of arak on a Friday, no more"
+    ],
+    "family": [
+      "My brother had something like this at seventy",
+      "Otherwise we are a sturdy family"
+    ]
+  },
+  "key_investigations": [
+    "ct_head",
+    "cbg",
+    "ecg",
+    "fbc",
+    "ue",
+    "coag"
+  ],
+  "key_treatments": [
+    "iv_access_bloods",
+    "nil_by_mouth",
+    "cardiac_monitoring",
+    "senior_review",
+    "specialist_referral"
+  ],
+  "harmful_treatments": {
+    "aspirin_loading": "Not before the scan. If this is a bleed, an antiplatelet makes it catastrophic.",
+    "iv_fluids": "Flooding him achieves nothing here and risks his heart. The clock, not the drip, is the treatment."
+  },
+  "management_points": [
+    "Establish the time he was last known well: it decides everything that follows",
+    "Immediate CT head to separate a bleed from a clot before any antiplatelet",
+    "Capillary glucose in every sudden neurological deficit: hypoglycaemia mimics this exactly",
+    "Stroke team activation now, in parallel with imaging, not after it",
+    "Nil by mouth until a swallow screen is done, to prevent aspiration",
+    "An irregularly irregular pulse points at the mechanism and at what prevents the next one",
+    "Do not treat the blood pressure aggressively in the acute phase without specialist advice"
+  ],
+  "management_keywords": [
+    [
+      "last known well",
+      "time",
+      "onset",
+      "woke",
+      "witness"
+    ],
+    [
+      "ct",
+      "scan",
+      "imaging",
+      "bleed",
+      "haemorrhag",
+      "hemorrhag"
+    ],
+    [
+      "glucose",
+      "cbg",
+      "sugar",
+      "hypoglyc",
+      "bm"
+    ],
+    [
+      "stroke team",
+      "thrombolys",
+      "thrombectom",
+      "activate",
+      "call"
+    ],
+    [
+      "nil by mouth",
+      "swallow",
+      "aspiration",
+      "sip"
+    ],
+    [
+      "atrial",
+      "af",
+      "irregular",
+      "anticoagul",
+      "rhythm"
+    ],
+    [
+      "blood pressure",
+      "hypertens",
+      "permissive",
+      "do not lower"
+    ]
+  ],
+  "teaching": {
+    "summary": "A 68-year-old with a dense right arm weakness, expressive dysphasia and atrial fibrillation, who woke at four with a dead hand and went back to sleep. The deficit is not the hard part; the timing is.",
+    "pearls": [
+      "'Last known well' is the question, not 'when did you notice'.",
+      "Wake-up deficits are not automatically out of the window any more. Ask anyway, and ask fast.",
+      "Check the glucose before you call it anything.",
+      "No antiplatelet until the scan has excluded a bleed.",
+      "An irregular pulse tells you how to stop the next one."
+    ]
+  }
+}
