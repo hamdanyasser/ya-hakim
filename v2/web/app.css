@@ -695,3 +695,101 @@ body.noroom .room { display: none; }
   .debrief.open .debrief-body { padding: 16px 18px; }
   .db-sum { font-size: 16px; }
 }
+
+/* --------------------------------------------------------- cheat sheet
+   How to read the monitor. Generic to every patient, so it is safe to
+   open mid-round; it is the difference between guessing and reading. */
+.btn.sky { background: var(--sky); }
+
+.vt { width: 100%; border-collapse: collapse; margin-top: 4px; }
+.vt th {
+  text-align: left;
+  font-size: 12px;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  padding: 0 12px 8px 0;
+  font-weight: 800;
+}
+.vt td {
+  padding: 11px 12px 11px 0;
+  border-top: 2px solid color-mix(in srgb, var(--line) 14%, transparent);
+  vertical-align: top;
+  line-height: 1.45;
+}
+.vt td:first-child { white-space: nowrap; }
+.vt td b { font-size: 17px; }
+.vt td span { display: block; font-size: 12.5px; color: var(--ink-soft); }
+.vt td.num { font-family: var(--mono); white-space: nowrap; color: var(--ink-soft); }
+
+.sheet h3 {
+  margin: 22px 0 8px;
+  font-size: 15px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.rules { margin: 0; padding-left: 20px; }
+.rules li { margin: 9px 0; line-height: 1.5; }
+.rules em { font-style: normal; font-weight: 800; color: var(--mint-deep); }
+
+.picker {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+}
+.picker div {
+  border: var(--stroke) solid var(--line);
+  border-radius: var(--r-sm);
+  padding: 10px 14px;
+  background: var(--paper-2);
+  box-shadow: var(--plush-tiny);
+}
+.picker b { display: block; font-size: 15px; }
+.picker span { font-size: 13px; color: var(--ink-soft); }
+
+@media (max-width: 560px) {
+  .vt td, .vt th { font-size: 14px; }
+  .vt td b { font-size: 15px; }
+}
+
+/* ------------------------------------------------- red team, in the x-ray
+   The corpus result beside the prompt, so the whole proof is one button
+   and the demo never has to leave the game for a terminal. */
+.redteam {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 14px;
+  padding: 12px 16px;
+  border: var(--stroke) solid var(--line);
+  border-radius: var(--r-sm);
+  background: color-mix(in srgb, var(--mint) 30%, var(--card));
+  box-shadow: var(--plush-tiny);
+}
+.redteam.bad { background: color-mix(in srgb, var(--bubble) 34%, var(--card)); }
+
+.rt-num {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1;
+  min-width: 62px;
+}
+.rt-num b { font-size: 34px; color: var(--mint-deep); }
+.redteam.bad .rt-num b { color: var(--bubble-deep); }
+.rt-num span {
+  font-size: 11px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin-top: 3px;
+}
+
+.rt-txt b { display: block; font-size: 16px; line-height: 1.35; }
+.rt-txt span { font-size: 13px; color: var(--ink-soft); }
+
+@media (max-width: 560px) {
+  .rt-txt b { font-size: 15px; }
+}

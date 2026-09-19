@@ -68,6 +68,7 @@
       <div class="clock num" id="clock">4:00</div>
       <button class="btn" id="btnExamine">🩺 Examine</button>
       <button class="btn plum" id="btnDiagnose">Diagnose</button>
+      <button class="btn sky" id="btnHelp" title="How to read the monitor">? Help</button>
       <button class="btn ghost" id="btnGiveUp">I give up</button>
     </div>
 
@@ -115,6 +116,59 @@
     <p class="sub">Each one you can only do once, and the clock keeps running.</p>
     <div class="exams" id="examGrid"></div>
     <button class="btn" id="closeExamine" style="margin-top:20px">Back to the bedside</button>
+  </div>
+</div>
+
+<!-- ---------------------------------------------------------- cheat sheet
+     Generic clinical reasoning, identical for every patient. Nothing here
+     is drawn from a case file, so it cannot hint at any particular answer.
+     It is the difference between a player guessing and a player reading. -->
+<div class="overlay" id="helpSheet">
+  <div class="sheet" style="max-width:720px">
+    <h2>How to read him</h2>
+    <p class="sub">You do not need to know any medicine. You need to read four numbers.</p>
+
+    <table class="vt">
+      <thead><tr><th>Number</th><th>Normal</th><th>What it means when it is off</th></tr></thead>
+      <tbody>
+        <tr><td><b>RR</b><span>breathing</span></td><td class="num">12&ndash;20</td>
+            <td><b>The one that matters most.</b> Over 25 means genuinely sick.
+                It moves before anything else does.</td></tr>
+        <tr><td><b>HR</b><span>pulse</span></td><td class="num">60&ndash;100</td>
+            <td>Over 120 means the body is compensating hard.</td></tr>
+        <tr><td><b>BP</b><span>top number</span></td><td class="num">110&ndash;140</td>
+            <td>Under 100 <em>in someone young</em> means compensation has
+                already failed. Late, and bad.</td></tr>
+        <tr><td><b>SpO&#8322;</b><span>oxygen</span></td><td class="num">95&ndash;100</td>
+            <td>Under 92 means oxygen is not getting in.</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Two rules that cover most of it</h3>
+    <ul class="rules">
+      <li><b>Pulse up and pressure down is shock.</b> Look at the <em>skin</em> first. Always.</li>
+      <li><b>Breathing fast but oxygen normal means it is not the lungs.</b>
+          Something else is driving it &mdash; look at <em>cognition</em> and <em>hydration</em>.</li>
+    </ul>
+
+    <h3>Which examination to reach for</h3>
+    <div class="picker">
+      <div><b>Shocked</b><span>skin, general</span></div>
+      <div><b>Breathless</b><span>respiratory, legs</span></div>
+      <div><b>Confused</b><span>cognition, neurological</span></div>
+      <div><b>Belly pain</b><span>abdominal, hydration</span></div>
+    </div>
+
+    <p class="sub" style="margin-top:18px">
+      Two more things. They are all hiding something, and they only let go of it
+      the <b>second</b> time you ask &mdash; one question is never enough.
+      And his pulse reacts before his mouth does.
+    </p>
+    <p class="db-refs" style="margin-top:10px">
+      The thresholds are the ones the NHS uses at the bedside (NEWS2).
+    </p>
+
+    <button class="btn" id="closeHelp" style="margin-top:20px">Back to the bedside</button>
   </div>
 </div>
 
@@ -235,6 +289,16 @@
     <p class="sub">The real prompt behind the patient. Search it for the answer.</p>
     <input id="proofSearch" class="field" placeholder="try: liver" style="margin-bottom:12px">
     <div id="proofResult" class="pill teal" style="margin-bottom:14px">&mdash;</div>
+
+    <!-- The corpus, scored live by the same guard CI uses. -->
+    <div class="redteam" id="redteam" style="display:none">
+      <div class="rt-num num"><b id="rtLeaks">0</b><span>leaks</span></div>
+      <div class="rt-txt">
+        <b id="rtHead">&mdash;</b>
+        <span id="rtSub"></span>
+      </div>
+    </div>
+
     <pre id="proofText"></pre>
     <button class="btn" id="closeProof" style="margin-top:18px">Close</button>
   </div>

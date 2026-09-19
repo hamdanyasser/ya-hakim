@@ -411,3 +411,107 @@ class TestTheDebrief:
             if not (db["summary"] and db["pearls"] and db["threads"] and db["management"]):
                 thin.append(cid)
         assert not thin, "these cases have no debrief worth showing: " + repr(thin)
+
+
+class TestTheRedTeamNumberOnScreen:
+    """The x-ray shows a leak count. It must be measured, not asserted."""
+
+    def test_the_proof_carries_the_corpus_result(self, app):
+        from engine import redteam
+
+        s = _start(app)
+        d = app.get("/api/v2/proof/" + s["session"]).json()
+        rt = d["redteam"]
+
+        assert rt["attacks"] == len(redteam.all_attacks()) == 100
+        assert rt["categories"] == len(redteam.CATEGORIES) == 10
+        assert rt["leaks"] == 0, rt["examples"]
+        assert rt["mode"] == "offline", "the screen must not imply live calls"
+
+    def test_it_holds_for_every_patient(self, app):
+        bad = []
+        for cid in v2.CASES:
+            s = _start(app, case=cid)
+            rt = app.get("/api/v2/proof/" + s["session"]).json()["redteam"]
+            if rt["leaks"]:
+                bad.append((cid, rt["examples"]))
+        assert not bad, bad
+
+    def test_the_count_is_cached_not_recomputed(self, app):
+        """100 attacks per sheet-open would make the demo stutter."""
+        v2._REDTEAM_CACHE.pop("kamal", None)
+        s = _start(app)
+        app.get("/api/v2/proof/" + s["session"])
+        assert "kamal" in v2._REDTEAM_CACHE
+
+
+class TestTheQuickQuestions:
+    """The chip bar is the first thing a new player touches.
+
+    It shipped with seven buttons of which three pulled a thread from nobody
+    -- including "Medications?", although two patients hide a medication and
+    a third hides a contraceptive. A button that never scores teaches the
+    player the game is not listening, which is worse than no button.
+    """
+
+    # kept in step with QUICK in v2/web/app.js
+    CHIPS = [
+        "is it worse at night or when you wake up?",
+        "when exactly did this start?",
+        "what tablets or medicine are you taking?",
+        "have you been sick or vomited?",
+        "have you noticed anything different in the toilet?",
+        "is there any rash or marks on your skin?",
+        "has anything like this happened before?",
+        "is anyone else at home feeling unwell?",
+        "be honest with me, what are you not telling me?",
+    ]
+
+    def test_the_chips_in_the_page_are_the_chips_under_test(self):
+        """If someone edits the bar, this file must be edited with it."""
+        js = (Path(__file__).resolve().parent.parent
+              / "v2" / "web" / "app.js").read_text(encoding="utf-8")
+        body = js.split("var QUICK = [", 1)[1].split("];", 1)[0]
+        for text in self.CHIPS:
+            assert text in body, "chip not in app.js: " + text
+        assert body.count("['") == len(self.CHIPS), "app.js has a chip this test does not"
+
+    def test_no_chip_is_dead_weight(self):
+        """Every button must earn its place: a thread, or a crack."""
+        from engine import scoring
+
+        dead = []
+        for text in self.CHIPS:
+            threads = sum(scoring.covers_key_topic(v2._case(c), text) is not None
+                          for c in v2.CASES)
+            cracks = sum(bool(v2._cracks(v2._case(c), text, None, {})) for c in v2.CASES)
+            if not threads and not cracks:
+                dead.append(text)
+        assert not dead, "these chips do nothing on any patient: " + repr(dead)
+
+    def test_every_patient_is_reachable_from_the_bar(self):
+        from engine import scoring
+
+        stranded = []
+        for cid in v2.CASES:
+            case = v2._case(cid)
+            pulled = {scoring.covers_key_topic(case, t) for t in self.CHIPS}
+            pulled.discard(None)
+            if not pulled:
+                stranded.append(cid)
+        assert not stranded, "no chip helps: " + repr(stranded)
+
+    def test_asking_what_someone_takes_reaches_the_medication_threads(self):
+        """The bug this class exists for: 'medication' was in no keyword group
+        on any case, so the question every doctor asks scored nothing."""
+        from engine import scoring
+
+        for cid, expected in [("omar", "what painkillers have you been taking"),
+                              ("nadia", "have you been using your inhalers"),
+                              ("hana", "are you on any contraception")]:
+            case = v2._case(cid)
+            for phrasing in ["what medication are you taking",
+                             "what medicines are you on",
+                             "what tablets or medicine are you taking?"]:
+                got = scoring.covers_key_topic(case, phrasing)
+                assert got == expected, (cid, phrasing, got)

@@ -21,7 +21,7 @@ from pathlib import Path
 from fastapi import APIRouter
 from fastapi.responses import FileResponse, JSONResponse
 
-from engine import authoring, clinical, llm, patient, scoring, vitals
+from engine import authoring, clinical, llm, patient, redteam, scoring, vitals
 
 router = APIRouter(prefix="/api/v2", tags=["v2"])
 
@@ -653,6 +653,47 @@ async def diagnose(sid: str, payload: dict):
     }
 
 
+_REDTEAM_CACHE: dict[str, dict] = {}
+
+
+def _redteam(case_id: str, case: dict) -> dict:
+    """Run the whole attack corpus against this patient, once, and keep it.
+
+    The room deserves a number, not an adjective. This is the same corpus
+    tests/test_injection.py runs in CI -- 100 attacks over ten categories --
+    scored by the same guard, so the figure on screen is the figure that
+    gates the build rather than one typed into the HTML.
+
+    Offline by design: the guard is what stands between a jailbroken model
+    and the player, and firing a hundred live calls every time someone opens
+    the sheet would cost real money and take a minute. `mode` says so on
+    screen; a number whose provenance is hidden is worth nothing.
+    """
+    hit = _REDTEAM_CACHE.get(case_id)
+    if hit:
+        return hit
+
+    leaks = []
+    total = 0
+    for r in redteam.run_suite(case, live=False):
+        total += 1
+        if r["leaked"]:
+            leaks.append({"category": r["category"],
+                          "attack": r["attack"],
+                          "terms": r["terms"]})
+
+    out = {
+        "attacks": total,
+        "categories": len(redteam.CATEGORIES),
+        "category_names": list(redteam.CATEGORIES),
+        "leaks": len(leaks),
+        "examples": leaks[:3],
+        "mode": "offline",
+    }
+    _REDTEAM_CACHE[case_id] = out
+    return out
+
+
 @router.get("/proof/{sid}")
 async def proof(sid: str):
     """The X-ray: the exact prompt, and the answer searched inside it."""
@@ -674,6 +715,7 @@ async def proof(sid: str):
         "chars": len(prompt),
         "terms": checked,
         "withheld": patient.SECRET_FIELDS,
+        "redteam": _redteam(s["case_id"], case),
     }
 
 

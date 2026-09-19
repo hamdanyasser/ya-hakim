@@ -851,6 +851,11 @@
     show('pick');
     refreshCases();
   };
+  /* The cheat sheet. Same content every round, no server call, nothing from
+     a case file -- so it can be opened mid-encounter without leaking. */
+  $('btnHelp').onclick = function () { sheet('helpSheet', true); };
+  $('closeHelp').onclick = function () { sheet('helpSheet', false); };
+
   $('proofBtn').onclick = function () { openProof(); };
 
   function beginCase() {
@@ -911,14 +916,26 @@
      they used to be Kamal's, which meant two of the three written cases --
      and every case the model writes -- got a bar of questions about a wife
      who does not exist. */
+  /* Chosen by measurement, not by taste. The previous seven pulled a thread
+     on 6 of the 38 across the nine patients: three of them -- "What brings
+     you in?", "Medications?", "Be honest with me" -- pulled nothing from
+     anybody, which teaches a new player that the game is not listening.
+     These nine reach 18 of 38, and every patient is reachable by at least
+     one of them.
+
+     "Be honest with me" is kept although it pulls no thread at all: it is
+     the crack cue for eight of the nine, which is the other thing a question
+     can do. Ordered by how often each one lands. */
   var QUICK = [
-    ['What brings you in?',   'what brings you in tonight?'],
-    ['How long?',             'how long has this been going on?'],
-    ['Any pain?',             'are you in any pain?'],
-    ['Medications?',          'what medications are you taking?'],
-    ['Happened before?',      'has anything like this happened before?'],
-    ['Anyone else unwell?',   'is anyone else at home feeling unwell?'],
-    ['Be honest with me',     'be honest with me, what are you not telling me?']
+    ['Worse at night?',        'is it worse at night or when you wake up?'],
+    ['When exactly?',          'when exactly did this start?'],
+    ['What do you take?',      'what tablets or medicine are you taking?'],
+    ['Been sick?',             'have you been sick or vomited?'],
+    ['Toilet OK?',             'have you noticed anything different in the toilet?'],
+    ['Anything on your skin?', 'is there any rash or marks on your skin?'],
+    ['Happened before?',       'has anything like this happened before?'],
+    ['Anyone else unwell?',    'is anyone else at home feeling unwell?'],
+    ['Be honest with me',      'be honest with me, what are you not telling me?']
   ];
   var qbar = $('quick');
   if (qbar) {
@@ -1211,6 +1228,7 @@
       });
     }
     $('proofText').innerHTML = body;
+    drawRedteam(proof.redteam);
     var r = $('proofResult');
     if (!q) {
       r.className = 'pill';
@@ -1222,6 +1240,26 @@
       r.className = 'pill teal';
       r.textContent = '0 matches for "' + q + '". It is not in there.';
     }
+  }
+
+  /* The attack corpus, beside the prompt. Same 100 attacks the test suite
+     runs in CI, scored by the same guard -- so the number on screen is the
+     one that gates the build, not one typed into the HTML. The mode is
+     stated because a figure whose provenance is hidden is worth nothing. */
+  function drawRedteam(rt) {
+    var wrap = $('redteam');
+    if (!wrap) return;
+    if (!rt || !rt.attacks) { wrap.style.display = 'none'; return; }
+
+    $('rtLeaks').textContent = rt.leaks;
+    wrap.className = 'redteam' + (rt.leaks ? ' bad' : '');
+    $('rtHead').textContent = rt.attacks + ' scripted jailbreak attacks, ' +
+      rt.leaks + ' got through';
+    $('rtSub').textContent = rt.categories + ' categories — ' +
+      (rt.category_names || []).slice(0, 4).join(', ') +
+      (rt.category_names && rt.category_names.length > 4 ? ', and more' : '') +
+      '. Run against the output guard.';
+    wrap.style.display = 'flex';
   }
 
   function openProof() {
@@ -1254,7 +1292,8 @@
 
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape') {
-      ['proofSheet', 'examineSheet', 'dxSheet', 'statsSheet', 'genSheet'].forEach(function (s) {
+      ['proofSheet', 'examineSheet', 'dxSheet', 'statsSheet', 'genSheet',
+       'helpSheet'].forEach(function (s) {
         sheet(s, false);
       });
     }

@@ -1,0 +1,269 @@
+% =====================================================================
+%  YA HAKIM -- 5 minute demo + 3 minute Q&A
+%  Run sheet for Yasser Hamdan and Ali Naim.
+%
+%  Compiles with pdflatex. No custom fonts, no exotic packages.
+%  Easiest route: overleaf.com -> New Project -> Blank -> paste this.
+% =====================================================================
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=16mm,top=14mm,bottom=16mm]{geometry}
+\usepackage{xcolor}
+\usepackage[most]{tcolorbox}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{helvet}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{graphicx}
+\usepackage{amssymb}
+\renewcommand{\familydefault}{\sfdefault}
+
+% ------------------------------------------------------------- palette
+\definecolor{ink}{HTML}{141C26}
+\definecolor{inksoft}{HTML}{6B7A8C}
+\definecolor{mint}{HTML}{9DF3D0}
+\definecolor{mintdeep}{HTML}{12C48E}
+\definecolor{lemon}{HTML}{FFE873}
+\definecolor{lemondeep}{HTML}{E8B21F}
+\definecolor{bubble}{HTML}{FFAFD4}
+\definecolor{bubbledeep}{HTML}{F0479B}
+\definecolor{peri}{HTML}{BDC4FF}
+\definecolor{peridp}{HTML}{5B63F0}
+\definecolor{paper}{HTML}{F2F6F3}
+
+\pagecolor{white}
+\color{ink}
+
+% -------------------------------------------------------------- pieces
+\newcommand{\Y}{\textcolor{mintdeep}{\textbf{YASSER}}}
+\newcommand{\A}{\textcolor{peridp}{\textbf{ALI}}}
+\newcommand{\say}[1]{\textit{``#1''}}
+\newcommand{\act}[1]{\textcolor{inksoft}{\small$\blacktriangleright$~#1}}
+
+\titleformat{\section}{\large\bfseries\color{ink}}{}{0pt}{}
+\titlespacing{\section}{0pt}{14pt}{6pt}
+
+\newtcolorbox{beat}[2]{
+  enhanced, breakable,
+  colback=white, colframe=ink, boxrule=1.1pt, arc=3mm,
+  left=4mm, right=4mm, top=2.6mm, bottom=2.6mm,
+  boxsep=1mm, before skip=3.2mm, after skip=0mm,
+  title={\bfseries #1},
+  coltitle=ink, colbacktitle=#2, attach boxed title to top left={xshift=5mm,yshift=-2.6mm},
+  boxed title style={colframe=ink, boxrule=1.1pt, arc=1.6mm, left=2.4mm, right=2.4mm}
+}
+
+\newtcolorbox{panel}[2][mint]{
+  enhanced, breakable,
+  colback=#1!28!white, colframe=ink, boxrule=1.1pt, arc=3mm,
+  left=4mm, right=4mm, top=3mm, bottom=3mm,
+  title={\bfseries #2}, coltitle=ink, colbacktitle=#1,
+  attach boxed title to top left={xshift=5mm,yshift=-2.8mm},
+  boxed title style={colframe=ink, boxrule=1.1pt, arc=1.6mm}
+}
+
+\newcommand{\qa}[2]{%
+  \par\smallskip\noindent\textbf{\textcolor{peridp}{Q.}}~\textbf{#1}\par
+  \noindent\hspace{4.4mm}\begin{minipage}{0.95\linewidth}#2\end{minipage}\par\smallskip}
+
+\pagestyle{fancy}\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}
+\fancyfoot[C]{\small\textcolor{inksoft}{Ya Hakim \,\textbullet\,\ Yasser Hamdan \& Ali Naim \,\textbullet\,\ page \thepage}}
+
+\begin{document}
+
+% =====================================================================
+\begin{center}
+{\Huge\bfseries YA HAKIM}\\[2.5mm]
+{\large\textcolor{inksoft}{Nine patients. Each hiding one thing.}}\\[1.5mm]
+{\large\textcolor{inksoft}{The AI playing them has never been told what is wrong.}}\\[4mm]
+\colorbox{lemon}{\rule[-2.2mm]{0pt}{7mm}\ \textbf{5 minute demo\ \ +\ \ 3 minute Q\&A}\ }
+\hspace{2mm}
+\colorbox{mint}{\rule[-2.2mm]{0pt}{7mm}\ \textbf{Yasser drives}\ }
+\hspace{2mm}
+\colorbox{peri}{\rule[-2.2mm]{0pt}{7mm}\ \textbf{Ali narrates}\ }
+\end{center}
+
+\vspace{2mm}
+
+\begin{panel}[lemon]{Before you walk up}
+\begin{itemize}[leftmargin=5mm,itemsep=1.2mm,topsep=0.8mm]
+  \item Open \textbf{one} browser tab, full screen, on the \textbf{LAN address} --- never \texttt{localhost}.
+  \item Play one throwaway round backstage. The first AI reply of a session is slow; do not let that happen on stage.
+  \item Patient for the demo: \textbf{Georges, 62}. Sound on. Volume up.
+  \item Close every other tab. Notifications off.
+\end{itemize}
+\end{panel}
+
+% =====================================================================
+\section*{THE FIVE MINUTES}
+
+\begin{beat}{0:00 -- 0:35\ \ \ THE HOOK}{mint}
+\Y\ \say{We are computer science students. Three days ago neither of us could
+diagnose anything.}\par\smallskip
+\Y\ \say{This is Georges. He is sixty-two, he has had headaches for six weeks,
+and he is hiding something. You have four minutes before he dies.}\par\smallskip
+\Y\ \say{And the AI playing him has never been told what is wrong with him.
+Not told to keep a secret. \textbf{Never told.}}\par\smallskip
+\act{Stay on the patient screen. Do not explain the architecture yet --- show the game first.}
+\end{beat}
+
+\begin{beat}{0:35 -- 2:35\ \ \ PLAY HIM}{mint}
+\Y\ types, one at a time. \A\ reads the room and narrates.\par\smallskip
+
+\begin{tabularx}{\linewidth}{@{}p{62mm}X@{}}
+\textbf{1.}~\say{is anyone else at home feeling unwell} & \A: \say{Watch the dots. That is a thread of his history.}\\[1.6mm]
+\textbf{2.}~\say{do you feel better when you are away from the house} & \A: \say{He does not want to be here. He has an answer ready for everything.}\\[1.6mm]
+\textbf{3.}~\say{what heats your house} & \A: \say{He was a boiler engineer for forty years.}\\[1.6mm]
+\textbf{4.}~\textbf{Examine} $\rightarrow$ \textbf{Cognition} & \A: \say{His oxygen reads ninety-nine percent. \textbf{That number is lying to you}, and that is not our bug --- a pulse oximeter physically cannot see this.}
+\end{tabularx}
+
+\smallskip
+\act{\textbf{Diagnose} $\rightarrow$ type \texttt{carbon monoxide} $\rightarrow$ call it. Do not wait for the clock.}\par\smallskip
+\A\ (as the reveal lands) \say{His wife and the dog are still in that house.}\par\smallskip
+\act{\textbf{Pause here for two seconds.} Let that sit. Do not talk over it.}
+\end{beat}
+
+\begin{beat}{2:35 -- 3:50\ \ \ THE PROOF --- this is what wins}{peri}
+\A\ \say{Every demo today will tell you their AI does something clever.
+We are going to show you ours cannot cheat, and you can check it yourselves.}\par\smallskip
+\act{Click \textbf{Show them it couldn't cheat}.}\par\smallskip
+\A\ \say{This is the complete text we send the AI. Every word of it.}\par\smallskip
+\A\ \say{There is a search box. Somebody give me a word.}\par\smallskip
+\act{Type \texttt{monoxide}. Then \texttt{gas}. Then \texttt{poisoning}. \textbf{Zero matches} each time.}\par\smallskip
+\A\ \say{It is not hidden. It was never put in.}\par\smallskip
+\A\ \say{And above it: one hundred scripted jailbreak attacks, ten categories,
+including Arabic and French. Zero got through. That number is measured when you
+open this panel --- it is not typed into the page.}
+\end{beat}
+
+\begin{beat}{3:50 -- 4:30\ \ \ IT TEACHES YOU}{lemon}
+\act{Go back. Click \textbf{What you should take away}.}\par\smallskip
+\Y\ \say{After every case it tells you what mattered, and what would have
+\textbf{harmed} him --- here, giving him oxygen guided by that lying monitor.}\par\smallskip
+\Y\ \say{Every case cites the real published guidelines it came from. We are not
+doctors, so we did not invent the medicine.}\par\smallskip
+\act{Click \textbf{Next patient} --- let them see all nine on the picker.}\par\smallskip
+\Y\ \say{Nine patients, three difficulty tiers. Everything in that 3D room ---
+the bed, the body, the monitor --- is generated in code. Nothing downloaded.}
+\end{beat}
+
+\begin{beat}{4:30 -- 5:00\ \ \ CLOSE}{mint}
+\Y\ \say{Ya Hakim is a game where you learn to read a patient instead of guessing.}\par\smallskip
+\Y\ \say{And it is built so the answer is not merely hidden from the AI ---
+it was never given to it. That is a design decision, and we can prove it in
+front of you in ten seconds.}\par\smallskip
+\Y\ \say{One link. It is running right now. Thank you.}
+\end{beat}
+
+\newpage
+
+% =====================================================================
+\section*{THE THREE MINUTES OF QUESTIONS}
+
+\begin{panel}[peri]{Who answers what}
+\textbf{Ali} takes anything technical --- architecture, the AI, the proof, the code.\\
+\textbf{Yasser} takes the game, the cases, the design, and anything about what is next.\\[1.5mm]
+If you do not know: \textbf{say you do not know.} It beats bluffing, every time.
+\end{panel}
+
+\bigskip
+
+\qa{How do you know the AI isn't just working out the diagnosis by itself?}{%
+\A: It might. A capable model sees yellow eyes and a swollen belly and can infer
+liver failure --- we do not claim it is stupid. We claim two things we can prove:
+we never gave it the answer, and if it ever says the answer, the player never sees
+it. Every reply is scanned before it reaches the screen, and a reply that contains
+the answer is thrown away and asked again --- not censored, because a blanked-out
+word tells you the word was there.}
+
+\qa{Why not just tell the model to keep it secret?}{%
+\A: Because an instruction is negotiable. Everything in a prompt can be argued with,
+role-played around, or extracted. Absence cannot. There is no prompt you can write
+that makes a model reveal something it does not have.}
+
+\qa{So how is that actually built?}{%
+\A: An allowlist. Twelve named fields get copied \textbf{into} the prompt --- name, age,
+personality, symptoms, the lie. Five fields are the answer and are never on that list.
+The obvious way round is to take the whole file and strip the secrets out, but then a
+field somebody adds next year leaks by default. Copying in means a new field is invisible
+unless you deliberately add it. It is safe when you forget.}
+
+\qa{How is this different from just role-playing with ChatGPT?}{%
+\A: The model only speaks. Everything that makes it a game --- the clock, the vitals,
+when he cracks and tells the truth, the scoring --- is our engine, and it is deterministic
+and tested. The model never decides anything.}
+
+\qa{Is the medicine accurate?}{%
+\Y: We are CS students, so we did not write it from memory. Every case cites published
+guidelines --- NICE, the Resuscitation Council, the European Society of Cardiology --- and
+they are listed at the end of each case. The vitals thresholds are NEWS2, the score the NHS
+actually uses at the bedside.}
+
+\qa{What happens if the wifi dies?}{%
+\Y: It keeps playing. There is a full offline patient with scripted replies, and from the
+back of a room you cannot tell. That was not a fallback we bolted on --- it is how we built
+it before we had an API key.}
+
+\qa{What was the hardest bug?}{%
+\A: The guard blocks any word from the diagnosis. One diagnosis was ``liver disease
+\textbf{from} untreated hepatitis B'' --- so it banned the word ``from'' and the patient could
+not speak an English sentence. We had to add a stopword list. The other one: a naive search
+for ``liver'' flags ``de\textbf{liver}ed'', so everything matches on whole words now, and there
+is a test with the sentence \say{my wife delivered the news}.}
+
+\qa{What would you do next?}{%
+\Y: Three things, in order. More patients --- nine is an hour of play. Then finish the
+examinations: about half of them return a generic normal result today. Then multiplayer, which
+is already built and tested but not switched on --- a room of phones against one projector.}
+
+\qa{Can a player cheat by looking at the network traffic?}{%
+\A: Not during the round --- the answer is in no payload the browser receives, and that is
+tested. One honest caveat: the proof panel itself lists the answer words, because that is how
+it shows you a hit count of zero. So yes, if you open developer tools mid-round and go
+looking for our proof endpoint, you can read them there. We would gate it if this were
+shipping.}
+
+\bigskip
+
+\begin{panel}[bubble]{Do not say these}
+\begin{itemize}[leftmargin=5mm,itemsep=1.2mm,topsep=0.8mm]
+  \item \textbf{Do not promise his heart spikes when he lies.} It works about half the time --- it is a known bug. If it fires, great, point at it. Never set it up in advance.
+  \item \textbf{Do not call it a medical tool.} It is a game that teaches reasoning. Saying otherwise invites a question you cannot win.
+  \item \textbf{Do not claim the AI ``cannot know''.} It was never told. That is the honest claim and it is strong enough.
+\end{itemize}
+\end{panel}
+
+\bigskip
+
+\begin{panel}[lemon]{If something breaks on stage}
+\textbf{The AI is slow or silent.} Keep talking, the offline patient answers instantly and nobody can tell.\\[1mm]
+\textbf{The 3D room does not load.} Say \say{the room is optional, the game is the conversation} and carry on. It is built to fail that way on purpose.\\[1mm]
+\textbf{The page is blank.} Refresh once. The round is on the server, not the browser.\\[1mm]
+\textbf{You freeze.} Hand to the other one. That is what two people are for.
+\end{panel}
+
+\bigskip
+
+\begin{panel}[mint]{The numbers, if you are asked}
+\begin{tabularx}{\linewidth}{@{}lX@{}}
+\textbf{9} & patients, across three difficulty tiers\\
+\textbf{12 / 5} & fields the AI may see \ / \ fields that are the answer and never leave the server\\
+\textbf{100} & scripted jailbreak attacks, in 10 categories, including Arabic and French\\
+\textbf{0} & that got through\\
+\textbf{740} & automated tests, all passing\\
+\textbf{20{,}375} & lines of code, written in five days\\
+\textbf{0} & downloaded 3D models, textures or images --- the room is generated\\
+\end{tabularx}
+\end{panel}
+
+\vfill
+\begin{center}
+\textcolor{inksoft}{\small Say less than you want to. Let the zero-matches moment breathe.}
+\end{center}
+
+\end{document}
