@@ -18,9 +18,14 @@ from engine.patient import CannedPatient, PatientSession, load_case
 # No 0/O and no 1/I/L. Someone is reading this off a projector.
 CODE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"
 
-# The campaign, in order. Level 1 is the trial: he cannot die of a wrong call.
-# Level 3 is unforgiving -- a wrong answer kills him (see Room.guess).
-LEVELS = ["kamal", "rita", "georges"]
+# The campaign, in order. Levels 1 and 2 are the trial pair: a wrong call
+# cannot kill them. From level 3 a wrong answer does (see Room.guess).
+#
+# Same order as the v2 ladder in v2/server/api.py, so a case is the same
+# difficulty whichever mode you meet it in. The host picks the starting level,
+# so a short session is three of these, not a forced run of nine.
+LEVELS = ["kamal", "nadia", "rita", "samir", "farida", "omar",
+          "georges", "elias", "hana"]
 
 rooms: dict[str, Room] = {}
 
