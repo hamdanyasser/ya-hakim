@@ -253,5 +253,16 @@
       "Cold hands and a normal blood pressure is shock, not reassurance.",
       "Ask the friend who brought them in what has changed in the last hour."
     ]
-  }
+  },
+  "key_question_reasons": [
+    "A rash that does not blanch, in a teenager who is unwell, is meningococcal sepsis until proven otherwise. Nothing else comes first.",
+    "Photophobia with fever points at meningitis rather than a simple viral illness.",
+    "Neck stiffness completes the picture, though it is often absent early -- its absence excludes nothing.",
+    "Hours, not days. Meningococcal disease moves faster than almost anything else you will see, and the timeline drives how fast you must."
+  ],
+  "guidelines": [
+    "nice-ng103",
+    "nice-ng51",
+    "ssc-2021"
+  ]
 }

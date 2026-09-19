@@ -520,6 +520,36 @@ def _accuracy(s: dict, correct: bool) -> list:
     ]
 
 
+def _debrief(case: dict) -> dict:
+    """What the case file already knows, for after the answer is out.
+
+    All of this names the diagnosis, so it may only ever be built here --
+    _resolve is the one function that closes an encounter, and nothing else
+    calls this. It is not in _view(), so no amount of polling /state reaches
+    it while the round is live.
+
+    None of it is new content: every field below was already written in
+    cases/*.json and, until now, never shown to anyone.
+    """
+    threads = []
+    for q, why in zip(case.get("key_questions") or [],
+                      case.get("key_question_reasons") or []):
+        threads.append({"question": q, "why": why})
+
+    traps = [{"what": k.replace("_", " "), "why": v}
+             for k, v in (case.get("harmful_treatments") or {}).items()]
+
+    teaching = case.get("teaching") or {}
+    return {
+        "summary": teaching.get("summary"),
+        "pearls": list(teaching.get("pearls") or []),
+        "threads": threads,
+        "management": list(case.get("management_points") or []),
+        "traps": traps,
+        "guidelines": list(case.get("guidelines") or []),
+    }
+
+
 def _resolve(s: dict, correct: bool, reason: str) -> dict:
     """End the round and mark it. The only place that closes an encounter."""
     case = s["case"]
@@ -543,6 +573,7 @@ def _resolve(s: dict, correct: bool, reason: str) -> dict:
         "called": s["called"],
         "guesses": list(s["guesses"]),
         "note": case.get("reveal_note"),
+        "debrief": _debrief(case),
         "accuracy": accuracy,
         "rows": rows,
         "xp": xp,

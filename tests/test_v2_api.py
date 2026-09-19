@@ -332,3 +332,82 @@ class TestTheView:
         assert d["chars"] > 0
         for term in d["terms"]:
             assert term["hits"] == 0, term["term"] + " is in the prompt"
+
+
+class TestTheDebrief:
+    """The teaching half of the case, shown only once the round has closed.
+
+    Every field in it names or implies the answer, so the whole value of the
+    feature depends on it arriving late. These guard that.
+    """
+
+    def test_it_is_absent_from_every_payload_of_a_live_round(self, app):
+        s = _start(app, case="georges")
+        sid = s["session"]
+        assert "debrief" not in s
+
+        assert "debrief" not in app.get("/api/v2/state/" + sid).json()
+        assert "debrief" not in app.post("/api/v2/ask/" + sid,
+                                         json={"text": "what heats the house"}).json()
+        assert "debrief" not in app.post("/api/v2/examine/" + sid,
+                                         json={"exam": "general"}).json()
+
+        # a wrong call does not end the round, so it must not teach either
+        wrong = app.post("/api/v2/diagnose/" + sid, json={"text": "a migraine"}).json()
+        assert wrong["resolved"] is False
+        assert "debrief" not in wrong
+
+    def test_a_live_round_never_serves_the_teaching_text(self, app):
+        """Not just the key: none of the words, by any route a player has."""
+        s = _start(app, case="georges")
+        sid = s["session"]
+        case = v2._case("georges")
+        pearls = " ".join(case["teaching"]["pearls"]).lower()
+
+        blob = (repr(app.get("/api/v2/state/" + sid).json())
+                + repr(app.post("/api/v2/ask/" + sid,
+                                json={"text": "when do the headaches come"}).json())).lower()
+        for sentence in pearls.split(". "):
+            head = sentence.strip()[:40]
+            if head:
+                assert head not in blob
+
+    def test_it_arrives_when_the_round_resolves(self, app):
+        s = _start(app, case="georges")
+        d = app.post("/api/v2/diagnose/" + s["session"],
+                     json={"text": "carbon monoxide"}).json()
+        assert d["resolved"] is True and d["correct"] is True
+
+        db = d["debrief"]
+        case = v2._case("georges")
+        assert db["summary"] == case["teaching"]["summary"]
+        assert db["pearls"] == case["teaching"]["pearls"]
+        assert db["management"] == case["management_points"]
+        assert db["guidelines"] == case["guidelines"]
+
+        # the traps are the point: a plausible, well-meant, harmful decision
+        assert db["traps"], "georges has harmful_treatments and they must show"
+        assert any("oximeter" in t["why"].lower() for t in db["traps"])
+
+        # every key question paired with the reason it mattered
+        assert len(db["threads"]) == len(case["key_questions"])
+        for t in db["threads"]:
+            assert t["question"] and t["why"]
+
+    def test_giving_up_still_teaches(self, app):
+        """The player who walks away is the one who most needs the debrief."""
+        s = _start(app, case="hana")
+        d = app.post("/api/v2/diagnose/" + s["session"], json={"final": True}).json()
+        assert d["resolved"] is True and d["correct"] is False
+        assert d["debrief"]["summary"]
+        assert d["debrief"]["pearls"]
+
+    def test_every_case_has_something_to_teach(self, app):
+        thin = []
+        for cid in v2.CASES:
+            s = _start(app, case=cid)
+            d = app.post("/api/v2/diagnose/" + s["session"], json={"final": True}).json()
+            db = d["debrief"]
+            if not (db["summary"] and db["pearls"] and db["threads"] and db["management"]):
+                thin.append(cid)
+        assert not thin, "these cases have no debrief worth showing: " + repr(thin)

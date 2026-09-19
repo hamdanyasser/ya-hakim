@@ -263,5 +263,16 @@
       "Restrictive transfusion saves lives; over-transfusion does not.",
       "The patient who wants to leave for work is often the sickest in the department."
     ]
-  }
+  },
+  "key_question_reasons": [
+    "Eight or nine a day, bought by the box, for months. High-dose NSAIDs on an empty stomach for ten-hour shifts is the cause, and he calls it 'a couple a week'.",
+    "Black tarry stool is digested blood. It is the finding that turns a sore stomach into an emergency.",
+    "Coffee-ground vomit is the same blood from the other end, and tells you the bleed is upper gastrointestinal.",
+    "Alcohol on top of NSAIDs multiplies the risk, and changes what you watch for after admission."
+  ],
+  "guidelines": [
+    "nice-cg141",
+    "nice-cg174",
+    "rcuk-abcde"
+  ]
 }

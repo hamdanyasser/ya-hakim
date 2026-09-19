@@ -706,8 +706,61 @@
       $('levelUp').style.display = 'none';
     }
 
+    drawDebrief(result.debrief);
     drawLadder();
     show('reveal');
+  }
+
+  /* The teaching half. All of this was already written in the case file and
+     never shown to anyone -- it only arrives once the round has resolved, so
+     there is nothing here to leak mid-encounter. Collapsed by default: the
+     score is the ending, this is for whoever wants it. */
+  function drawDebrief(d) {
+    var wrap = $('debrief'), body = $('debriefBody');
+    if (!wrap || !body) return;
+    if (!d) { wrap.style.display = 'none'; return; }
+
+    var html = '';
+    if (d.summary) html += '<p class="db-sum">' + esc(d.summary) + '</p>';
+
+    if (d.threads && d.threads.length) {
+      html += '<h4>The questions that mattered</h4><ol class="db-threads">';
+      d.threads.forEach(function (t) {
+        html += '<li><b>' + esc(t.question) + '</b><span>' + esc(t.why) + '</span></li>';
+      });
+      html += '</ol>';
+    }
+
+    if (d.traps && d.traps.length) {
+      html += '<h4>What would have harmed him</h4><ul class="db-traps">';
+      d.traps.forEach(function (t) {
+        html += '<li><b>' + esc(t.what) + '</b> &mdash; ' + esc(t.why) + '</li>';
+      });
+      html += '</ul>';
+    }
+
+    if (d.management && d.management.length) {
+      html += '<h4>What you would actually do</h4><ul class="db-list">';
+      d.management.forEach(function (m) { html += '<li>' + esc(m) + '</li>'; });
+      html += '</ul>';
+    }
+
+    if (d.pearls && d.pearls.length) {
+      html += '<h4>Remember this</h4><ul class="db-pearls">';
+      d.pearls.forEach(function (p) { html += '<li>' + esc(p) + '</li>'; });
+      html += '</ul>';
+    }
+
+    if (d.guidelines && d.guidelines.length) {
+      html += '<p class="db-refs">Real guidance this follows: ' +
+              d.guidelines.map(esc).join(' &middot; ') + '</p>';
+    }
+
+    if (!html) { wrap.style.display = 'none'; return; }
+    body.innerHTML = html;
+    wrap.style.display = 'block';
+    wrap.classList.remove('open');
+    $('debriefToggle').innerHTML = 'What you should take away &#9662;';
   }
 
   /* -------------------------------------------------------------- flow */
@@ -784,6 +837,11 @@
   /* back, one glyph in the same corner on every screen */
   $('pickBack').onclick = function () { show('splash'); };
   $('briefBack').onclick = function () { show('pick'); };
+  $('debriefToggle').onclick = function () {
+    var w = $('debrief'), open = w.classList.toggle('open');
+    this.innerHTML = (open ? 'Hide that &#9652;' : 'What you should take away &#9662;');
+  };
+
   $('revealBack').onclick = function () { $('againBtn').click(); };
 
   $('againBtn').onclick = function () {

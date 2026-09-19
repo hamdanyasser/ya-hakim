@@ -260,5 +260,16 @@
       "A normal chest examination is a reason to worry, not to relax.",
       "The combined pill plus immobility is the commonest risk pair you will meet."
     ]
-  }
+  },
+  "key_question_reasons": [
+    "Fourteen hours in a middle seat she never got out of, not the 'short hop' she called it. Long-haul immobility is the risk factor she talked herself out of.",
+    "A tight, tender calf since landing is the clot that threw the embolus.",
+    "Pain that is worse on breathing in is pleuritic, and points at the lung rather than the heart.",
+    "The combined pill is an independent risk factor and one that women are rarely asked about directly."
+  ],
+  "guidelines": [
+    "esc-pe-2019",
+    "nice-ng158",
+    "bts-oxygen-2017"
+  ]
 }

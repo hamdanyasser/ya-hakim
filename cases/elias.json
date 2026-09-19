@@ -257,5 +257,15 @@
       "No antiplatelet until the scan has excluded a bleed.",
       "An irregular pulse tells you how to stop the next one."
     ]
-  }
+  },
+  "key_question_reasons": [
+    "Four in the morning, not nine. The time of onset decides whether he can be thrombolysed, and he hid the only fact that matters.",
+    "Unilateral arm weakness on the FAST test -- the fastest bedside confirmation there is.",
+    "Slurred or absent speech localises the stroke and raises the severity score.",
+    "Facial droop completes FAST. Any one of the three is enough to call a stroke alert."
+  ],
+  "guidelines": [
+    "nice-ng128",
+    "rcuk-abcde"
+  ]
 }

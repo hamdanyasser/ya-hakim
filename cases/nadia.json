@@ -252,5 +252,16 @@
       "Speaking in short phrases is an objective sign, and it is free.",
       "Steroids in the first hour change the admission, not just the day."
     ]
-  }
+  },
+  "key_question_reasons": [
+    "The blue reliever was never the one preventing attacks. The brown preventer was, and she stopped it in the spring -- this is the whole case.",
+    "Days of getting worse, not hours. A slow build means she has been running on a failing airway and has no reserve left tonight.",
+    "Waking at night with it is the classic marker of poor control, and the one patients volunteer least.",
+    "A previous admission for her chest is the single strongest predictor that this attack can kill her."
+  ],
+  "guidelines": [
+    "bts-asthma-2024",
+    "gina-2024",
+    "bts-oxygen-2017"
+  ]
 }

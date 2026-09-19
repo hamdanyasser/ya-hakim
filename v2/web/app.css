@@ -621,3 +621,77 @@ body.noroom .room { display: none; }
   .sheet { padding: 20px; }
   .overlay { padding: 16px; }
 }
+
+/* ------------------------------------------------------------- debrief
+   The teaching half of the case, on the reveal screen. Collapsed by
+   default -- the score is the ending; this is for whoever wants it. */
+.debrief { width: min(860px, 94vw); margin: 4px auto 0; text-align: left; }
+.debrief > .btn { display: block; margin: 0 auto; }
+
+.debrief-body {
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: max-height .35s ease, opacity .25s ease, margin .25s ease;
+}
+.debrief.open .debrief-body {
+  max-height: 3000px;
+  opacity: 1;
+  margin-top: 16px;
+  padding: 22px 26px;
+  background: var(--card);
+  border: var(--stroke) solid var(--line);
+  border-radius: var(--r-md);
+  box-shadow: var(--plush-sm);
+}
+
+.debrief-body h4 {
+  margin: 20px 0 8px;
+  font-size: 15px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.debrief-body h4:first-child { margin-top: 0; }
+
+.db-sum {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.55;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.debrief-body ul, .debrief-body ol { margin: 0; padding-left: 22px; }
+.debrief-body li { margin: 7px 0; line-height: 1.5; color: var(--ink); }
+
+.db-threads li b { display: block; }
+.db-threads li span { color: var(--ink-soft); font-size: 15px; }
+
+/* The traps are the part that matters most: what a plausible, well-meant
+   decision would have cost him. Marked so the eye goes there. */
+.db-traps {
+  list-style: none;
+  padding-left: 0;
+}
+.db-traps li {
+  border-left: var(--stroke) solid var(--bubble-deep);
+  background: color-mix(in srgb, var(--bubble) 22%, transparent);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  padding: 10px 14px;
+  margin: 8px 0;
+}
+
+.db-pearls li::marker { color: var(--mint-deep); }
+
+.db-refs {
+  margin: 18px 0 0;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  color: var(--ink-soft);
+}
+
+@media (max-width: 560px) {
+  .debrief.open .debrief-body { padding: 16px 18px; }
+  .db-sum { font-size: 16px; }
+}

@@ -259,5 +259,15 @@
       "Vomiting that is dark and bitter is a distal obstruction until proven otherwise.",
       "Old scars mean adhesions, but a new lump beats an old scar."
     ]
-  }
+  },
+  "key_question_reasons": [
+    "Eight days without opening her bowels, not the one morning she admitted to. Absolute constipation with no wind is obstruction.",
+    "Vomiting that has turned faeculent tells you how high the obstruction sits and how long it has been there.",
+    "Distension with tinkling bowel sounds is the examination finding that confirms what the history suggests.",
+    "Previous surgery means adhesions, the commonest cause -- and the groin lump she has ignored for years is the other."
+  ],
+  "guidelines": [
+    "nice-cg174",
+    "rcuk-abcde"
+  ]
 }
