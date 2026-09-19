@@ -1,15 +1,14 @@
 """The server.
 
-Two products share one process:
+One page, at /: the game. Nine patients, one clock, one thing each of them is
+hiding. Everything the player needs is on that screen.
 
-- /app          solo practice for medical and nursing schools: accounts,
-                cohorts, assignments, the encounter, the debrief, dashboards,
-                the case editor, billing.
-- /screen /play the classroom mode: one projector, a room of phones, one
-                patient, one clock.
+The classroom projector mode and the schools product are still in this tree and
+still under test, but nothing is routed to them any more -- the project is the
+game, and one address is the whole of it.
 
 Clients receive what the engine chooses to send and nothing else. No endpoint
-returns a case file to a learner; the encounter and room objects are never
+returns a case file to a player; the encounter and room objects are never
 serialised whole.
 """
 
@@ -39,7 +38,7 @@ from server import rooms as registry                                   # noqa: E
 from server import ws as sockets                                       # noqa: E402
 from v2.server import api as v2_api                                    # noqa: E402
 
-WEB = Path(__file__).resolve().parent.parent / "web"
+V2WEB = Path(__file__).resolve().parent.parent / "v2" / "web"
 
 @asynccontextmanager
 async def lifespan(_app):
@@ -77,52 +76,18 @@ async def _headers(request: Request, call_next):
 
 
 # --------------------------------------------------------------------- pages
+#
+# There is one page now, and it is the game. The classroom projector view, the
+# schools product and the proving ground are no longer served: their code is
+# still in the tree and still under test, but nothing routes to them, so the
+# whole thing is one address and one thing to explain.
+#
+# The game carries its own proof sheet (GET /api/v2/proof/{sid}), so retiring
+# /prove costs the demo nothing.
 
 @app.get("/")
 async def index():
-    return FileResponse(WEB / "index.html")
-
-
-@app.get("/app")
-@app.get("/app/{rest:path}")
-async def app_shell(rest: str = ""):
-    return FileResponse(WEB / "app.html")
-
-
-@app.get("/practice/{enc_id}")
-async def practice_page(enc_id: str):
-    return FileResponse(WEB / "practice.html")
-
-
-@app.get("/prove")
-async def prove():
-    """The proving ground: the room tries to break the guarantee, live."""
-    return FileResponse(WEB / "prove.html")
-
-
-@app.get("/attack")
-async def attack_page():
-    return FileResponse(WEB / "attack.html")
-
-
-@app.get("/api/prove/qr.svg")
-async def prove_qr(request: Request):
-    host = request.headers.get("host", "localhost")
-    buf = io.BytesIO()
-    segno.make("http://" + host + "/attack", error="m").save(
-        buf, kind="svg", scale=10, border=4, dark="#000000", light="#ffffff")
-    return Response(buf.getvalue(), media_type="image/svg+xml",
-                    headers={"Cache-Control": "no-store"})
-
-
-@app.get("/screen")
-async def screen():
-    return FileResponse(WEB / "screen.html")
-
-
-@app.get("/play")
-async def play():
-    return FileResponse(WEB / "play.html")
+    return FileResponse(V2WEB / "app.html")
 
 
 FAVICON = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">'
@@ -148,15 +113,12 @@ async def healthz():
     return {"ok": True}
 
 
-app.mount("/static", StaticFiles(directory=str(WEB)), name="static")
-
-V2WEB = Path(__file__).resolve().parent.parent / "v2" / "web"
 app.mount("/v2", StaticFiles(directory=str(V2WEB)), name="v2")
 
 
 @app.get("/play2")
 async def play_v2():
-    """The rebuilt single-screen game."""
+    """Kept so older links and printed QR codes still land on the game."""
     return FileResponse(V2WEB / "app.html")
 
 
